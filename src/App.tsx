@@ -18,6 +18,7 @@ import MistakeDiary from "./pages/MistakeDiary";
 import Settings from "./pages/Settings";
 import TelcExam from "./pages/TelcExam";
 import TelcExamSection from "./pages/TelcExamSection";
+import AICompanion from "./pages/AICompanion";
 import AuthPage from "./components/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/telc-exam" element={<TelcExam />} />
           <Route path="/telc-exam/:section" element={<TelcExamSection />} />
+          <Route path="/ai-companion" element={<AICompanion />} />
           <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
