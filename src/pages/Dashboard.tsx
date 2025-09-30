@@ -9,15 +9,17 @@ import { BookOpen, MessageSquare, Target, Brain, TrendingUp, AlertCircle, CheckC
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Navbar from "@/components/Navbar";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [user, setUser] = useState<any>(null);
   const [progress, setProgress] = useState<any>(null);
   const [mistakes, setMistakes] = useState<any[]>([]);
   const [weeklyActivity, setWeeklyActivity] = useState<any[]>([]);
-  const [serverHealth, setServerHealth] = useState<'healthy' | 'degraded' | 'down'>('healthy');
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -60,34 +62,24 @@ const Dashboard = () => {
       ];
       setWeeklyActivity(mockWeeklyData);
 
-      // Check server health
-      checkServerHealth();
+      // Get AI analysis
+      if (mistakesData && mistakesData.length > 0) {
+        const { data: analysisData } = await supabase.functions.invoke('analyze-progress', {
+          body: { mistakes: mistakesData, progress: progressData }
+        });
+        if (analysisData) {
+          setAiAnalysis(analysisData);
+        }
+      }
+
       setLoading(false);
     };
 
     checkUser();
   }, [navigate]);
 
-  const checkServerHealth = async () => {
-    try {
-      const start = Date.now();
-      const { error } = await supabase.from("user_progress").select("count").limit(1);
-      const latency = Date.now() - start;
-      
-      if (error) {
-        setServerHealth('down');
-      } else if (latency > 1000) {
-        setServerHealth('degraded');
-      } else {
-        setServerHealth('healthy');
-      }
-    } catch {
-      setServerHealth('down');
-    }
-  };
-
-  // Analyze weak spots
-  const analyzeWeakSpots = () => {
+  // Use AI analysis or fallback to basic analysis
+  const weakSpots = aiAnalysis?.weakSpots || (() => {
     const mistakesByType: { [key: string]: number } = {};
     const mistakesByCategory: { [key: string]: number } = {};
     
@@ -96,15 +88,19 @@ const Dashboard = () => {
       mistakesByCategory[m.category] = (mistakesByCategory[m.category] || 0) + 1;
     });
 
-    const weakSpots = [
-      ...Object.entries(mistakesByType).map(([type, count]) => ({ name: type, count, category: 'Error Type' })),
-      ...Object.entries(mistakesByCategory).map(([cat, count]) => ({ name: cat, count, category: 'Grammar Area' }))
-    ].sort((a, b) => b.count - a.count).slice(0, 5);
-
-    return weakSpots;
-  };
-
-  const weakSpots = analyzeWeakSpots();
+    return [
+      ...Object.entries(mistakesByType).map(([type, count]) => ({ 
+        name: type, 
+        severity: Math.min(10, count),
+        recommendation: `Practice ${type} exercises`
+      })),
+      ...Object.entries(mistakesByCategory).map(([cat, count]) => ({ 
+        name: cat, 
+        severity: Math.min(10, count),
+        recommendation: `Focus on ${cat} grammar`
+      }))
+    ].sort((a, b) => b.severity - a.severity).slice(0, 5);
+  })();
 
   const getRecommendations = () => {
     const recs = [];
@@ -150,28 +146,21 @@ const Dashboard = () => {
       <Navbar />
       
       <div className="container max-w-7xl mx-auto p-4 space-y-6">
-        {/* Header with Server Status */}
+        {/* Header */}
         <div className="flex items-center justify-between pt-4">
-          <h1 className="text-4xl font-bold text-gradient">Dashboard</h1>
-          <Card className="glass px-4 py-2">
-            <div className="flex items-center gap-2">
-              {serverHealth === 'healthy' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-              {serverHealth === 'degraded' && <AlertCircle className="w-4 h-4 text-yellow-500" />}
-              {serverHealth === 'down' && <AlertCircle className="w-4 h-4 text-destructive" />}
-              <span className="text-sm font-medium">
-                {serverHealth === 'healthy' && 'All Systems Operational'}
-                {serverHealth === 'degraded' && 'Degraded Performance'}
-                {serverHealth === 'down' && 'System Down'}
-              </span>
-            </div>
-          </Card>
+          <h1 className="text-4xl font-bold text-gradient">{t('dashboard.title')}</h1>
+          {aiAnalysis?.overallAssessment && (
+            <Card className="glass px-4 py-2 max-w-md">
+              <p className="text-sm text-muted-foreground">{aiAnalysis.overallAssessment}</p>
+            </Card>
+          )}
         </div>
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="glass">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Words Learned</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.wordsLearned')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
@@ -179,13 +168,13 @@ const Dashboard = () => {
                 <Target className="w-8 h-8 text-primary opacity-50" />
               </div>
               <Progress value={(progress?.words_learned || 0) / 10} className="mt-3" />
-              <p className="text-xs text-muted-foreground mt-2">Goal: 1000 words</p>
+              <p className="text-xs text-muted-foreground mt-2">{t('dashboard.goal')}: 1000 {t('dashboard.words')}</p>
             </CardContent>
           </Card>
           
           <Card className="glass">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Exercises Done</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.exercisesDone')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
@@ -193,33 +182,33 @@ const Dashboard = () => {
                 <BookOpen className="w-8 h-8 text-accent opacity-50" />
               </div>
               <Progress value={(progress?.exercises_completed || 0) / 5} className="mt-3" />
-              <p className="text-xs text-muted-foreground mt-2">Goal: 500 exercises</p>
+              <p className="text-xs text-muted-foreground mt-2">{t('dashboard.goal')}: 500 {t('dashboard.exercises')}</p>
             </CardContent>
           </Card>
           
           <Card className="glass">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Current Streak</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.currentStreak')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-3xl font-bold text-primary">{progress?.streak_days || 0}</div>
                 <Brain className="w-8 h-8 text-primary opacity-50" />
               </div>
-              <p className="text-xs text-muted-foreground mt-5">🔥 Keep it going!</p>
+              <p className="text-xs text-muted-foreground mt-5">{t('dashboard.keepGoing')}</p>
             </CardContent>
           </Card>
 
           <Card className="glass">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Mistakes</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.totalMistakes')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="text-3xl font-bold text-destructive">{mistakes.length}</div>
                 <AlertCircle className="w-8 h-8 text-destructive opacity-50" />
               </div>
-              <p className="text-xs text-muted-foreground mt-5">Learning opportunities</p>
+              <p className="text-xs text-muted-foreground mt-5">{t('dashboard.learningOpportunities')}</p>
             </CardContent>
           </Card>
         </div>
@@ -231,9 +220,9 @@ const Dashboard = () => {
             {/* Weekly Activity Chart */}
             <Card className="glass">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-primary" />
-                  Weekly Activity
+                  {t('dashboard.weeklyActivity')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -262,33 +251,57 @@ const Dashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-destructive" />
-                  Areas Needing Focus
+                  {t('dashboard.weakSpots')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {weakSpots.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <CheckCircle2 className="w-12 h-12 mx-auto mb-3 text-green-500" />
-                    <p>No weak spots identified yet. Keep practicing!</p>
+                    <p>{t('dashboard.noWeakSpots')}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {weakSpots.map((spot, idx) => (
+                    {weakSpots.map((spot: any, idx: number) => (
                       <div key={idx} className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <div>
+                          <div className="flex-1">
                             <p className="font-medium capitalize">{spot.name}</p>
-                            <p className="text-xs text-muted-foreground">{spot.category}</p>
+                            <p className="text-xs text-muted-foreground">{spot.recommendation}</p>
                           </div>
-                          <Badge variant="destructive">{spot.count} errors</Badge>
+                          <Badge variant="destructive">
+                            {spot.severity}/10
+                          </Badge>
                         </div>
-                        <Progress value={(spot.count / mistakes.length) * 100} className="h-2" />
+                        <Progress value={spot.severity * 10} className="h-2" />
                       </div>
                     ))}
                   </div>
                 )}
               </CardContent>
             </Card>
+
+            {/* AI Strengths */}
+            {aiAnalysis?.strengths && aiAnalysis.strengths.length > 0 && (
+              <Card className="glass">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-green-500">
+                    <CheckCircle2 className="w-5 h-5" />
+                    Your Strengths
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {aiAnalysis.strengths.map((strength: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5" />
+                        <span className="text-sm">{strength}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Right Column - Recommendations & Mistakes */}
@@ -298,19 +311,19 @@ const Dashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Brain className="w-5 h-5 text-primary" />
-                  Recommended Next Steps
+                  {t('dashboard.recommendations')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {recommendations.map((rec, idx) => (
+                {(aiAnalysis?.nextSteps || recommendations).slice(0, 4).map((rec: any, idx: number) => (
                   <Button
                     key={idx}
                     variant="outline"
-                    className="w-full justify-start glass hover:glow"
-                    onClick={() => navigate(rec.path)}
+                    className="w-full justify-start glass hover:glow text-left"
+                    onClick={() => rec.path && navigate(rec.path)}
                   >
-                    <rec.icon className="w-4 h-4 mr-2" />
-                    {rec.text}
+                    {rec.icon && <rec.icon className="w-4 h-4 mr-2 flex-shrink-0" />}
+                    <span className="flex-1">{rec.text || rec}</span>
                   </Button>
                 ))}
               </CardContent>
@@ -320,7 +333,7 @@ const Dashboard = () => {
             {mistakeDistribution.length > 0 && (
               <Card className="glass">
                 <CardHeader>
-                  <CardTitle className="text-sm">Mistake Distribution</CardTitle>
+                  <CardTitle className="text-sm">{t('dashboard.mistakeDistribution')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={200}>

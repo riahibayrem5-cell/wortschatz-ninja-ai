@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,14 +11,51 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Sparkles, Menu, LogOut, Settings, Home } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Sparkles, Menu, LogOut, Settings, Home, Sun, Moon, Languages, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { language, setLanguage, t } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('theme');
+    return (saved as 'light' | 'dark') || 'dark';
+  });
+  const [serverHealth, setServerHealth] = useState<'healthy' | 'degraded' | 'down'>('healthy');
+
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
+
+  useEffect(() => {
+    checkServerHealth();
+    const interval = setInterval(checkServerHealth, 30000); // Check every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const checkServerHealth = async () => {
+    try {
+      const start = Date.now();
+      const { error } = await supabase.from("user_progress").select("count").limit(1);
+      const latency = Date.now() - start;
+      
+      if (error) {
+        setServerHealth('down');
+      } else if (latency > 1000) {
+        setServerHealth('degraded');
+      } else {
+        setServerHealth('healthy');
+      }
+    } catch {
+      setServerHealth('down');
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -30,30 +67,30 @@ const Navbar = () => {
     {
       label: "Foundations",
       items: [
-        { name: "Vocabulary Generator", path: "/vocabulary" },
-        { name: "Sentence Generator", path: "/sentence-generator" },
-        { name: "Writing Assistant", path: "/writing" },
+        { name: t('nav.vocabulary'), path: "/vocabulary" },
+        { name: t('nav.sentence'), path: "/sentence-generator" },
+        { name: t('nav.writing'), path: "/writing" },
       ],
     },
     {
       label: "Practice",
       items: [
-        { name: "Exercises", path: "/exercises" },
-        { name: "The Memorizer", path: "/memorizer" },
+        { name: t('nav.exercises'), path: "/exercises" },
+        { name: t('nav.memorizer'), path: "/memorizer" },
       ],
     },
     {
       label: "Communication",
       items: [
-        { name: "Conversation Practice", path: "/conversation" },
-        { name: "Text Highlighter", path: "/highlighter" },
+        { name: t('nav.conversation'), path: "/conversation" },
+        { name: t('nav.highlighter'), path: "/highlighter" },
       ],
     },
     {
       label: "Progress",
       items: [
-        { name: "Review", path: "/review" },
-        { name: "Mistake Diary", path: "/diary" },
+        { name: t('nav.review'), path: "/review" },
+        { name: t('nav.diary'), path: "/diary" },
       ],
     },
   ];
@@ -73,7 +110,7 @@ const Navbar = () => {
         </button>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-4">
           <Button
             variant="ghost"
             size="sm"
@@ -81,7 +118,7 @@ const Navbar = () => {
             className={isActive("/dashboard") ? "text-primary" : ""}
           >
             <Home className="w-4 h-4 mr-2" />
-            Dashboard
+            {t('nav.dashboard')}
           </Button>
 
           {menuSections.map((section) => (
@@ -107,6 +144,53 @@ const Navbar = () => {
             </DropdownMenu>
           ))}
 
+          {/* Server Status */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                {serverHealth === 'healthy' && <CheckCircle2 className="w-5 h-5 text-green-500" />}
+                {serverHealth === 'degraded' && <AlertCircle className="w-5 h-5 text-yellow-500" />}
+                {serverHealth === 'down' && <AlertCircle className="w-5 h-5 text-destructive" />}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <div className="px-2 py-1.5 text-sm font-semibold">
+                {serverHealth === 'healthy' && t('server.healthy')}
+                {serverHealth === 'degraded' && t('server.degraded')}
+                {serverHealth === 'down' && t('server.down')}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Language Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Languages className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setLanguage('en')}>
+                English {language === 'en' && '✓'}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLanguage('de')}>
+                Deutsch {language === 'de' && '✓'}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLanguage('ar')}>
+                العربية {language === 'ar' && '✓'}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Theme Toggle */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </Button>
+
           <Button
             variant="ghost"
             size="sm"
@@ -123,7 +207,7 @@ const Navbar = () => {
             className="glass"
           >
             <LogOut className="w-4 h-4 mr-2" />
-            Logout
+            {t('nav.logout')}
           </Button>
         </div>
 
@@ -145,7 +229,7 @@ const Navbar = () => {
                 className="justify-start"
               >
                 <Home className="w-4 h-4 mr-2" />
-                Dashboard
+                {t('nav.dashboard')}
               </Button>
 
               {menuSections.map((section) => (
@@ -171,6 +255,18 @@ const Navbar = () => {
                 </div>
               ))}
 
+              <div className="flex items-center gap-2 pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                >
+                  {theme === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                  {theme === 'dark' ? t('theme.light') : t('theme.dark')}
+                </Button>
+              </div>
+
               <Button
                 variant="ghost"
                 onClick={() => {
@@ -180,7 +276,7 @@ const Navbar = () => {
                 className="justify-start"
               >
                 <Settings className="w-4 h-4 mr-2" />
-                Settings
+                {t('nav.settings')}
               </Button>
 
               <Button
@@ -192,7 +288,7 @@ const Navbar = () => {
                 className="justify-start glass"
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                Logout
+                {t('nav.logout')}
               </Button>
             </div>
           </SheetContent>

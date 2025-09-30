@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.highlight-text]
 verify_jwt = true
+
+[functions.analyze-progress]
+verify_jwt = true
