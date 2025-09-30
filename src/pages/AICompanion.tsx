@@ -74,7 +74,6 @@ const AICompanion = () => {
 
   useEffect(() => {
     loadUserProgress();
-    startCompanion();
   }, []);
 
   const loadUserProgress = async () => {
@@ -377,6 +376,36 @@ const AICompanion = () => {
               </CardHeader>
               
               <CardContent className="flex-1 overflow-y-auto space-y-4">
+                {messages.length === 0 && (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center space-y-4">
+                      <Brain className="w-16 h-16 mx-auto text-primary animate-pulse" />
+                      <div>
+                        <h3 className="text-xl font-semibold mb-2">Ready to Practice!</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Click "Start Conversation" to begin your AI-powered German practice session.
+                        </p>
+                        <Button
+                          onClick={startCompanion}
+                          disabled={isProcessing}
+                          className="gradient-primary hover:opacity-90"
+                        >
+                          {isProcessing ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Starting...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Start Conversation
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {messages.map((msg, idx) => (
                   <div
                     key={idx}

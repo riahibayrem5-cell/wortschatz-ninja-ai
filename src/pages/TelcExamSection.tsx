@@ -22,7 +22,8 @@ import {
   AlertCircle,
   BookOpen,
   Mic,
-  Volume2
+  Volume2,
+  Sparkles
 } from "lucide-react";
 
 interface Question {
@@ -67,10 +68,6 @@ const TelcExamSection = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [audioTranscript, setAudioTranscript] = useState("");
-
-  useEffect(() => {
-    loadContent();
-  }, [section]);
 
   useEffect(() => {
     if (timeLeft > 0 && !showResults) {
@@ -197,12 +194,38 @@ const TelcExamSection = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="container mx-auto px-4 py-20 text-center">
-          <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Content Not Available</h2>
-          <Button onClick={() => navigate('/telc-exam')} className="mt-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Exam Selection
+          <h2 className="text-2xl font-bold mb-4">Ready to Start?</h2>
+          <p className="text-muted-foreground mb-6">
+            Click the button below to generate your TELC B2 {section} exam section.
+          </p>
+          <Button 
+            onClick={loadContent} 
+            disabled={loading}
+            className="gradient-primary hover:opacity-90"
+            size="lg"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Generating Exam...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5 mr-2" />
+                Generate Exam Content
+              </>
+            )}
           </Button>
+          <div className="mt-4">
+            <Button 
+              onClick={() => navigate('/telc-exam')} 
+              variant="outline"
+              className="glass"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Exam Selection
+            </Button>
+          </div>
         </div>
       </div>
     );

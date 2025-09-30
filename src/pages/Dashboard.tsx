@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { BookOpen, MessageSquare, Target, Brain, TrendingUp, AlertCircle, CheckCircle2, Activity } from "lucide-react";
+import { BookOpen, MessageSquare, Target, Brain, TrendingUp, AlertCircle, CheckCircle2, Activity, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Navbar from "@/components/Navbar";
@@ -21,6 +21,40 @@ const Dashboard = () => {
   const [weeklyActivity, setWeeklyActivity] = useState<any[]>([]);
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [analyzingProgress, setAnalyzingProgress] = useState(false);
+
+  const analyzeProgressWithAI = async () => {
+    if (mistakes.length === 0) {
+      toast({ 
+        title: "No mistakes to analyze", 
+        description: "Complete some exercises first to get AI insights.",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    setAnalyzingProgress(true);
+    try {
+      const { data: analysisData, error } = await supabase.functions.invoke('analyze-progress', {
+        body: { mistakes, progress }
+      });
+      
+      if (error) throw error;
+      
+      if (analysisData) {
+        setAiAnalysis(analysisData);
+        toast({ title: "✨ AI Analysis Complete!", description: "Check your insights below" });
+      }
+    } catch (error: any) {
+      toast({ 
+        title: "Analysis Failed", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setAnalyzingProgress(false);
+    }
+  };
 
   useEffect(() => {
     const checkUser = async () => {
@@ -78,16 +112,6 @@ const Dashboard = () => {
         };
       });
       setWeeklyActivity(weeklyData);
-
-      // Get AI analysis
-      if (mistakesData && mistakesData.length > 0) {
-        const { data: analysisData } = await supabase.functions.invoke('analyze-progress', {
-          body: { mistakes: mistakesData, progress: progressData }
-        });
-        if (analysisData) {
-          setAiAnalysis(analysisData);
-        }
-      }
 
       setLoading(false);
     };
@@ -191,11 +215,31 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 sm:pt-4">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gradient">{t('dashboard.title')}</h1>
-          {aiAnalysis?.overallAssessment && (
-            <Card className="glass px-3 py-2 w-full sm:max-w-md">
-              <p className="text-xs sm:text-sm text-muted-foreground">{aiAnalysis.overallAssessment}</p>
-            </Card>
-          )}
+          <div className="flex gap-2 items-center w-full sm:w-auto">
+            <Button
+              onClick={analyzeProgressWithAI}
+              disabled={analyzingProgress || mistakes.length === 0}
+              variant="outline"
+              className="glass hover:glow flex-1 sm:flex-none"
+            >
+              {analyzingProgress ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Get AI Insights
+                </>
+              )}
+            </Button>
+            {aiAnalysis?.overallAssessment && (
+              <Card className="glass px-3 py-2 max-w-md">
+                <p className="text-xs sm:text-sm text-muted-foreground">{aiAnalysis.overallAssessment}</p>
+              </Card>
+            )}
+          </div>
         </div>
 
         {/* Key Metrics */}
