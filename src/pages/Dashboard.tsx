@@ -145,100 +145,101 @@ const Dashboard = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-7xl mx-auto p-4 space-y-6">
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between pt-4">
-          <h1 className="text-4xl font-bold text-gradient">{t('dashboard.title')}</h1>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 sm:pt-4">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gradient">{t('dashboard.title')}</h1>
           {aiAnalysis?.overallAssessment && (
-            <Card className="glass px-4 py-2 max-w-md">
-              <p className="text-sm text-muted-foreground">{aiAnalysis.overallAssessment}</p>
+            <Card className="glass px-3 py-2 w-full sm:max-w-md">
+              <p className="text-xs sm:text-sm text-muted-foreground">{aiAnalysis.overallAssessment}</p>
             </Card>
           )}
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card className="glass">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.wordsLearned')}</CardTitle>
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('dashboard.wordsLearned')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-primary">{progress?.words_learned || 0}</div>
-                <Target className="w-8 h-8 text-primary opacity-50" />
+                <div className="text-2xl sm:text-3xl font-bold text-primary">{progress?.words_learned || 0}</div>
+                <Target className="w-6 h-6 sm:w-8 sm:h-8 text-primary opacity-50" />
               </div>
-              <Progress value={(progress?.words_learned || 0) / 10} className="mt-3" />
-              <p className="text-xs text-muted-foreground mt-2">{t('dashboard.goal')}: 1000 {t('dashboard.words')}</p>
+              <Progress value={(progress?.words_learned || 0) / 10} className="mt-2 sm:mt-3" />
+              <p className="text-xs text-muted-foreground mt-1 sm:mt-2">{t('dashboard.goal')}: 1000 {t('dashboard.words')}</p>
             </CardContent>
           </Card>
           
           <Card className="glass">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.exercisesDone')}</CardTitle>
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('dashboard.exercisesDone')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-accent">{progress?.exercises_completed || 0}</div>
-                <BookOpen className="w-8 h-8 text-accent opacity-50" />
+                <div className="text-2xl sm:text-3xl font-bold text-accent">{progress?.exercises_completed || 0}</div>
+                <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-accent opacity-50" />
               </div>
-              <Progress value={(progress?.exercises_completed || 0) / 5} className="mt-3" />
-              <p className="text-xs text-muted-foreground mt-2">{t('dashboard.goal')}: 500 {t('dashboard.exercises')}</p>
+              <Progress value={(progress?.exercises_completed || 0) / 5} className="mt-2 sm:mt-3" />
+              <p className="text-xs text-muted-foreground mt-1 sm:mt-2">{t('dashboard.goal')}: 500 {t('dashboard.exercises')}</p>
             </CardContent>
           </Card>
           
           <Card className="glass">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.currentStreak')}</CardTitle>
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('dashboard.currentStreak')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-primary">{progress?.streak_days || 0}</div>
-                <Brain className="w-8 h-8 text-primary opacity-50" />
+                <div className="text-2xl sm:text-3xl font-bold text-primary">{progress?.streak_days || 0}</div>
+                <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-primary opacity-50" />
               </div>
-              <p className="text-xs text-muted-foreground mt-5">{t('dashboard.keepGoing')}</p>
+              <p className="text-xs text-muted-foreground mt-3 sm:mt-5">{t('dashboard.keepGoing')}</p>
             </CardContent>
           </Card>
 
           <Card className="glass">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{t('dashboard.totalMistakes')}</CardTitle>
+            <CardHeader className="pb-2 sm:pb-3">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('dashboard.totalMistakes')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-destructive">{mistakes.length}</div>
-                <AlertCircle className="w-8 h-8 text-destructive opacity-50" />
+                <div className="text-2xl sm:text-3xl font-bold text-destructive">{mistakes.length}</div>
+                <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 text-destructive opacity-50" />
               </div>
-              <p className="text-xs text-muted-foreground mt-5">{t('dashboard.learningOpportunities')}</p>
+              <p className="text-xs text-muted-foreground mt-3 sm:mt-5">{t('dashboard.learningOpportunities')}</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Left Column - Activity & Progress */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Weekly Activity Chart */}
             <Card className="glass">
               <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   {t('dashboard.weeklyActivity')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
+                <ResponsiveContainer width="100%" height={200} className="sm:h-[250px]">
                   <LineChart data={weeklyActivity}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" />
-                    <YAxis stroke="hsl(var(--muted-foreground))" />
+                    <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
                     <Tooltip 
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))', 
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
+                        borderRadius: '8px',
+                        fontSize: '12px'
                       }} 
                     />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Line type="monotone" dataKey="exercises" stroke="hsl(var(--primary))" strokeWidth={2} />
                     <Line type="monotone" dataKey="words" stroke="hsl(var(--accent))" strokeWidth={2} />
                   </LineChart>
@@ -249,31 +250,31 @@ const Dashboard = () => {
             {/* Weak Spots Analysis */}
             <Card className="glass">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-destructive" />
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
                   {t('dashboard.weakSpots')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {weakSpots.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <CheckCircle2 className="w-12 h-12 mx-auto mb-3 text-green-500" />
-                    <p>{t('dashboard.noWeakSpots')}</p>
+                  <div className="text-center py-6 sm:py-8 text-muted-foreground">
+                    <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 text-green-500" />
+                    <p className="text-sm">{t('dashboard.noWeakSpots')}</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {weakSpots.map((spot: any, idx: number) => (
                       <div key={idx} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <p className="font-medium capitalize">{spot.name}</p>
-                            <p className="text-xs text-muted-foreground">{spot.recommendation}</p>
+                        <div className="flex items-start sm:items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium capitalize text-sm sm:text-base truncate">{spot.name}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{spot.recommendation}</p>
                           </div>
-                          <Badge variant="destructive">
+                          <Badge variant="destructive" className="text-xs shrink-0">
                             {spot.severity}/10
                           </Badge>
                         </div>
-                        <Progress value={spot.severity * 10} className="h-2" />
+                        <Progress value={spot.severity * 10} className="h-1.5 sm:h-2" />
                       </div>
                     ))}
                   </div>
@@ -285,8 +286,8 @@ const Dashboard = () => {
             {aiAnalysis?.strengths && aiAnalysis.strengths.length > 0 && (
               <Card className="glass">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-500">
-                    <CheckCircle2 className="w-5 h-5" />
+                  <CardTitle className="flex items-center gap-2 text-green-500 text-sm sm:text-base">
+                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
                     Your Strengths
                   </CardTitle>
                 </CardHeader>
@@ -294,8 +295,8 @@ const Dashboard = () => {
                   <ul className="space-y-2">
                     {aiAnalysis.strengths.map((strength: string, idx: number) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5" />
-                        <span className="text-sm">{strength}</span>
+                        <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 mt-0.5 shrink-0" />
+                        <span className="text-xs sm:text-sm">{strength}</span>
                       </li>
                     ))}
                   </ul>
@@ -305,25 +306,26 @@ const Dashboard = () => {
           </div>
 
           {/* Right Column - Recommendations & Mistakes */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Recommendations */}
             <Card className="glass">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="w-5 h-5 text-primary" />
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                  <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   {t('dashboard.recommendations')}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2 sm:space-y-3">
                 {(aiAnalysis?.nextSteps || recommendations).slice(0, 4).map((rec: any, idx: number) => (
                   <Button
                     key={idx}
                     variant="outline"
-                    className="w-full justify-start glass hover:glow text-left"
+                    size="sm"
+                    className="w-full justify-start glass hover:glow text-left h-auto py-2 px-3"
                     onClick={() => rec.path && navigate(rec.path)}
                   >
-                    {rec.icon && <rec.icon className="w-4 h-4 mr-2 flex-shrink-0" />}
-                    <span className="flex-1">{rec.text || rec}</span>
+                    {rec.icon && <rec.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />}
+                    <span className="flex-1 text-xs sm:text-sm">{rec.text || rec}</span>
                   </Button>
                 ))}
               </CardContent>
@@ -333,10 +335,10 @@ const Dashboard = () => {
             {mistakeDistribution.length > 0 && (
               <Card className="glass">
                 <CardHeader>
-                  <CardTitle className="text-sm">{t('dashboard.mistakeDistribution')}</CardTitle>
+                  <CardTitle className="text-xs sm:text-sm">{t('dashboard.mistakeDistribution')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
+                  <ResponsiveContainer width="100%" height={180} className="sm:h-[200px]">
                     <PieChart>
                       <Pie
                         data={mistakeDistribution}
@@ -344,9 +346,10 @@ const Dashboard = () => {
                         cy="50%"
                         labelLine={false}
                         label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
+                        outerRadius={60}
                         fill="hsl(var(--primary))"
                         dataKey="value"
+                        style={{ fontSize: '11px' }}
                       >
                         {mistakeDistribution.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -356,7 +359,8 @@ const Dashboard = () => {
                         contentStyle={{ 
                           backgroundColor: 'hsl(var(--card))', 
                           border: '1px solid hsl(var(--border))',
-                          borderRadius: '8px'
+                          borderRadius: '8px',
+                          fontSize: '11px'
                         }} 
                       />
                     </PieChart>

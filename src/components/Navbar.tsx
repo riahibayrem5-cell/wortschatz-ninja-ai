@@ -99,43 +99,44 @@ const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
         {/* Logo */}
         <button
           onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
+          className="flex items-center gap-1.5 sm:gap-2 font-bold text-base sm:text-xl hover:opacity-80 transition-opacity"
         >
-          <Sparkles className="w-6 h-6 text-primary" />
-          <span className="text-gradient">WortschatzNinja</span>
+          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+          <span className="text-gradient hidden xs:inline">WortschatzNinja</span>
+          <span className="text-gradient xs:hidden">WN</span>
         </button>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden lg:flex items-center gap-2 xl:gap-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate("/dashboard")}
             className={isActive("/dashboard") ? "text-primary" : ""}
           >
-            <Home className="w-4 h-4 mr-2" />
-            {t('nav.dashboard')}
+            <Home className="w-4 h-4 mr-1.5" />
+            <span className="hidden xl:inline">{t('nav.dashboard')}</span>
           </Button>
 
           {menuSections.map((section) => (
             <DropdownMenu key={section.label}>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-xs xl:text-sm">
                   {section.label}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 glass border-border/50">
-                <DropdownMenuLabel>{section.label}</DropdownMenuLabel>
+              <DropdownMenuContent className="w-48 xl:w-56 glass border-border/50">
+                <DropdownMenuLabel className="text-xs xl:text-sm">{section.label}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {section.items.map((item) => (
                   <DropdownMenuItem
                     key={item.path}
                     onClick={() => navigate(item.path)}
-                    className={isActive(item.path) ? "bg-primary/10" : ""}
+                    className={`text-xs xl:text-sm ${isActive(item.path) ? "bg-primary/10" : ""}`}
                   >
                     {item.name}
                   </DropdownMenuItem>
@@ -147,14 +148,14 @@ const Navbar = () => {
           {/* Server Status */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative">
-                {serverHealth === 'healthy' && <CheckCircle2 className="w-5 h-5 text-green-500" />}
-                {serverHealth === 'degraded' && <AlertCircle className="w-5 h-5 text-yellow-500" />}
-                {serverHealth === 'down' && <AlertCircle className="w-5 h-5 text-destructive" />}
+              <Button variant="ghost" size="icon" className="relative h-8 w-8">
+                {serverHealth === 'healthy' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                {serverHealth === 'degraded' && <AlertCircle className="w-4 h-4 text-yellow-500" />}
+                {serverHealth === 'down' && <AlertCircle className="w-4 h-4 text-destructive" />}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <div className="px-2 py-1.5 text-sm font-semibold">
+            <DropdownMenuContent align="end" className="text-xs xl:text-sm">
+              <div className="px-2 py-1.5 font-semibold">
                 {serverHealth === 'healthy' && t('server.healthy')}
                 {serverHealth === 'degraded' && t('server.degraded')}
                 {serverHealth === 'down' && t('server.down')}
@@ -165,11 +166,11 @@ const Navbar = () => {
           {/* Language Selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Languages className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Languages className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="text-xs xl:text-sm">
               <DropdownMenuItem onClick={() => setLanguage('en')}>
                 English {language === 'en' && '✓'}
               </DropdownMenuItem>
@@ -185,17 +186,18 @@ const Navbar = () => {
           {/* Theme Toggle */}
           <Button 
             variant="ghost" 
-            size="icon" 
+            size="icon"
+            className="h-8 w-8"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
-            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
 
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
+            className="h-8 w-8"
             onClick={() => navigate("/settings")}
-            className={isActive("/settings") ? "text-primary" : ""}
           >
             <Settings className="w-4 h-4" />
           </Button>
@@ -204,48 +206,50 @@ const Navbar = () => {
             variant="outline"
             size="sm"
             onClick={handleLogout}
-            className="glass"
+            className="glass h-8"
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            {t('nav.logout')}
+            <LogOut className="w-3.5 h-3.5 xl:mr-1.5" />
+            <span className="hidden xl:inline text-xs">{t('nav.logout')}</span>
           </Button>
         </div>
 
         {/* Mobile Navigation */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="sm">
+          <SheetTrigger asChild className="lg:hidden">
+            <Button variant="ghost" size="icon" className="h-8 w-8">
               <Menu className="w-5 h-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-80 glass">
-            <div className="flex flex-col gap-4 mt-8">
+          <SheetContent side="right" className="w-[85vw] max-w-sm glass overflow-y-auto">
+            <div className="flex flex-col gap-3 mt-6">
               <Button
                 variant="ghost"
+                size="sm"
                 onClick={() => {
                   navigate("/dashboard");
                   setMobileOpen(false);
                 }}
-                className="justify-start"
+                className="justify-start h-9"
               >
                 <Home className="w-4 h-4 mr-2" />
                 {t('nav.dashboard')}
               </Button>
 
               {menuSections.map((section) => (
-                <div key={section.label} className="space-y-2">
-                  <h3 className="text-sm font-semibold text-muted-foreground px-3">
+                <div key={section.label} className="space-y-1.5">
+                  <h3 className="text-xs font-semibold text-muted-foreground px-3 pt-2">
                     {section.label}
                   </h3>
                   {section.items.map((item) => (
                     <Button
                       key={item.path}
                       variant="ghost"
+                      size="sm"
                       onClick={() => {
                         navigate(item.path);
                         setMobileOpen(false);
                       }}
-                      className={`w-full justify-start ${
+                      className={`w-full justify-start h-9 text-sm ${
                         isActive(item.path) ? "bg-primary/10" : ""
                       }`}
                     >
@@ -255,25 +259,46 @@ const Navbar = () => {
                 </div>
               ))}
 
-              <div className="flex items-center gap-2 pt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                >
-                  {theme === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
-                  {theme === 'dark' ? t('theme.light') : t('theme.dark')}
-                </Button>
+              <div className="flex flex-col gap-2 pt-3 border-t mt-3">
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="flex-1 h-9"
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  >
+                    {theme === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                    {theme === 'dark' ? t('theme.light') : t('theme.dark')}
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-9 px-3">
+                        <Languages className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="text-sm">
+                      <DropdownMenuItem onClick={() => setLanguage('en')}>
+                        English {language === 'en' && '✓'}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setLanguage('de')}>
+                        Deutsch {language === 'de' && '✓'}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setLanguage('ar')}>
+                        العربية {language === 'ar' && '✓'}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
 
               <Button
                 variant="ghost"
+                size="sm"
                 onClick={() => {
                   navigate("/settings");
                   setMobileOpen(false);
                 }}
-                className="justify-start"
+                className="justify-start h-9"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 {t('nav.settings')}
@@ -281,11 +306,12 @@ const Navbar = () => {
 
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => {
                   handleLogout();
                   setMobileOpen(false);
                 }}
-                className="justify-start glass"
+                className="justify-start glass h-9"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 {t('nav.logout')}
