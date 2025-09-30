@@ -6,13 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import AudioButton from "@/components/AudioButton";
+import Navbar from "@/components/Navbar";
+import { TELC_B2_TOPICS, GRAMMAR_BY_DIFFICULTY } from "@/utils/constants";
 
 const SentenceGenerator = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [difficulty, setDifficulty] = useState("B2");
+  const [difficulty, setDifficulty] = useState<'B1' | 'B2' | 'C1'>("B2");
   const [topic, setTopic] = useState("");
+  const [customTopic, setCustomTopic] = useState("");
   const [grammarFocus, setGrammarFocus] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -20,8 +24,9 @@ const SentenceGenerator = () => {
   const generateSentence = async () => {
     setLoading(true);
     try {
+      const finalTopic = topic === "custom" ? customTopic : topic;
       const { data, error } = await supabase.functions.invoke("generate-sentence", {
-        body: { difficulty, topic, grammarFocus },
+        body: { difficulty, topic: finalTopic, grammarFocus },
       });
 
       if (error) throw error;
@@ -35,25 +40,17 @@ const SentenceGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-hero p-4">
-      <div className="max-w-4xl mx-auto">
-        <Button
-          onClick={() => navigate("/dashboard")}
-          variant="outline"
-          size="sm"
-          className="mb-6 glass"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-
-        <Card className="p-8 glass mb-8">
+    <div className="min-h-screen gradient-hero">
+      <Navbar />
+      
+      <div className="container max-w-4xl mx-auto p-4">
+        <Card className="p-8 glass mb-8 mt-6">
           <h1 className="text-3xl font-bold mb-6 text-gradient">Sentence Generator</h1>
           
           <div className="space-y-4">
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Difficulty</label>
-              <Select value={difficulty} onValueChange={setDifficulty}>
+              <Select value={difficulty} onValueChange={(v) => setDifficulty(v as 'B1' | 'B2' | 'C1')}>
                 <SelectTrigger className="bg-background/50">
                   <SelectValue />
                 </SelectTrigger>
@@ -67,22 +64,45 @@ const SentenceGenerator = () => {
 
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Topic (optional)</label>
-              <Input
-                placeholder="e.g., travel, business, environment"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                className="bg-background/50"
-              />
+              <Select value={topic} onValueChange={setTopic}>
+                <SelectTrigger className="bg-background/50">
+                  <SelectValue placeholder="Select a topic or leave empty" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="">No specific topic</SelectItem>
+                  {TELC_B2_TOPICS.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                  <SelectItem value="custom">Custom Topic...</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {topic === "custom" && (
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">Custom Topic</label>
+                <Input
+                  placeholder="Enter your own topic..."
+                  value={customTopic}
+                  onChange={(e) => setCustomTopic(e.target.value)}
+                  className="bg-background/50"
+                />
+              </div>
+            )}
 
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Grammar Focus (optional)</label>
-              <Input
-                placeholder="e.g., Konjunktiv II, Passiv, Relativsätze"
-                value={grammarFocus}
-                onChange={(e) => setGrammarFocus(e.target.value)}
-                className="bg-background/50"
-              />
+              <Select value={grammarFocus} onValueChange={setGrammarFocus}>
+                <SelectTrigger className="bg-background/50">
+                  <SelectValue placeholder="Select grammar point or leave empty" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="">No specific grammar</SelectItem>
+                  {GRAMMAR_BY_DIFFICULTY[difficulty].map((g) => (
+                    <SelectItem key={g} value={g}>{g}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <Button
@@ -106,12 +126,18 @@ const SentenceGenerator = () => {
           <Card className="p-8 glass glow">
             <div className="space-y-6">
               <div>
-                <h3 className="text-sm text-muted-foreground mb-2">German</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm text-muted-foreground">German</h3>
+                  <AudioButton text={result.german} lang="de-DE" />
+                </div>
                 <p className="text-2xl font-semibold text-primary">{result.german}</p>
               </div>
 
               <div>
-                <h3 className="text-sm text-muted-foreground mb-2">English</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm text-muted-foreground">English</h3>
+                  <AudioButton text={result.english} lang="en-US" />
+                </div>
                 <p className="text-lg text-foreground">{result.english}</p>
               </div>
 

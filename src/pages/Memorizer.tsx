@@ -7,12 +7,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2, Eye, EyeOff, Plus } from "lucide-react";
+import { Loader2, Eye, EyeOff, Plus } from "lucide-react";
+import AudioButton from "@/components/AudioButton";
+import Navbar from "@/components/Navbar";
+import { TELC_B2_TOPICS } from "@/utils/constants";
 
 const Memorizer = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [theme, setTheme] = useState("");
+  const [customTheme, setCustomTheme] = useState("");
   const [difficulty, setDifficulty] = useState("B2");
   const [loading, setLoading] = useState(false);
   const [paragraph, setParagraph] = useState<any>(null);
@@ -20,8 +24,9 @@ const Memorizer = () => {
   const [showAnswer, setShowAnswer] = useState(false);
 
   const generateParagraph = async () => {
-    if (!theme.trim()) {
-      toast({ title: "Please enter a theme", variant: "destructive" });
+    const finalTheme = theme === "custom" ? customTheme : theme;
+    if (!finalTheme.trim()) {
+      toast({ title: "Please select or enter a theme", variant: "destructive" });
       return;
     }
 
@@ -30,7 +35,7 @@ const Memorizer = () => {
     setUserInput("");
     try {
       const { data, error } = await supabase.functions.invoke("generate-memorizer", {
-        body: { theme, difficulty },
+        body: { theme: finalTheme, difficulty },
       });
 
       if (error) throw error;
@@ -83,31 +88,40 @@ const Memorizer = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-hero p-4">
-      <div className="max-w-4xl mx-auto">
-        <Button
-          onClick={() => navigate("/dashboard")}
-          variant="outline"
-          size="sm"
-          className="mb-6 glass"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-
-        <Card className="p-8 glass mb-8">
+    <div className="min-h-screen gradient-hero">
+      <Navbar />
+      
+      <div className="container max-w-4xl mx-auto p-4">
+        <Card className="p-8 glass mb-8 mt-6">
           <h1 className="text-3xl font-bold mb-6 text-gradient">The Memorizer</h1>
           
           <div className="space-y-4">
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Theme</label>
-              <Input
-                placeholder="e.g., climate change, German culture, technology"
-                value={theme}
-                onChange={(e) => setTheme(e.target.value)}
-                className="bg-background/50"
-              />
+              <Select value={theme} onValueChange={setTheme}>
+                <SelectTrigger className="bg-background/50">
+                  <SelectValue placeholder="Select a TELC B2 theme" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {TELC_B2_TOPICS.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                  <SelectItem value="custom">Custom Theme...</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {theme === "custom" && (
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">Custom Theme</label>
+                <Input
+                  placeholder="Enter your own theme..."
+                  value={customTheme}
+                  onChange={(e) => setCustomTheme(e.target.value)}
+                  className="bg-background/50"
+                />
+              </div>
+            )}
 
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Difficulty</label>
@@ -168,10 +182,16 @@ const Memorizer = () => {
               {showAnswer ? (
                 <div className="space-y-4">
                   <div className="p-4 bg-background/30 rounded-lg">
-                    <p className="text-lg leading-relaxed">{paragraph.germanText}</p>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <p className="text-lg leading-relaxed flex-1">{paragraph.germanText}</p>
+                      <AudioButton text={paragraph.germanText} lang="de-DE" />
+                    </div>
                   </div>
                   <div className="p-4 bg-background/20 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-2">Translation:</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-muted-foreground">Translation:</p>
+                      <AudioButton text={paragraph.englishTranslation} lang="en-US" />
+                    </div>
                     <p className="text-foreground">{paragraph.englishTranslation}</p>
                   </div>
                   {paragraph.keyVocabulary && paragraph.keyVocabulary.length > 0 && (

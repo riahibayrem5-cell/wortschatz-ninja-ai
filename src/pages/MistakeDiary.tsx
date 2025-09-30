@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import Navbar from "@/components/Navbar";
 
 interface Mistake {
   id: string;
@@ -68,26 +69,21 @@ const MistakeDiary = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen gradient-hero flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen gradient-hero">
+        <Navbar />
+        <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen gradient-hero p-4">
-      <div className="max-w-6xl mx-auto">
-        <Button
-          onClick={() => navigate("/dashboard")}
-          variant="outline"
-          size="sm"
-          className="mb-6 glass"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-
-        <Card className="p-8 glass mb-8">
+    <div className="min-h-screen gradient-hero">
+      <Navbar />
+      
+      <div className="container max-w-6xl mx-auto p-4">
+        <Card className="p-8 glass mb-8 mt-6">
           <h1 className="text-3xl font-bold mb-6 text-gradient">Mistake Diary</h1>
           
           {Object.keys(mistakeTypes).length > 0 && (

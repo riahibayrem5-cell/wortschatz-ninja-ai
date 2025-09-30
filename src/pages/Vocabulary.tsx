@@ -4,8 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2, Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
+import AudioButton from "@/components/AudioButton";
+import Navbar from "@/components/Navbar";
+import { TELC_B2_TOPICS } from "@/utils/constants";
 
 interface VocabularyItem {
   word: string;
@@ -17,20 +21,23 @@ const Vocabulary = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [topic, setTopic] = useState("");
+  const [customTopic, setCustomTopic] = useState("");
   const [count, setCount] = useState(10);
   const [loading, setLoading] = useState(false);
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
 
   const generateVocabulary = async () => {
-    if (!topic.trim()) {
-      toast({ title: "Please enter a topic", variant: "destructive" });
+    const finalTopic = topic === "custom" ? customTopic : topic;
+    if (!finalTopic.trim()) {
+      toast({ title: "Please select or enter a topic", variant: "destructive" });
       return;
     }
 
     setLoading(true);
     try {
+      const finalTopic = topic === "custom" ? customTopic : topic;
       const { data, error } = await supabase.functions.invoke("generate-vocabulary", {
-        body: { topic, count },
+        body: { topic: finalTopic, count },
       });
 
       if (error) throw error;
@@ -82,31 +89,40 @@ const Vocabulary = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-hero p-4">
-      <div className="max-w-4xl mx-auto">
-        <Button
-          onClick={() => navigate("/dashboard")}
-          variant="outline"
-          size="sm"
-          className="mb-6 glass"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-
-        <Card className="p-8 glass mb-8">
+    <div className="min-h-screen gradient-hero">
+      <Navbar />
+      
+      <div className="container max-w-4xl mx-auto p-4">
+        <Card className="p-8 glass mb-8 mt-6">
           <h1 className="text-3xl font-bold mb-6 text-gradient">Vocabulary Generator</h1>
           
           <div className="space-y-4">
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Topic</label>
-              <Input
-                placeholder="e.g., Wirtschaft, Umwelt, Politik"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                className="bg-background/50"
-              />
+              <Select value={topic} onValueChange={setTopic}>
+                <SelectTrigger className="bg-background/50">
+                  <SelectValue placeholder="Select a TELC B2 topic" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {TELC_B2_TOPICS.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                  <SelectItem value="custom">Custom Topic...</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {topic === "custom" && (
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">Custom Topic</label>
+                <Input
+                  placeholder="Enter your own topic..."
+                  value={customTopic}
+                  onChange={(e) => setCustomTopic(e.target.value)}
+                  className="bg-background/50"
+                />
+              </div>
+            )}
 
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Number of words</label>
@@ -142,7 +158,10 @@ const Vocabulary = () => {
             {vocabulary.map((item, index) => (
               <Card key={index} className="p-6 glass hover:glow transition-all duration-300">
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-2xl font-bold text-primary">{item.word}</h3>
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-2xl font-bold text-primary">{item.word}</h3>
+                    <AudioButton text={item.word} lang="de-DE" />
+                  </div>
                   <Button
                     size="sm"
                     onClick={() => addToReview(item)}
@@ -154,7 +173,10 @@ const Vocabulary = () => {
                 </div>
                 <p className="text-foreground mb-3">{item.definition}</p>
                 <div className="p-4 bg-background/30 rounded-lg">
-                  <p className="text-sm text-muted-foreground italic">{item.example}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm text-muted-foreground italic flex-1">{item.example}</p>
+                    <AudioButton text={item.example} lang="de-DE" />
+                  </div>
                 </div>
               </Card>
             ))}

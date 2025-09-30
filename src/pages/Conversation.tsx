@@ -6,17 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Send, Loader2 } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
+import Navbar from "@/components/Navbar";
 
 const SCENARIOS = [
-  "Job Interview",
-  "Restaurant Order",
-  "Hotel Check-in",
-  "Doctor's Appointment",
-  "Shopping for Clothes",
-  "Asking for Directions",
-  "Small Talk with Neighbors",
-  "Phone Call to Customer Service",
+  "Job Interview (Vorstellungsgespräch)",
+  "Restaurant Order (Im Restaurant bestellen)",
+  "Hotel Check-in (Hotel Anmeldung)",
+  "Doctor's Appointment (Arzttermin)",
+  "Shopping for Clothes (Kleidung kaufen)",
+  "Asking for Directions (Nach dem Weg fragen)",
+  "Small Talk with Neighbors (Smalltalk mit Nachbarn)",
+  "Phone Call to Customer Service (Anruf beim Kundenservice)",
 ];
 
 interface Message {
@@ -126,20 +127,12 @@ const Conversation = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-hero p-4">
-      <div className="max-w-4xl mx-auto">
-        <Button
-          onClick={() => navigate("/dashboard")}
-          variant="outline"
-          size="sm"
-          className="mb-6 glass"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-
+    <div className="min-h-screen gradient-hero">
+      <Navbar />
+      
+      <div className="container max-w-4xl mx-auto p-4">
         {!started ? (
-          <Card className="p-8 glass">
+          <Card className="p-8 glass mt-6">
             <h1 className="text-3xl font-bold mb-6 text-gradient">Conversation Practice</h1>
             
             <div className="space-y-4">

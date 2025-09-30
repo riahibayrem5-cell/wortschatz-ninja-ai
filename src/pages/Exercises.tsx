@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Loader2, Check, X } from "lucide-react";
+import { Loader2, Check, X } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import { TELC_B2_TOPICS } from "@/utils/constants";
 
 const Exercises = () => {
   const navigate = useNavigate();
@@ -126,19 +129,11 @@ const Exercises = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-hero p-4">
-      <div className="max-w-4xl mx-auto">
-        <Button
-          onClick={() => navigate("/dashboard")}
-          variant="outline"
-          size="sm"
-          className="mb-6 glass"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-
-        <Card className="p-8 glass mb-8">
+    <div className="min-h-screen gradient-hero">
+      <Navbar />
+      
+      <div className="container max-w-4xl mx-auto p-4">
+        <Card className="p-8 glass mb-8 mt-6">
           <h1 className="text-3xl font-bold mb-6 text-gradient">Exercises</h1>
           
           <div className="flex gap-4 mb-6">
@@ -161,12 +156,17 @@ const Exercises = () => {
           <div className="space-y-4">
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Topic (optional)</label>
-              <Input
-                placeholder="e.g., business, travel, environment"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                className="bg-background/50"
-              />
+              <Select value={topic} onValueChange={setTopic}>
+                <SelectTrigger className="bg-background/50">
+                  <SelectValue placeholder="Select a topic or leave empty" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="">Any topic</SelectItem>
+                  {TELC_B2_TOPICS.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <Button

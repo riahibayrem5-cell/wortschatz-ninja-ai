@@ -4,7 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Check, X } from "lucide-react";
+import { Check, X } from "lucide-react";
+import AudioButton from "@/components/AudioButton";
+import Navbar from "@/components/Navbar";
 
 const Review = () => {
   const navigate = useNavigate();
@@ -78,26 +80,21 @@ const Review = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen gradient-hero flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen gradient-hero">
+        <Navbar />
+        <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
       </div>
     );
   }
 
   if (dueItems.length === 0) {
     return (
-      <div className="min-h-screen gradient-hero p-4">
-        <div className="max-w-4xl mx-auto">
-          <Button
-            onClick={() => navigate("/dashboard")}
-            variant="outline"
-            size="sm"
-            className="mb-6 glass"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <Card className="p-12 glass text-center">
+      <div className="min-h-screen gradient-hero">
+        <Navbar />
+        <div className="container max-w-4xl mx-auto p-4">
+          <Card className="p-12 glass text-center mt-6">
             <h2 className="text-2xl font-bold mb-4">No reviews due!</h2>
             <p className="text-muted-foreground">Come back later or add more vocabulary.</p>
           </Card>
@@ -109,26 +106,21 @@ const Review = () => {
   const currentItem = dueItems[currentIndex];
 
   return (
-    <div className="min-h-screen gradient-hero p-4">
-      <div className="max-w-4xl mx-auto">
-        <Button
-          onClick={() => navigate("/dashboard")}
-          variant="outline"
-          size="sm"
-          className="mb-6 glass"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-
-        <div className="mb-4 text-center">
+    <div className="min-h-screen gradient-hero">
+      <Navbar />
+      
+      <div className="container max-w-4xl mx-auto p-4">
+        <div className="mb-4 text-center mt-6">
           <p className="text-muted-foreground">
             {currentIndex + 1} / {dueItems.length}
           </p>
         </div>
 
         <Card className="p-12 glass glow text-center">
-          <h2 className="text-4xl font-bold text-primary mb-8">{currentItem.word}</h2>
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <h2 className="text-4xl font-bold text-primary">{currentItem.word}</h2>
+            <AudioButton text={currentItem.word} lang="de-DE" />
+          </div>
 
           {!showAnswer ? (
             <Button
