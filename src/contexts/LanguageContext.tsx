@@ -55,6 +55,25 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Common
     'common.loading': 'Loading...',
+    
+    // Sentence Generator
+    'sentence.title': 'Sentence Generator',
+    'sentence.difficulty': 'Difficulty Level',
+    'sentence.topic': 'Topic (optional)',
+    'sentence.topicPlaceholder': 'Select a topic or leave empty',
+    'sentence.noTopic': 'No specific topic',
+    'sentence.customTopic': 'Custom Topic...',
+    'sentence.customTopicPlaceholder': 'Enter your own topic...',
+    'sentence.grammarFocus': 'Grammar Focus (optional)',
+    'sentence.grammarPlaceholder': 'Select grammar point or leave empty',
+    'sentence.noGrammar': 'No specific grammar',
+    'sentence.generate': 'Generate Sentence',
+    'sentence.generating': 'Generating...',
+    'sentence.german': 'German',
+    'sentence.english': 'English',
+    'sentence.analysis': 'Grammatical Analysis',
+    'sentence.generated': 'Sentence generated!',
+    'sentence.error': 'Error',
   },
   de: {
     // Navigation
@@ -100,6 +119,25 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Common
     'common.loading': 'Lädt...',
+    
+    // Sentence Generator
+    'sentence.title': 'Satzgenerator',
+    'sentence.difficulty': 'Schwierigkeitsgrad',
+    'sentence.topic': 'Thema (optional)',
+    'sentence.topicPlaceholder': 'Thema auswählen oder leer lassen',
+    'sentence.noTopic': 'Kein bestimmtes Thema',
+    'sentence.customTopic': 'Benutzerdefiniertes Thema...',
+    'sentence.customTopicPlaceholder': 'Eigenes Thema eingeben...',
+    'sentence.grammarFocus': 'Grammatik-Fokus (optional)',
+    'sentence.grammarPlaceholder': 'Grammatikpunkt auswählen oder leer lassen',
+    'sentence.noGrammar': 'Keine bestimmte Grammatik',
+    'sentence.generate': 'Satz Generieren',
+    'sentence.generating': 'Generiere...',
+    'sentence.german': 'Deutsch',
+    'sentence.english': 'Englisch',
+    'sentence.analysis': 'Grammatikalische Analyse',
+    'sentence.generated': 'Satz generiert!',
+    'sentence.error': 'Fehler',
   },
   ar: {
     // Navigation
@@ -145,6 +183,25 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Common
     'common.loading': 'جاري التحميل...',
+    
+    // Sentence Generator
+    'sentence.title': 'مولد الجمل',
+    'sentence.difficulty': 'مستوى الصعوبة',
+    'sentence.topic': 'الموضوع (اختياري)',
+    'sentence.topicPlaceholder': 'اختر موضوعاً أو اتركه فارغاً',
+    'sentence.noTopic': 'لا يوجد موضوع محدد',
+    'sentence.customTopic': 'موضوع مخصص...',
+    'sentence.customTopicPlaceholder': 'أدخل موضوعك الخاص...',
+    'sentence.grammarFocus': 'التركيز النحوي (اختياري)',
+    'sentence.grammarPlaceholder': 'اختر نقطة نحوية أو اتركها فارغة',
+    'sentence.noGrammar': 'لا توجد قواعد محددة',
+    'sentence.generate': 'إنشاء جملة',
+    'sentence.generating': 'جاري الإنشاء...',
+    'sentence.german': 'الألمانية',
+    'sentence.english': 'الإنجليزية',
+    'sentence.analysis': 'التحليل النحوي',
+    'sentence.generated': 'تم إنشاء الجملة!',
+    'sentence.error': 'خطأ',
   },
 };
 
