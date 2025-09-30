@@ -77,6 +77,7 @@ const Navbar = () => {
       items: [
         { name: t('nav.exercises'), path: "/exercises" },
         { name: t('nav.memorizer'), path: "/memorizer" },
+        { name: "TELC B2 Exam", path: "/telc-exam" },
       ],
     },
     {

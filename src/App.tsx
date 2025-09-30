@@ -16,6 +16,8 @@ import Conversation from "./pages/Conversation";
 import TextHighlighter from "./pages/TextHighlighter";
 import MistakeDiary from "./pages/MistakeDiary";
 import Settings from "./pages/Settings";
+import TelcExam from "./pages/TelcExam";
+import TelcExamSection from "./pages/TelcExamSection";
 import AuthPage from "./components/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -41,8 +43,10 @@ const App = () => (
             <Route path="/conversation" element={<Conversation />} />
             <Route path="/highlighter" element={<TextHighlighter />} />
             <Route path="/diary" element={<MistakeDiary />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/telc-exam" element={<TelcExam />} />
+          <Route path="/telc-exam/:section" element={<TelcExamSection />} />
+          <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

@@ -38,3 +38,9 @@ verify_jwt = true
 
 [functions.generate-vocab-image]
 verify_jwt = true
+
+[functions.generate-telc-exam]
+verify_jwt = true
+
+[functions.evaluate-telc-answer]
+verify_jwt = true
