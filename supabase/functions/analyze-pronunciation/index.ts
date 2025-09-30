@@ -12,30 +12,28 @@ serve(async (req) => {
   }
 
   try {
-    const { mistakes, progress } = await req.json();
+    const { transcribedText, expectedText, language = 'de' } = await req.json();
     
     const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     if (!GOOGLE_GEMINI_API_KEY) {
       throw new Error('GOOGLE_GEMINI_API_KEY is not configured');
     }
 
-    const prompt = `You are a German language learning analyst. Analyze the following student data and provide personalized insights:
+    const prompt = `You are a ${language === 'de' ? 'German' : 'English'} pronunciation expert. Compare the student's pronunciation with the expected text.
 
-Student Progress:
-- Words Learned: ${progress?.words_learned || 0}
-- Exercises Completed: ${progress?.exercises_completed || 0}
-- Current Streak: ${progress?.streak_days || 0} days
-
-Recent Mistakes (${mistakes.length} total):
-${mistakes.slice(0, 20).map((m: any) => `- Type: ${m.type}, Category: ${m.category}, Content: ${m.content}`).join('\n')}
+Expected: "${expectedText}"
+Student said: "${transcribedText}"
 
 Provide a JSON response with:
-1. weakSpots: Array of top 3-5 areas needing focus with {name, severity (1-10), recommendation}
-2. strengths: Array of 2-3 areas where student excels
-3. nextSteps: Array of 3-4 specific actionable recommendations
-4. overallAssessment: Brief summary of student's current level
-
-Focus on TELC B2 exam preparation. Be encouraging but honest.`;
+{
+  "score": <0-100>,
+  "accuracy": "<excellent|good|fair|needs_improvement>",
+  "feedback": "<specific feedback on pronunciation>",
+  "mistakes": [
+    {"word": "<word>", "issue": "<pronunciation issue>", "suggestion": "<how to improve>"}
+  ],
+  "strengths": ["<what they did well>"]
+}`;
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
@@ -57,8 +55,8 @@ Focus on TELC B2 exam preparation. Be encouraging but honest.`;
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      throw new Error(`AI Gateway error: ${response.status}`);
+      console.error('Gemini API error:', response.status, errorText);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -69,7 +67,7 @@ Focus on TELC B2 exam preparation. Be encouraging but honest.`;
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error in analyze-progress:', error);
+    console.error('Error in analyze-pronunciation:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

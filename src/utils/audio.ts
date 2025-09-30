@@ -1,30 +1,40 @@
-// Text-to-speech utility for German and English
-export const speakText = (text: string, lang: 'de-DE' | 'en-US' = 'de-DE') => {
-  if ('speechSynthesis' in window) {
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
+import { supabase } from "@/integrations/supabase/client";
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    utterance.rate = 0.9; // Slightly slower for language learning
-    utterance.pitch = 1;
-    utterance.volume = 1;
+let currentAudio: HTMLAudioElement | null = null;
 
-    // Try to find a native voice for the language
-    const voices = window.speechSynthesis.getVoices();
-    const voice = voices.find(v => v.lang.startsWith(lang === 'de-DE' ? 'de' : 'en'));
-    if (voice) {
-      utterance.voice = voice;
-    }
+// High-quality text-to-speech using ElevenLabs
+export const speakText = async (text: string, lang: 'de-DE' | 'en-US' = 'de-DE') => {
+  try {
+    // Stop any currently playing audio
+    stopSpeaking();
 
-    window.speechSynthesis.speak(utterance);
-  } else {
-    console.warn('Speech synthesis not supported in this browser');
+    const language = lang === 'de-DE' ? 'de' : 'en';
+    
+    const { data, error } = await supabase.functions.invoke('text-to-speech', {
+      body: { text, language }
+    });
+
+    if (error) throw error;
+    if (!data?.audioContent) throw new Error('No audio content received');
+
+    // Create audio element and play
+    currentAudio = new Audio(`data:audio/mpeg;base64,${data.audioContent}`);
+    await currentAudio.play();
+    
+    // Clean up when finished
+    currentAudio.onended = () => {
+      currentAudio = null;
+    };
+  } catch (error) {
+    console.error('Error speaking text:', error);
+    throw error;
   }
 };
 
 export const stopSpeaking = () => {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
   }
 };

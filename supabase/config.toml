@@ -26,3 +26,15 @@ verify_jwt = true
 
 [functions.analyze-progress]
 verify_jwt = true
+
+[functions.text-to-speech]
+verify_jwt = true
+
+[functions.speech-to-text]
+verify_jwt = true
+
+[functions.analyze-pronunciation]
+verify_jwt = true
+
+[functions.generate-vocab-image]
+verify_jwt = true
