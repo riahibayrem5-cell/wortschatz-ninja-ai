@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Check } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS } from "@/utils/constants";
@@ -26,6 +26,7 @@ const Vocabulary = () => {
   const [count, setCount] = useState(10);
   const [loading, setLoading] = useState(false);
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
+  const [addedWords, setAddedWords] = useState<Set<string>>(new Set());
 
   const generateVocabulary = async () => {
     const finalTopic = topic === "custom" ? customTopic : topic;
@@ -85,6 +86,9 @@ const Vocabulary = () => {
 
       // Track activity
       await trackActivity('word', 1);
+
+      // Mark as added
+      setAddedWords(prev => new Set([...prev, item.word]));
 
       toast({ title: "Added to review!" });
     } catch (error: any) {
@@ -166,14 +170,25 @@ const Vocabulary = () => {
                     <h3 className="text-2xl font-bold text-primary">{item.word}</h3>
                     <AudioButton text={item.word} lang="de-DE" />
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => addToReview(item)}
-                    className="gradient-accent hover:opacity-90"
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Add
-                  </Button>
+                  {addedWords.has(item.word) ? (
+                    <Button
+                      size="sm"
+                      disabled
+                      className="bg-green-500/20 text-green-500 cursor-default"
+                    >
+                      <Check className="w-4 h-4 mr-1" />
+                      Added to review!
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={() => addToReview(item)}
+                      className="gradient-accent hover:opacity-90"
+                    >
+                      <Plus className="w-4 h-4 mr-1" />
+                      Add
+                    </Button>
+                  )}
                 </div>
                 <p className="text-foreground mb-3">{item.definition}</p>
                 <div className="p-4 bg-background/30 rounded-lg">

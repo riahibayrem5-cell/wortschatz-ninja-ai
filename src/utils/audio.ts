@@ -31,6 +31,12 @@ export const speakText = async (text: string, lang: 'de-DE' | 'en-US' = 'de-DE')
   }
 };
 
+export const pauseSpeaking = () => {
+  if (currentAudio) {
+    currentAudio.pause();
+  }
+};
+
 export const stopSpeaking = () => {
   if (currentAudio) {
     currentAudio.pause();

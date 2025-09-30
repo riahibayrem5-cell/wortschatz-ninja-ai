@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Volume2, VolumeX } from "lucide-react";
-import { speakText, stopSpeaking } from "@/utils/audio";
+import { Volume2, Pause } from "lucide-react";
+import { speakText, pauseSpeaking } from "@/utils/audio";
 
 interface AudioButtonProps {
   text: string;
@@ -13,18 +13,18 @@ interface AudioButtonProps {
 const AudioButton = ({ text, lang = 'de-DE', size = 'sm', variant = 'outline' }: AudioButtonProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (isPlaying) {
-      stopSpeaking();
+      pauseSpeaking();
       setIsPlaying(false);
     } else {
       setIsPlaying(true);
-      speakText(text, lang);
-      
-      // Reset after speech ends (approximate timing)
-      setTimeout(() => {
+      try {
+        await speakText(text, lang);
         setIsPlaying(false);
-      }, text.length * 50); // Rough estimate
+      } catch (error) {
+        setIsPlaying(false);
+      }
     }
   };
 
@@ -37,7 +37,7 @@ const AudioButton = ({ text, lang = 'de-DE', size = 'sm', variant = 'outline' }:
       title={isPlaying ? "Stop audio" : "Play audio"}
     >
       {isPlaying ? (
-        <VolumeX className="w-4 h-4" />
+        <Pause className="w-4 h-4" />
       ) : (
         <Volume2 className="w-4 h-4" />
       )}
