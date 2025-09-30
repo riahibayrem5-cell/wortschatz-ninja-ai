@@ -29,7 +29,7 @@ const Exercises = () => {
     setUserAnswer("");
     try {
       const { data, error } = await supabase.functions.invoke("generate-exercise", {
-        body: { type: mode, topic },
+        body: { type: mode, topic: topic === "any" ? "" : topic },
       });
 
       if (error) throw error;
@@ -168,7 +168,7 @@ const Exercises = () => {
                   <SelectValue placeholder="Select a topic or leave empty" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
-                  <SelectItem value="">Any topic</SelectItem>
+                  <SelectItem value="any">Any topic</SelectItem>
                   {TELC_B2_TOPICS.map((t) => (
                     <SelectItem key={t} value={t}>{t}</SelectItem>
                   ))}

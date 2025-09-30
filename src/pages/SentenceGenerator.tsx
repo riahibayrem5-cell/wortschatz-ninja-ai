@@ -24,9 +24,9 @@ const SentenceGenerator = () => {
   const generateSentence = async () => {
     setLoading(true);
     try {
-      const finalTopic = topic === "custom" ? customTopic : topic;
+      const finalTopic = topic === "custom" ? customTopic : (topic === "none" ? "" : topic);
       const { data, error } = await supabase.functions.invoke("generate-sentence", {
-        body: { difficulty, topic: finalTopic, grammarFocus },
+        body: { difficulty, topic: finalTopic, grammarFocus: grammarFocus === "none" ? "" : grammarFocus },
       });
 
       if (error) throw error;
@@ -69,7 +69,7 @@ const SentenceGenerator = () => {
                   <SelectValue placeholder="Select a topic or leave empty" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
-                  <SelectItem value="">No specific topic</SelectItem>
+                  <SelectItem value="none">No specific topic</SelectItem>
                   {TELC_B2_TOPICS.map((t) => (
                     <SelectItem key={t} value={t}>{t}</SelectItem>
                   ))}
@@ -97,7 +97,7 @@ const SentenceGenerator = () => {
                   <SelectValue placeholder="Select grammar point or leave empty" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
-                  <SelectItem value="">No specific grammar</SelectItem>
+                  <SelectItem value="none">No specific grammar</SelectItem>
                   {GRAMMAR_BY_DIFFICULTY[difficulty].map((g) => (
                     <SelectItem key={g} value={g}>{g}</SelectItem>
                   ))}
