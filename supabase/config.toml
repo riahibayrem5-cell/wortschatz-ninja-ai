@@ -1,0 +1,7 @@
+project_id = "katyntbuxecxntuhqoof"
+
+[functions.generate-vocabulary]
+verify_jwt = true
+
+[functions.generate-sentence]
+verify_jwt = true
