@@ -137,7 +137,7 @@ const SentenceGenerator = () => {
               <div>
                 <h3 className="text-sm text-muted-foreground mb-3">Grammatical Analysis</h3>
                 <div className="p-4 bg-background/30 rounded-lg">
-                  <p className="text-foreground whitespace-pre-line">{result.analysis}</p>
+                  <pre className="text-foreground whitespace-pre-wrap text-sm">{JSON.stringify(result.analysis, null, 2)}</pre>
                 </div>
               </div>
             </div>
