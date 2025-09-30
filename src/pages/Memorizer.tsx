@@ -11,13 +11,14 @@ import { Loader2, Eye, EyeOff, Plus } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS } from "@/utils/constants";
+import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 
 const Memorizer = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [theme, setTheme] = useState("");
   const [customTheme, setCustomTheme] = useState("");
-  const [difficulty, setDifficulty] = useState("B2");
+  const [difficulty, setDifficulty] = useState<Difficulty>("B2");
   const [loading, setLoading] = useState(false);
   const [paragraph, setParagraph] = useState<any>(null);
   const [userInput, setUserInput] = useState("");
@@ -123,19 +124,11 @@ const Memorizer = () => {
               </div>
             )}
 
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Difficulty</label>
-              <Select value={difficulty} onValueChange={setDifficulty}>
-                <SelectTrigger className="bg-background/50">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="B1">B1</SelectItem>
-                  <SelectItem value="B2">B2</SelectItem>
-                  <SelectItem value="C1">C1</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <DifficultySelector 
+              value={difficulty}
+              onChange={setDifficulty}
+              disabled={loading}
+            />
 
             <Button
               onClick={generateParagraph}

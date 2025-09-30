@@ -10,10 +10,12 @@ import { Loader2, AlertCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_WRITING_PROMPTS } from "@/utils/constants";
 import { trackActivity } from "@/utils/activityTracker";
+import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 
 const WritingAssistant = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [difficulty, setDifficulty] = useState<Difficulty>('B2');
   const [prompt, setPrompt] = useState(TELC_B2_WRITING_PROMPTS[0]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,7 +32,7 @@ const WritingAssistant = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       const { data, error } = await supabase.functions.invoke("writing-assistant", {
-        body: { text, prompt },
+        body: { text, prompt, difficulty },
       });
 
       if (error) throw error;
@@ -82,6 +84,12 @@ const WritingAssistant = () => {
           <h1 className="text-3xl font-bold mb-6 text-gradient">Writing Assistant</h1>
           
           <div className="space-y-4">
+            <DifficultySelector 
+              value={difficulty}
+              onChange={setDifficulty}
+              disabled={loading}
+            />
+            
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Choose a TELC B2 prompt</label>
               <Select value={prompt} onValueChange={setPrompt}>

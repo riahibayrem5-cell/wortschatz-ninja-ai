@@ -10,11 +10,12 @@ import { Loader2 } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS, GRAMMAR_BY_DIFFICULTY } from "@/utils/constants";
+import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 
 const SentenceGenerator = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [difficulty, setDifficulty] = useState<'B1' | 'B2' | 'C1'>("B2");
+  const [difficulty, setDifficulty] = useState<Difficulty>("B2");
   const [topic, setTopic] = useState("");
   const [customTopic, setCustomTopic] = useState("");
   const [grammarFocus, setGrammarFocus] = useState("");
@@ -48,19 +49,11 @@ const SentenceGenerator = () => {
           <h1 className="text-3xl font-bold mb-6 text-gradient">Sentence Generator</h1>
           
           <div className="space-y-4">
-            <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Difficulty</label>
-              <Select value={difficulty} onValueChange={(v) => setDifficulty(v as 'B1' | 'B2' | 'C1')}>
-                <SelectTrigger className="bg-background/50">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="B1">B1</SelectItem>
-                  <SelectItem value="B2">B2</SelectItem>
-                  <SelectItem value="C1">C1</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <DifficultySelector 
+              value={difficulty}
+              onChange={setDifficulty}
+              disabled={loading}
+            />
 
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Topic (optional)</label>

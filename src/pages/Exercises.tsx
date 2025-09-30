@@ -11,10 +11,12 @@ import { Loader2, Check, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS } from "@/utils/constants";
 import { trackActivity } from "@/utils/activityTracker";
+import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 
 const Exercises = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [difficulty, setDifficulty] = useState<Difficulty>('B2');
   const [mode, setMode] = useState<'quiz' | 'translation'>('quiz');
   const [topic, setTopic] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,7 +31,7 @@ const Exercises = () => {
     setUserAnswer("");
     try {
       const { data, error } = await supabase.functions.invoke("generate-exercise", {
-        body: { type: mode, topic: topic === "any" ? "" : topic },
+        body: { type: mode, topic: topic === "any" ? "" : topic, difficulty },
       });
 
       if (error) throw error;
@@ -161,6 +163,12 @@ const Exercises = () => {
           </div>
 
           <div className="space-y-4">
+            <DifficultySelector 
+              value={difficulty}
+              onChange={setDifficulty}
+              disabled={loading}
+            />
+            
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Topic (optional)</label>
               <Select value={topic} onValueChange={setTopic}>

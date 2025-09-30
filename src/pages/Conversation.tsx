@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { trackActivity } from "@/utils/activityTracker";
+import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 
 const SCENARIOS = [
   "Job Interview (Vorstellungsgespräch)",
@@ -29,6 +30,7 @@ interface Message {
 const Conversation = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [difficulty, setDifficulty] = useState<Difficulty>('B2');
   const [scenario, setScenario] = useState(SCENARIOS[0]);
   const [started, setStarted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,7 +47,7 @@ const Conversation = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("conversation", {
-        body: { action: 'start', scenario },
+        body: { action: 'start', scenario, difficulty },
       });
 
       if (error) throw error;
@@ -140,6 +142,12 @@ const Conversation = () => {
             <h1 className="text-3xl font-bold mb-6 text-gradient">Conversation Practice</h1>
             
             <div className="space-y-4">
+              <DifficultySelector 
+                value={difficulty}
+                onChange={setDifficulty}
+                disabled={loading}
+              />
+              
               <div>
                 <label className="text-sm text-muted-foreground mb-2 block">Choose a scenario</label>
                 <Select value={scenario} onValueChange={setScenario}>

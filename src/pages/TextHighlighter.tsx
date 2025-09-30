@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 
 interface HighlightedWord {
   word: string;
@@ -17,6 +18,7 @@ interface HighlightedWord {
 const TextHighlighter = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [difficulty, setDifficulty] = useState<Difficulty>('B2');
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [highlights, setHighlights] = useState<HighlightedWord[]>([]);
@@ -31,7 +33,7 @@ const TextHighlighter = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("highlight-text", {
-        body: { text },
+        body: { text, difficulty },
       });
 
       if (error) throw error;
@@ -99,6 +101,12 @@ const TextHighlighter = () => {
           <h1 className="text-3xl font-bold mb-6 text-gradient">Text Highlighter</h1>
           
           <div className="space-y-4">
+            <DifficultySelector 
+              value={difficulty}
+              onChange={setDifficulty}
+              disabled={loading}
+            />
+            
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">
                 Paste German text (e.g., news article, essay)

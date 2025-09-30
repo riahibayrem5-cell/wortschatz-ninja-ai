@@ -11,6 +11,7 @@ import AudioButton from "@/components/AudioButton";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS } from "@/utils/constants";
 import { trackActivity } from "@/utils/activityTracker";
+import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 
 interface VocabularyItem {
   word: string;
@@ -21,6 +22,7 @@ interface VocabularyItem {
 const Vocabulary = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [difficulty, setDifficulty] = useState<Difficulty>('B2');
   const [topic, setTopic] = useState("");
   const [customTopic, setCustomTopic] = useState("");
   const [count, setCount] = useState(10);
@@ -39,7 +41,7 @@ const Vocabulary = () => {
     try {
       const finalTopic = topic === "custom" ? customTopic : topic;
       const { data, error } = await supabase.functions.invoke("generate-vocabulary", {
-        body: { topic: finalTopic, count },
+        body: { topic: finalTopic, count, difficulty },
       });
 
       if (error) throw error;
@@ -105,6 +107,12 @@ const Vocabulary = () => {
           <h1 className="text-3xl font-bold mb-6 text-gradient">Vocabulary Generator</h1>
           
           <div className="space-y-4">
+            <DifficultySelector 
+              value={difficulty}
+              onChange={setDifficulty}
+              disabled={loading}
+            />
+            
             <div>
               <label className="text-sm text-muted-foreground mb-2 block">Topic</label>
               <Select value={topic} onValueChange={setTopic}>
