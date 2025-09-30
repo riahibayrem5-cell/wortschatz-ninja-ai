@@ -74,6 +74,19 @@ const translations: Record<Language, Record<string, string>> = {
     'sentence.analysis': 'Grammatical Analysis',
     'sentence.generated': 'Sentence generated!',
     'sentence.error': 'Error',
+    
+    // Word Dossier
+    'word.title': 'Word Dossier',
+    'word.search': 'Enter a German word to analyze...',
+    'word.analyze': 'Analyze',
+    'word.analyzing': 'Analyzing...',
+    'word.definition': 'Definition',
+    'word.translation': 'Translation',
+    'word.wordFamily': 'Word Family (Wortfamilie)',
+    'word.prefixVerbs': 'Prefix Verbs',
+    'word.synonyms': 'Synonyms',
+    'word.antonyms': 'Antonyms',
+    'word.examples': 'Example Sentences',
   },
   de: {
     // Navigation
@@ -138,6 +151,19 @@ const translations: Record<Language, Record<string, string>> = {
     'sentence.analysis': 'Grammatikalische Analyse',
     'sentence.generated': 'Satz generiert!',
     'sentence.error': 'Fehler',
+    
+    // Word Dossier
+    'word.title': 'Wort-Dossier',
+    'word.search': 'Geben Sie ein deutsches Wort zur Analyse ein...',
+    'word.analyze': 'Analysieren',
+    'word.analyzing': 'Analysiere...',
+    'word.definition': 'Definition',
+    'word.translation': 'Übersetzung',
+    'word.wordFamily': 'Wortfamilie',
+    'word.prefixVerbs': 'Präfixverben',
+    'word.synonyms': 'Synonyme',
+    'word.antonyms': 'Antonyme',
+    'word.examples': 'Beispielsätze',
   },
   ar: {
     // Navigation
@@ -202,6 +228,19 @@ const translations: Record<Language, Record<string, string>> = {
     'sentence.analysis': 'التحليل النحوي',
     'sentence.generated': 'تم إنشاء الجملة!',
     'sentence.error': 'خطأ',
+    
+    // Word Dossier
+    'word.title': 'ملف الكلمة',
+    'word.search': 'أدخل كلمة ألمانية للتحليل...',
+    'word.analyze': 'تحليل',
+    'word.analyzing': 'جاري التحليل...',
+    'word.definition': 'التعريف',
+    'word.translation': 'الترجمة',
+    'word.wordFamily': 'عائلة الكلمة',
+    'word.prefixVerbs': 'أفعال البادئة',
+    'word.synonyms': 'المرادفات',
+    'word.antonyms': 'الأضداد',
+    'word.examples': 'جمل مثالية',
   },
 };
 

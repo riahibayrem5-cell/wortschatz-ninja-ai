@@ -2,15 +2,25 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Volume2, Pause } from "lucide-react";
 import { speakText, pauseSpeaking } from "@/utils/audio";
+import AudioPlayer from "./AudioPlayer";
 
 interface AudioButtonProps {
   text: string;
   lang?: 'de-DE' | 'en-US';
   size?: 'sm' | 'default' | 'lg';
   variant?: 'default' | 'outline' | 'ghost';
+  showPlayer?: boolean;
+  className?: string;
 }
 
-const AudioButton = ({ text, lang = 'de-DE', size = 'sm', variant = 'outline' }: AudioButtonProps) => {
+const AudioButton = ({ 
+  text, 
+  lang = 'de-DE', 
+  size = 'sm', 
+  variant = 'outline',
+  showPlayer = false,
+  className = ""
+}: AudioButtonProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
   const handleClick = async () => {
@@ -28,12 +38,16 @@ const AudioButton = ({ text, lang = 'de-DE', size = 'sm', variant = 'outline' }:
     }
   };
 
+  if (showPlayer) {
+    return <AudioPlayer text={text} lang={lang} className={className} />;
+  }
+
   return (
     <Button
       onClick={handleClick}
       size={size}
       variant={variant}
-      className="glass"
+      className={`glass ${className}`}
       title={isPlaying ? "Stop audio" : "Play audio"}
     >
       {isPlaying ? (

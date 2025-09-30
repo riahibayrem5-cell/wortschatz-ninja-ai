@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
+import AudioPlayer from "@/components/AudioPlayer";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS, GRAMMAR_BY_DIFFICULTY } from "@/utils/constants";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
@@ -230,21 +231,21 @@ const SentenceGenerator = () => {
           <>
             <Card className="p-8 glass glow mb-6">
               <div className="space-y-6">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm text-muted-foreground">{t('sentence.german')}</h3>
-                    <AudioButton text={result.german} lang="de-DE" />
-                  </div>
-                  <p className="text-2xl font-semibold text-primary">{result.german}</p>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm text-muted-foreground">{t('sentence.german')}</h3>
                 </div>
+                <p className="text-2xl font-semibold text-primary mb-3">{result.german}</p>
+                <AudioPlayer text={result.german} lang="de-DE" />
+              </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm text-muted-foreground">{t('sentence.english')}</h3>
-                    <AudioButton text={result.english} lang="en-US" />
-                  </div>
-                  <p className="text-lg text-foreground">{result.english}</p>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm text-muted-foreground">{t('sentence.english')}</h3>
                 </div>
+                <p className="text-lg text-foreground mb-3">{result.english}</p>
+                <AudioPlayer text={result.english} lang="en-US" />
+              </div>
               </div>
             </Card>
 

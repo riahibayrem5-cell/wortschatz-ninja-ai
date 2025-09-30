@@ -84,6 +84,7 @@ const Navbar = () => {
       label: "Foundations",
       items: [
         { name: t('nav.vocabulary'), path: "/vocabulary" },
+        { name: "Word Dossier", path: "/word-dossier" },
         { name: t('nav.sentence'), path: "/sentence-generator" },
         { name: t('nav.writing'), path: "/writing" },
       ],
@@ -103,24 +104,17 @@ const Navbar = () => {
       ],
     },
     {
-      label: "TELC B2 Exam",
-      items: [
-        { name: "TELC B2 Exam", path: "/telc-exam" },
-      ],
-    },
-    {
-      label: "History & Export",
-      items: [
-        { name: "History & Export", path: "/history" },
-      ],
-    },
-    {
       label: "Progress",
       items: [
         { name: t('nav.review'), path: "/review" },
         { name: t('nav.diary'), path: "/diary" },
       ],
     },
+  ];
+
+  const singlePageLinks = [
+    { name: "TELC B2 Exam", path: "/telc-exam" },
+    { name: "History & Export", path: "/history" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -182,6 +176,18 @@ const Navbar = () => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+          ))}
+
+          {singlePageLinks.map((link) => (
+            <Button
+              key={link.path}
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(link.path)}
+              className={`text-xs xl:text-sm ${isActive(link.path) ? "text-primary" : ""}`}
+            >
+              {link.name}
+            </Button>
           ))}
 
           {/* Server Status */}
@@ -334,6 +340,25 @@ const Navbar = () => {
                   ))}
                 </div>
               ))}
+
+              <div className="space-y-1.5 pt-2 border-t">
+                {singlePageLinks.map((link) => (
+                  <Button
+                    key={link.path}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      navigate(link.path);
+                      setMobileOpen(false);
+                    }}
+                    className={`w-full justify-start h-9 text-sm ${
+                      isActive(link.path) ? "bg-primary/10" : ""
+                    }`}
+                  >
+                    {link.name}
+                  </Button>
+                ))}
+              </div>
 
               <div className="flex flex-col gap-2 pt-3 border-t mt-3">
                 <div className="flex items-center gap-2">

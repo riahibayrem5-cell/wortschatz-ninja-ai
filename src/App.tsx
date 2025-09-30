@@ -7,6 +7,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Vocabulary from "./pages/Vocabulary";
+import WordDossier from "./pages/WordDossier";
 import SentenceGenerator from "./pages/SentenceGenerator";
 import Review from "./pages/Review";
 import WritingAssistant from "./pages/WritingAssistant";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/vocabulary" element={<Vocabulary />} />
+            <Route path="/word-dossier" element={<WordDossier />} />
             <Route path="/sentence-generator" element={<SentenceGenerator />} />
             <Route path="/review" element={<Review />} />
             <Route path="/writing" element={<WritingAssistant />} />
