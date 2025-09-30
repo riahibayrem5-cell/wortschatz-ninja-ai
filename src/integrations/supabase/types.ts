@@ -52,6 +52,48 @@ export type Database = {
           },
         ]
       }
+      daily_activity: {
+        Row: {
+          activity_date: string
+          conversations_count: number | null
+          created_at: string | null
+          exercises_completed: number | null
+          id: string
+          review_sessions_count: number | null
+          time_spent_minutes: number | null
+          updated_at: string | null
+          user_id: string
+          words_learned: number | null
+          writing_submissions_count: number | null
+        }
+        Insert: {
+          activity_date?: string
+          conversations_count?: number | null
+          created_at?: string | null
+          exercises_completed?: number | null
+          id?: string
+          review_sessions_count?: number | null
+          time_spent_minutes?: number | null
+          updated_at?: string | null
+          user_id: string
+          words_learned?: number | null
+          writing_submissions_count?: number | null
+        }
+        Update: {
+          activity_date?: string
+          conversations_count?: number | null
+          created_at?: string | null
+          exercises_completed?: number | null
+          id?: string
+          review_sessions_count?: number | null
+          time_spent_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string
+          words_learned?: number | null
+          writing_submissions_count?: number | null
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           analysis: string | null
@@ -281,6 +323,27 @@ export type Database = {
         }
         Relationships: []
       }
+      server_metrics: {
+        Row: {
+          id: string
+          metric_type: string
+          metric_value: number
+          timestamp: string | null
+        }
+        Insert: {
+          id?: string
+          metric_type: string
+          metric_value: number
+          timestamp?: string | null
+        }
+        Update: {
+          id?: string
+          metric_type?: string
+          metric_value?: number
+          timestamp?: string | null
+        }
+        Relationships: []
+      }
       user_progress: {
         Row: {
           created_at: string
@@ -421,7 +484,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      track_daily_activity: {
+        Args: { activity_type: string; increment_value?: number }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
