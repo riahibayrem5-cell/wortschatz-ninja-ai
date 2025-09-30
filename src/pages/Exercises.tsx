@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Check, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS } from "@/utils/constants";
+import { trackActivity } from "@/utils/activityTracker";
 
 const Exercises = () => {
   const navigate = useNavigate();
@@ -75,8 +76,11 @@ const Exercises = () => {
           await supabase
             .from("user_progress")
             .update({ exercises_completed: progress.exercises_completed + 1 })
-            .eq("user_id", session.user.id);
+          .eq("user_id", session.user.id);
         }
+
+        // Track activity
+        await trackActivity('exercise', 1);
       }
     } else {
       setLoading(true);
@@ -119,6 +123,9 @@ const Exercises = () => {
               .update({ exercises_completed: progress.exercises_completed + 1 })
               .eq("user_id", session.user.id);
           }
+
+          // Track activity
+          await trackActivity('exercise', 1);
         }
       } catch (error: any) {
         toast({ title: "Error", description: error.message, variant: "destructive" });

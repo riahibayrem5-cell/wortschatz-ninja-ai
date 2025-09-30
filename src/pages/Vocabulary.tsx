@@ -10,6 +10,7 @@ import { Loader2, Plus } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS } from "@/utils/constants";
+import { trackActivity } from "@/utils/activityTracker";
 
 interface VocabularyItem {
   word: string;
@@ -81,6 +82,9 @@ const Vocabulary = () => {
           .update({ words_learned: progress.words_learned + 1 })
           .eq("user_id", session.user.id);
       }
+
+      // Track activity
+      await trackActivity('word', 1);
 
       toast({ title: "Added to review!" });
     } catch (error: any) {

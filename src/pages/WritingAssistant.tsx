@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, AlertCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_WRITING_PROMPTS } from "@/utils/constants";
+import { trackActivity } from "@/utils/activityTracker";
 
 const WritingAssistant = () => {
   const navigate = useNavigate();
@@ -60,6 +61,9 @@ const WritingAssistant = () => {
           }
         }
       }
+
+      // Track writing activity
+      await trackActivity('writing', 1);
 
       toast({ title: "Analysis complete!" });
     } catch (error: any) {

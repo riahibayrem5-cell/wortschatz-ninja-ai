@@ -50,17 +50,34 @@ const Dashboard = () => {
       
       setMistakes(mistakesData || []);
 
-      // Simulate weekly activity (in production, aggregate from actual user activity)
-      const mockWeeklyData = [
-        { day: 'Mon', exercises: 5, words: 12 },
-        { day: 'Tue', exercises: 8, words: 15 },
-        { day: 'Wed', exercises: 3, words: 8 },
-        { day: 'Thu', exercises: 10, words: 20 },
-        { day: 'Fri', exercises: 6, words: 14 },
-        { day: 'Sat', exercises: 4, words: 10 },
-        { day: 'Sun', exercises: 7, words: 16 },
-      ];
-      setWeeklyActivity(mockWeeklyData);
+      // Fetch real weekly activity data
+      const { data: activityData } = await supabase
+        .from("daily_activity")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .gte("activity_date", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        .order("activity_date", { ascending: true });
+      
+      // Format data for chart with day names
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - i));
+        return date;
+      });
+
+      const weeklyData = last7Days.map(date => {
+        const dateStr = date.toISOString().split('T')[0];
+        const dayData = activityData?.find(d => d.activity_date === dateStr);
+        return {
+          day: dayNames[date.getDay()],
+          exercises: dayData?.exercises_completed || 0,
+          words: dayData?.words_learned || 0,
+          conversations: dayData?.conversations_count || 0,
+          writing: dayData?.writing_submissions_count || 0,
+        };
+      });
+      setWeeklyActivity(weeklyData);
 
       // Get AI analysis
       if (mistakesData && mistakesData.length > 0) {
@@ -104,19 +121,44 @@ const Dashboard = () => {
 
   const getRecommendations = () => {
     const recs = [];
+    const totalActivity = weeklyActivity.reduce((sum, day) => sum + day.exercises + day.words, 0);
+    
+    // Priority 1: Critical mistakes need review
     if (mistakes.length > 10) {
-      recs.push({ icon: BookOpen, text: "Review your Mistake Diary", path: "/diary" });
+      recs.push({ icon: AlertCircle, text: "⚠️ Review Mistake Diary - You have many logged errors", path: "/diary" });
     }
+    
+    // Priority 2: Weak spots identified by AI
+    if (weakSpots.length > 0 && weakSpots[0].severity >= 5) {
+      recs.push({ icon: Target, text: `🎯 Focus on ${weakSpots[0].name} - Your weakest area`, path: "/writing" });
+    }
+    
+    // Priority 3: Low activity warning
+    if (totalActivity < 20) {
+      recs.push({ icon: TrendingUp, text: "📈 You've been less active - Practice daily for better results", path: "/exercises" });
+    }
+    
+    // Priority 4: Vocabulary building (always important)
     if ((progress?.words_learned || 0) < 100) {
-      recs.push({ icon: Target, text: "Build vocabulary with Vocabulary Generator", path: "/vocabulary" });
+      recs.push({ icon: BookOpen, text: `📚 Learn more vocabulary - Target: ${1000 - (progress?.words_learned || 0)} words to go`, path: "/vocabulary" });
     }
-    if ((progress?.exercises_completed || 0) < 20) {
-      recs.push({ icon: Brain, text: "Practice more exercises", path: "/exercises" });
+    
+    // Priority 5: Try new features
+    if ((progress?.exercises_completed || 0) < 5) {
+      recs.push({ icon: Brain, text: "🧠 Try AI Companion - Interactive learning with real-time feedback", path: "/ai-companion" });
     }
-    if (weakSpots.length > 0) {
-      recs.push({ icon: MessageSquare, text: `Focus on ${weakSpots[0].name}`, path: "/writing" });
+    
+    // Priority 6: Consistency building
+    if ((progress?.streak_days || 0) < 7) {
+      recs.push({ icon: MessageSquare, text: `🔥 Build your streak - Practice ${7 - (progress?.streak_days || 0)} more days for a week streak`, path: "/memorizer" });
     }
-    return recs.slice(0, 3);
+    
+    // Priority 7: TELC exam prep
+    if ((progress?.exercises_completed || 0) >= 20 && mistakes.length < 5) {
+      recs.push({ icon: CheckCircle2, text: "🎓 Ready for TELC B2 Mock Exam - Test your skills", path: "/telc-exam" });
+    }
+    
+    return recs.slice(0, 4);
   };
 
   const recommendations = getRecommendations();

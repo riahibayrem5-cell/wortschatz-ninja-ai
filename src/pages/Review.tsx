@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Check, X } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
 import Navbar from "@/components/Navbar";
+import { trackActivity } from "@/utils/activityTracker";
 
 const Review = () => {
   const navigate = useNavigate();
@@ -65,6 +66,9 @@ const Review = () => {
         .eq("id", item.id);
 
       if (error) throw error;
+
+      // Track review activity
+      await trackActivity('review', 1);
 
       if (currentIndex < dueItems.length - 1) {
         setCurrentIndex(currentIndex + 1);

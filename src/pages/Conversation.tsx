@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import { trackActivity } from "@/utils/activityTracker";
 
 const SCENARIOS = [
   "Job Interview (Vorstellungsgespräch)",
@@ -107,6 +108,9 @@ const Conversation = () => {
           .update({ messages: updatedMessages as any })
           .eq("id", conversationId);
       }
+
+      // Track conversation activity
+      await trackActivity('conversation', 1);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {

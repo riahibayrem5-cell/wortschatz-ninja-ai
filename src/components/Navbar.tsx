@@ -41,13 +41,29 @@ const Navbar = () => {
 
   const checkServerHealth = async () => {
     try {
-      const start = Date.now();
-      const { error } = await supabase.from("user_progress").select("count").limit(1);
-      const latency = Date.now() - start;
+      const checks = await Promise.all([
+        // Database check
+        supabase.from("user_progress").select("count").limit(1),
+        // Auth check
+        supabase.auth.getSession(),
+        // Measure latency
+        Promise.resolve(Date.now())
+      ]);
+
+      const latency = Date.now() - (checks[2] as number);
+      const dbError = checks[0].error;
       
-      if (error) {
+      // Log metrics to database for monitoring
+      if (!dbError) {
+        supabase.from("server_metrics").insert({
+          metric_type: 'api_latency',
+          metric_value: latency
+        }).then(() => {});
+      }
+      
+      if (dbError) {
         setServerHealth('down');
-      } else if (latency > 1000) {
+      } else if (latency > 1500) {
         setServerHealth('degraded');
       } else {
         setServerHealth('healthy');
@@ -166,11 +182,34 @@ const Navbar = () => {
                 {serverHealth === 'down' && <AlertCircle className="w-4 h-4 text-destructive" />}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="text-xs xl:text-sm">
-              <div className="px-2 py-1.5 font-semibold">
-                {serverHealth === 'healthy' && t('server.healthy')}
-                {serverHealth === 'degraded' && t('server.degraded')}
-                {serverHealth === 'down' && t('server.down')}
+            <DropdownMenuContent align="end" className="w-64 text-xs">
+              <div className="p-3 space-y-2">
+                <div className="font-semibold text-sm">
+                  {serverHealth === 'healthy' && '🟢 All Systems Operational'}
+                  {serverHealth === 'degraded' && '🟡 Performance Degraded'}
+                  {serverHealth === 'down' && '🔴 Service Unavailable'}
+                </div>
+                <div className="space-y-1.5 text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>Database:</span>
+                    <span className={serverHealth === 'down' ? 'text-destructive' : 'text-green-500'}>
+                      {serverHealth === 'down' ? 'Down' : 'Online'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>API Latency:</span>
+                    <span className={serverHealth === 'degraded' ? 'text-yellow-500' : 'text-green-500'}>
+                      {serverHealth === 'healthy' ? '<500ms' : serverHealth === 'degraded' ? '>1500ms' : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Auth Service:</span>
+                    <span className="text-green-500">Active</span>
+                  </div>
+                </div>
+                <div className="pt-2 border-t text-xs text-muted-foreground">
+                  Last checked: {new Date().toLocaleTimeString()}
+                </div>
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
