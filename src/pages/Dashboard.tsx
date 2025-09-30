@@ -56,6 +56,48 @@ const Dashboard = () => {
       color: "text-accent",
     },
     {
+      title: "Writing Assistant",
+      description: "Get detailed feedback on your German writing",
+      icon: Target,
+      path: "/writing",
+      color: "text-primary",
+    },
+    {
+      title: "Exercises",
+      description: "Quizzes and translation challenges",
+      icon: BookOpen,
+      path: "/exercises",
+      color: "text-accent",
+    },
+    {
+      title: "The Memorizer",
+      description: "Memorize paragraphs for better fluency",
+      icon: Brain,
+      path: "/memorizer",
+      color: "text-primary",
+    },
+    {
+      title: "Conversation Practice",
+      description: "Chat with AI in realistic scenarios",
+      icon: MessageSquare,
+      path: "/conversation",
+      color: "text-accent",
+    },
+    {
+      title: "Text Highlighter",
+      description: "Identify B2+ vocabulary in articles",
+      icon: Target,
+      path: "/highlighter",
+      color: "text-primary",
+    },
+    {
+      title: "Mistake Diary",
+      description: "Track and learn from your mistakes",
+      icon: BookOpen,
+      path: "/diary",
+      color: "text-accent",
+    },
+    {
       title: "Review Words",
       description: "Spaced repetition practice",
       icon: Brain,
@@ -115,7 +157,7 @@ const Dashboard = () => {
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature) => (
             <Card
               key={feature.path}

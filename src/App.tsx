@@ -8,6 +8,12 @@ import Dashboard from "./pages/Dashboard";
 import Vocabulary from "./pages/Vocabulary";
 import SentenceGenerator from "./pages/SentenceGenerator";
 import Review from "./pages/Review";
+import WritingAssistant from "./pages/WritingAssistant";
+import Exercises from "./pages/Exercises";
+import Memorizer from "./pages/Memorizer";
+import Conversation from "./pages/Conversation";
+import TextHighlighter from "./pages/TextHighlighter";
+import MistakeDiary from "./pages/MistakeDiary";
 import AuthPage from "./components/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +32,12 @@ const App = () => (
           <Route path="/vocabulary" element={<Vocabulary />} />
           <Route path="/sentence-generator" element={<SentenceGenerator />} />
           <Route path="/review" element={<Review />} />
+          <Route path="/writing" element={<WritingAssistant />} />
+          <Route path="/exercises" element={<Exercises />} />
+          <Route path="/memorizer" element={<Memorizer />} />
+          <Route path="/conversation" element={<Conversation />} />
+          <Route path="/highlighter" element={<TextHighlighter />} />
+          <Route path="/diary" element={<MistakeDiary />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

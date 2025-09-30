@@ -5,3 +5,21 @@ verify_jwt = true
 
 [functions.generate-sentence]
 verify_jwt = true
+
+[functions.writing-assistant]
+verify_jwt = true
+
+[functions.generate-exercise]
+verify_jwt = true
+
+[functions.analyze-translation]
+verify_jwt = true
+
+[functions.generate-memorizer]
+verify_jwt = true
+
+[functions.conversation]
+verify_jwt = true
+
+[functions.highlight-text]
+verify_jwt = true

@@ -14,6 +14,132 @@ export type Database = {
   }
   public: {
     Tables: {
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          messages: Json
+          scenario: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          messages?: Json
+          scenario: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          messages?: Json
+          scenario?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercises: {
+        Row: {
+          analysis: string | null
+          completed_at: string | null
+          correct_answer: string
+          created_at: string
+          id: string
+          is_correct: boolean | null
+          options: Json | null
+          question: string
+          topic: string | null
+          type: string
+          user_answer: string | null
+          user_id: string
+        }
+        Insert: {
+          analysis?: string | null
+          completed_at?: string | null
+          correct_answer: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean | null
+          options?: Json | null
+          question: string
+          topic?: string | null
+          type: string
+          user_answer?: string | null
+          user_id: string
+        }
+        Update: {
+          analysis?: string | null
+          completed_at?: string | null
+          correct_answer?: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean | null
+          options?: Json | null
+          question?: string
+          topic?: string | null
+          type?: string
+          user_answer?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercises_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      highlighted_articles: {
+        Row: {
+          content: string
+          created_at: string
+          highlighted_words: Json
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          highlighted_words?: Json
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          highlighted_words?: Json
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "highlighted_articles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       history_items: {
         Row: {
           content: Json
@@ -46,8 +172,56 @@ export type Database = {
           },
         ]
       }
+      memorizer_items: {
+        Row: {
+          created_at: string
+          difficulty: string
+          english_translation: string
+          german_text: string
+          id: string
+          last_reviewed_at: string | null
+          next_review_date: string
+          srs_level: number
+          theme: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty: string
+          english_translation: string
+          german_text: string
+          id?: string
+          last_reviewed_at?: string | null
+          next_review_date?: string
+          srs_level?: number
+          theme: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: string
+          english_translation?: string
+          german_text?: string
+          id?: string
+          last_reviewed_at?: string | null
+          next_review_date?: string
+          srs_level?: number
+          theme?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memorizer_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mistakes: {
         Row: {
+          category: string | null
           content: string
           correction: string | null
           created_at: string
@@ -57,6 +231,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: string | null
           content: string
           correction?: string | null
           created_at?: string
@@ -66,6 +241,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string | null
           content?: string
           correction?: string | null
           created_at?: string
@@ -189,6 +365,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "vocabulary_items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      writing_submissions: {
+        Row: {
+          corrected_text: string
+          created_at: string
+          errors: Json
+          id: string
+          original_text: string
+          overall_feedback: string
+          prompt: string
+          score: number | null
+          user_id: string
+        }
+        Insert: {
+          corrected_text: string
+          created_at?: string
+          errors?: Json
+          id?: string
+          original_text: string
+          overall_feedback: string
+          prompt: string
+          score?: number | null
+          user_id: string
+        }
+        Update: {
+          corrected_text?: string
+          created_at?: string
+          errors?: Json
+          id?: string
+          original_text?: string
+          overall_feedback?: string
+          prompt?: string
+          score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "writing_submissions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
