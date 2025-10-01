@@ -506,36 +506,120 @@ const TelcExam = () => {
         </div>
 
         {/* Instructions */}
-        <Card className="glass mt-8">
+        <Card className="glass mt-8 mb-6">
           <CardHeader>
-            <CardTitle>About the TELC B2 Exam</CardTitle>
+            <CardTitle className="text-2xl">About the TELC B2 Examination</CardTitle>
+            <CardDescription>
+              Complete AI-powered mock exam simulating the official TELC B2 German certification
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>
-              This is a complete AI-powered mock exam that simulates the official TELC B2 German examination.
-              Each section is generated dynamically and evaluated using advanced AI.
-            </p>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-semibold text-foreground mb-2">Features:</h4>
-                <ul className="space-y-1">
-                  <li>• Realistic exam format</li>
-                  <li>• Instant AI evaluation</li>
-                  <li>• Detailed feedback</li>
-                  <li>• Export results to PDF</li>
-                  <li>• Practice mode available</li>
+          <CardContent className="space-y-6">
+            <div>
+              <p className="text-muted-foreground leading-relaxed">
+                This comprehensive mock exam replicates the structure and difficulty of the official TELC B2 examination. 
+                Each section is generated dynamically by AI and evaluated with detailed feedback to help you prepare effectively.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-background/30 p-5 rounded-lg">
+                <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  Key Features
+                </h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 mt-0.5 text-accent flex-shrink-0" />
+                    <span>Authentic TELC B2 exam format with all sections</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 mt-0.5 text-accent flex-shrink-0" />
+                    <span>AI-powered instant evaluation and scoring</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 mt-0.5 text-accent flex-shrink-0" />
+                    <span>Detailed feedback with explanations for every answer</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 mt-0.5 text-accent flex-shrink-0" />
+                    <span>Audio content for listening comprehension practice</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 mt-0.5 text-accent flex-shrink-0" />
+                    <span>Export results to PDF for your records</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 mt-0.5 text-accent flex-shrink-0" />
+                    <span>Unlimited retakes to track improvement</span>
+                  </li>
                 </ul>
               </div>
-              <div>
-                <h4 className="font-semibold text-foreground mb-2">Tips:</h4>
-                <ul className="space-y-1">
-                  <li>• Complete sections in order</li>
-                  <li>• Watch the time limits</li>
-                  <li>• Review explanations carefully</li>
-                  <li>• Retake sections to improve</li>
-                  <li>• Track your progress over time</li>
+
+              <div className="bg-background/30 p-5 rounded-lg">
+                <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-accent" />
+                  Exam Structure
+                </h4>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <strong className="text-foreground">Reading (90 min)</strong>
+                      <p className="text-xs">Comprehension passages with questions</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <strong className="text-foreground">Sprachbausteine (30 min)</strong>
+                      <p className="text-xs">Grammar and vocabulary in context</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <strong className="text-foreground">Listening (20 min)</strong>
+                      <p className="text-xs">Audio comprehension tasks</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <strong className="text-foreground">Writing (30 min)</strong>
+                      <p className="text-xs">Formal and informal writing tasks</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <strong className="text-foreground">Speaking (15 min)</strong>
+                      <p className="text-xs">Presentation and discussion</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-accent/10 border border-accent/30 rounded-lg p-5">
+              <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-accent" />
+                Exam Success Tips
+              </h4>
+              <div className="grid md:grid-cols-2 gap-4">
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• <strong>Time Management:</strong> Practice completing sections within time limits</li>
+                  <li>• <strong>Read Carefully:</strong> Take time to understand questions fully before answering</li>
+                  <li>• <strong>Use Strategies:</strong> Skim reading passages first to grasp main ideas</li>
+                  <li>• <strong>Check Work:</strong> Reserve time at the end to review your answers</li>
+                </ul>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• <strong>Practice Regularly:</strong> Take multiple mock exams to build confidence</li>
+                  <li>• <strong>Review Mistakes:</strong> Learn from detailed feedback on incorrect answers</li>
+                  <li>• <strong>Track Progress:</strong> Compare scores across attempts to see improvement</li>
+                  <li>• <strong>Stay Calm:</strong> The timer is there to help, not stress you out</li>
                 </ul>
               </div>
+            </div>
+
+            <div className="text-center pt-4">
+              <p className="text-sm text-muted-foreground">
+                Ready to test your German skills? Select any section above to begin your mock exam.
+              </p>
             </div>
           </CardContent>
         </Card>
