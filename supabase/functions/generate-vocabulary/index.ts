@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { topic, count = 10 } = await req.json();
+    const { topic, count = 10, difficulty = 'B2' } = await req.json();
 
     if (!topic) {
       throw new Error('Topic is required');
@@ -21,6 +21,13 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
+
+    const difficultyGuidelines = {
+      'A2': 'Use only basic, everyday vocabulary that elementary learners know (common nouns, simple verbs, basic adjectives). Avoid complex or specialized words.',
+      'B1': 'Use common vocabulary that intermediate learners would encounter (standard workplace words, common idioms, familiar topics). Avoid highly specialized or literary terms.',
+      'B2': 'Use advanced vocabulary including less common words, professional terminology, and sophisticated expressions appropriate for upper-intermediate learners.',
+      'B2+': 'Use highly sophisticated vocabulary including academic terms, idiomatic expressions, literary language, and specialized professional vocabulary for advanced learners.'
+    };
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -33,16 +40,21 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a German language teacher helping B2-C1 level students learn vocabulary. Generate ${count} German words related to the topic provided. For each word, provide:
+            content: `You are a German language teacher helping ${difficulty} level students learn vocabulary.
+
+CRITICAL - ${difficulty} Level Guidelines:
+${difficultyGuidelines[difficulty as keyof typeof difficultyGuidelines] || difficultyGuidelines.B2}
+
+Generate ${count} German words that are STRICTLY appropriate for ${difficulty} level. For each word, provide:
 1. The word (with article for nouns: der/die/das)
 2. English definition
-3. A natural German example sentence using the word
+3. A natural German example sentence using the word (complexity matching ${difficulty} level)
 
 Format your response as a JSON array of objects with these exact keys: word, definition, example`
           },
           {
             role: 'user',
-            content: `Generate ${count} B2-C1 level German vocabulary words related to: ${topic}`
+            content: `Generate ${count} ${difficulty} level German vocabulary words related to: ${topic}. Remember: words must match ${difficulty} complexity exactly.`
           }
         ],
       }),

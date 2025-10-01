@@ -95,7 +95,8 @@ const Conversation = () => {
           action: 'continue', 
           scenario, 
           message: input,
-          conversationHistory 
+          conversationHistory,
+          difficulty
         },
       });
 

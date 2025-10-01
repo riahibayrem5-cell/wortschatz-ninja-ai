@@ -18,12 +18,26 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    let prompt = `Generate a single German sentence at ${difficulty} level`;
+    const difficultyGuidelines = {
+      'A2': 'Basic vocabulary and simple grammar. Use present and simple past tenses. Short sentences with straightforward structure.',
+      'B1': 'Common vocabulary and standard grammar. Use present, past, and future tenses. Simple subordinate clauses allowed.',
+      'B2': 'Advanced vocabulary and complex grammar. Use subordinate clauses, passive voice, and varied sentence structures.',
+      'B2+': 'Highly sophisticated vocabulary and very complex grammar. Include Konjunktiv II, complex subordinate clauses, and idiomatic expressions.'
+    };
+
+    let prompt = `Generate a single German sentence at EXACTLY ${difficulty} level`;
     if (topic) prompt += ` about ${topic}`;
     if (grammarFocus) prompt += ` that demonstrates ${grammarFocus}`;
     
-    prompt += `. Provide:
-1. The German sentence
+    prompt += `.
+
+CRITICAL - ${difficulty} Level Requirements:
+${difficultyGuidelines[difficulty as keyof typeof difficultyGuidelines] || difficultyGuidelines.B2}
+
+The sentence MUST match ${difficulty} complexity - not easier, not harder.
+
+Provide:
+1. The German sentence (matching ${difficulty} level)
 2. English translation
 3. Detailed grammatical analysis explaining cases, tenses, word order, and any special constructions
 
@@ -40,7 +54,7 @@ Format as JSON with keys: german, english, analysis`;
         messages: [
           {
             role: 'system',
-            content: 'You are a German language teacher helping students understand sentence structure and grammar at B2-C1 level.'
+            content: `You are a German language teacher helping ${difficulty} level students understand sentence structure and grammar. Create sentences that EXACTLY match ${difficulty} level complexity.`
           },
           {
             role: 'user',

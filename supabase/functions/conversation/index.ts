@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { action, scenario, message, conversationHistory } = await req.json();
+    const { action, scenario, message, conversationHistory, difficulty = 'B2' } = await req.json();
 
     if (!action || !['start', 'continue'].includes(action)) {
       throw new Error('Valid action (start or continue) is required');
@@ -22,18 +22,39 @@ serve(async (req) => {
       throw new Error('GOOGLE_GEMINI_API_KEY not configured');
     }
 
+    const difficultyGuidelines = {
+      'A2': 'Use simple, everyday German vocabulary and basic sentence structures. Speak slowly and clearly. Use present and simple past tenses only. Ask simple questions and give simple responses.',
+      'B1': 'Use common German vocabulary and standard grammar. Speak at a moderate pace. Use present, past, and future tenses. Include some subordinate clauses but keep sentences relatively simple.',
+      'B2': 'Use advanced German vocabulary and complex grammatical structures. Speak at a natural pace. Include subordinate clauses, passive voice, and varied expressions. Challenge the learner appropriately.',
+      'B2+': 'Use sophisticated German vocabulary, idiomatic expressions, and very complex grammar. Speak at native speed. Include Konjunktiv II, complex subordinate clauses, and nuanced expressions typical of educated native speakers.'
+    };
+
     let messages = [];
 
     if (action === 'start') {
-      const systemPrompt = `You are a native German speaker having a natural conversation. Adapt your language to B2-C1 level. Stay in character for the scenario: ${scenario}. Be conversational, natural, and encourage the learner.`;
+      const systemPrompt = `You are a native German speaker having a natural conversation at EXACTLY ${difficulty} level.
+
+CRITICAL - ${difficulty} Level Requirements:
+${difficultyGuidelines[difficulty as keyof typeof difficultyGuidelines] || difficultyGuidelines.B2}
+
+Scenario: ${scenario}
+
+Stay in character for this scenario. Be conversational, natural, and encouraging. Adapt ALL your language (vocabulary, grammar, sentence complexity) to strictly match ${difficulty} level.`;
       
       messages = [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: 'Start the conversation with a natural German greeting appropriate for this scenario.' }
+        { role: 'user', content: `Start the conversation with a natural German greeting appropriate for this scenario at ${difficulty} level.` }
       ];
     } else {
       // Continue conversation
-      const systemPrompt = `You are a native German speaker. Continue the conversation naturally at B2-C1 level. Scenario: ${scenario}. Be encouraging and correct major errors naturally in your response.`;
+      const systemPrompt = `You are a native German speaker continuing a conversation at EXACTLY ${difficulty} level.
+
+CRITICAL - ${difficulty} Level Requirements:
+${difficultyGuidelines[difficulty as keyof typeof difficultyGuidelines] || difficultyGuidelines.B2}
+
+Scenario: ${scenario}
+
+Continue naturally. Correct major errors naturally in your response. Match your language complexity to ${difficulty} level ONLY.`;
       
       messages = [
         { role: 'system', content: systemPrompt },

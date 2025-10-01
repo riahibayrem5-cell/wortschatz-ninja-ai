@@ -22,15 +22,34 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
+    const difficultyGuidelines = {
+      'A2': 'Use basic vocabulary and simple grammatical structures. Present tense and simple past only. Short, everyday sentences.',
+      'B1': 'Use common vocabulary and standard grammatical structures. Include present, past, and future tenses. Moderately complex sentences.',
+      'B2': 'Use advanced vocabulary and complex grammatical structures. Include subjunctive, passive voice, and subordinate clauses. Sophisticated sentences.',
+      'B2+': 'Use highly sophisticated vocabulary and very complex grammatical structures. Include advanced subjunctive, Konjunktiv II, complex subordinate clauses, and idiomatic expressions.'
+    };
+
     let systemPrompt = '';
     let userPrompt = '';
 
     if (type === 'quiz') {
-      systemPrompt = `You are a German language teacher creating B2-C1 level multiple choice quizzes. Create a quiz question with 4 options.`;
-      userPrompt = `Create a ${difficulty} level German quiz question${topic ? ` about ${topic}` : ''}. Format as JSON with: question, options (array of 4 strings), correctAnswer (the correct option string), explanation`;
+      systemPrompt = `You are a German language teacher creating ${difficulty} level multiple choice quizzes. 
+
+IMPORTANT - ${difficulty} Level Guidelines:
+${difficultyGuidelines[difficulty as keyof typeof difficultyGuidelines] || difficultyGuidelines.B2}
+
+Create a quiz question with 4 options that strictly matches the ${difficulty} level complexity.`;
+      
+      userPrompt = `Create a ${difficulty} level German quiz question${topic ? ` about ${topic}` : ''}. The question MUST use vocabulary and grammar appropriate for ${difficulty} level ONLY. Format as JSON with: question, options (array of 4 strings), correctAnswer (the correct option string), explanation`;
     } else {
-      systemPrompt = `You are a German language teacher creating B2-C1 level translation exercises. Create nuanced English sentences for translation.`;
-      userPrompt = `Create a ${difficulty} level English sentence${topic ? ` about ${topic}` : ''} for translation to German. Format as JSON with: english, expectedGerman, notes (hints about grammar/vocabulary to use)`;
+      systemPrompt = `You are a German language teacher creating ${difficulty} level translation exercises.
+
+IMPORTANT - ${difficulty} Level Guidelines:
+${difficultyGuidelines[difficulty as keyof typeof difficultyGuidelines] || difficultyGuidelines.B2}
+
+Create translation exercises that strictly match the ${difficulty} level complexity.`;
+      
+      userPrompt = `Create a ${difficulty} level English sentence${topic ? ` about ${topic}` : ''} for translation to German. The sentence MUST require ${difficulty}-appropriate vocabulary and grammar ONLY. Format as JSON with: english, expectedGerman, notes (hints about grammar/vocabulary to use at ${difficulty} level)`;
     }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

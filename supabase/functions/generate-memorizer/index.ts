@@ -22,9 +22,21 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const systemPrompt = `You are a German language teacher creating memorization exercises. Create information-dense paragraphs (4-6 sentences) that use complex structures and advanced vocabulary appropriate for ${difficulty} level.`;
+    const difficultyGuidelines = {
+      'A2': 'Use simple, everyday vocabulary and basic sentence structures. Present and simple past tenses only. Short sentences with clear, straightforward meaning.',
+      'B1': 'Use common vocabulary and standard grammar. Mix of simple and compound sentences. Present, past, and future tenses with some subordinate clauses.',
+      'B2': 'Use sophisticated vocabulary and complex grammatical structures. Include subordinate clauses, passive voice, and varied sentence structures.',
+      'B2+': 'Use highly advanced vocabulary and very complex grammar. Include Konjunktiv II, complex subordinate clauses, sophisticated conjunctions, and idiomatic expressions.'
+    };
 
-    const userPrompt = `Create a German paragraph about: ${theme}. The paragraph should be memorable, use varied sentence structures, and include B2-C1 vocabulary. Format as JSON with: germanText, englishTranslation, keyVocabulary (array of important words with definitions)`;
+    const systemPrompt = `You are a German language teacher creating memorization exercises for ${difficulty} level learners.
+
+CRITICAL - ${difficulty} Level Requirements:
+${difficultyGuidelines[difficulty as keyof typeof difficultyGuidelines] || difficultyGuidelines.B2}
+
+Create information-dense paragraphs (4-6 sentences) that STRICTLY match ${difficulty} level complexity. The vocabulary, grammar, and sentence structures must be appropriate for ${difficulty} level ONLY.`;
+
+    const userPrompt = `Create a German paragraph about: ${theme}. The paragraph MUST use ${difficulty}-appropriate vocabulary and grammar structures ONLY. Make it memorable and engaging for ${difficulty} level learners. Format as JSON with: germanText, englishTranslation, keyVocabulary (array of important words with definitions)`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

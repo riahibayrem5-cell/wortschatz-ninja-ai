@@ -38,7 +38,7 @@ const TextHighlighter = () => {
 
       if (error) throw error;
       setHighlights(data.highlightedWords || []);
-      toast({ title: "Text analyzed!", description: `Found ${data.highlightedWords?.length || 0} B2+ words` });
+      toast({ title: "Text analyzed!", description: `Found ${data.highlightedWords?.length || 0} ${difficulty} level words` });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -130,7 +130,7 @@ const TextHighlighter = () => {
                   Analyzing...
                 </>
               ) : (
-                "Highlight B2+ Vocabulary"
+                `Highlight ${difficulty}+ Vocabulary`
               )}
             </Button>
           </div>
