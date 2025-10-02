@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, Lightbulb, Volume2, VolumeX } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { trackActivity } from "@/utils/activityTracker";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import AudioButton from "@/components/AudioButton";
 
 const SCENARIOS = [
   "Job Interview (Vorstellungsgespräch)",
@@ -25,6 +27,14 @@ const SCENARIOS = [
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  audio?: string;
+}
+
+interface MistakeAnalysis {
+  mistakes: Array<{ error: string; correction: string; explanation: string }>;
+  alternatives: string[];
+  overallAssessment: string;
+  hasErrors: boolean;
 }
 
 const Conversation = () => {
@@ -38,6 +48,10 @@ const Conversation = () => {
   const [input, setInput] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [audioMode, setAudioMode] = useState<'text' | 'verbal'>('text');
+  const [analyzingMessage, setAnalyzingMessage] = useState<string | null>(null);
+  const [mistakeAnalysis, setMistakeAnalysis] = useState<MistakeAnalysis | null>(null);
+  const [showMistakeDialog, setShowMistakeDialog] = useState(false);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -75,12 +89,30 @@ const Conversation = () => {
     }
   };
 
+  const analyzeMistakes = async (text: string) => {
+    setAnalyzingMessage(text);
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-mistakes", {
+        body: { text, difficulty },
+      });
+
+      if (error) throw error;
+      setMistakeAnalysis(data);
+      setShowMistakeDialog(true);
+    } catch (error: any) {
+      toast({ title: "Error analyzing mistakes", description: error.message, variant: "destructive" });
+    } finally {
+      setAnalyzingMessage(null);
+    }
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) return;
 
     const userMessage: Message = { role: 'user', content: input };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
+    const currentInput = input;
     setInput("");
     setLoading(true);
 
@@ -94,7 +126,7 @@ const Conversation = () => {
         body: { 
           action: 'continue', 
           scenario, 
-          message: input,
+          message: currentInput,
           conversationHistory,
           difficulty
         },
@@ -102,9 +134,28 @@ const Conversation = () => {
 
       if (error) throw error;
       
-      const aiMessage: Message = { role: 'assistant', content: data.reply };
+      // Generate audio for AI response if in verbal mode
+      let audioData = null;
+      if (audioMode === 'verbal') {
+        try {
+          const { data: ttsData } = await supabase.functions.invoke('text-to-speech', {
+            body: { text: data.reply, language: 'de' }
+          });
+          audioData = ttsData?.audioContent;
+        } catch (ttsError) {
+          console.error('TTS error:', ttsError);
+        }
+      }
+      
+      const aiMessage: Message = { role: 'assistant', content: data.reply, audio: audioData };
       const updatedMessages = [...newMessages, aiMessage];
       setMessages(updatedMessages);
+
+      // Auto-play in verbal mode
+      if (audioMode === 'verbal' && audioData) {
+        const audio = new Audio(`data:audio/mpeg;base64,${audioData}`);
+        audio.play();
+      }
 
       if (conversationId) {
         await supabase.from("conversations")
@@ -148,6 +199,31 @@ const Conversation = () => {
                 onChange={setDifficulty}
                 disabled={loading}
               />
+
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">Audio Mode</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={() => setAudioMode('text')}
+                    variant={audioMode === 'text' ? 'default' : 'outline'}
+                    className={audioMode === 'text' ? 'gradient-primary' : 'glass'}
+                  >
+                    <VolumeX className="w-4 h-4 mr-2" />
+                    Text Only
+                  </Button>
+                  <Button
+                    onClick={() => setAudioMode('verbal')}
+                    variant={audioMode === 'verbal' ? 'default' : 'outline'}
+                    className={audioMode === 'verbal' ? 'gradient-primary' : 'glass'}
+                  >
+                    <Volume2 className="w-4 h-4 mr-2" />
+                    Verbal Mode
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {audioMode === 'text' ? 'Manual audio playback only' : 'Audio plays automatically'}
+                </p>
+              </div>
               
               <div>
                 <label className="text-sm text-muted-foreground mb-2 block">Choose a scenario</label>
@@ -204,7 +280,37 @@ const Conversation = () => {
                           : 'bg-background/50'
                       }`}
                     >
-                      <p className="whitespace-pre-line">{message.content}</p>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="whitespace-pre-line flex-1">{message.content}</p>
+                        {message.role === 'user' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => analyzeMistakes(message.content)}
+                            disabled={analyzingMessage === message.content}
+                            className="shrink-0"
+                          >
+                            {analyzingMessage === message.content ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Lightbulb className="w-4 h-4 text-yellow-500" />
+                            )}
+                          </Button>
+                        )}
+                        {message.role === 'assistant' && audioMode === 'text' && message.audio && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              const audio = new Audio(`data:audio/mpeg;base64,${message.audio}`);
+                              audio.play();
+                            }}
+                            className="shrink-0"
+                          >
+                            <Volume2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -238,6 +344,58 @@ const Conversation = () => {
             </Card>
           </div>
         )}
+
+        <Dialog open={showMistakeDialog} onOpenChange={setShowMistakeDialog}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Lightbulb className="w-5 h-5 text-yellow-500" />
+                Mistake Analysis & Suggestions
+              </DialogTitle>
+            </DialogHeader>
+            
+            {mistakeAnalysis && (
+              <div className="space-y-4">
+                {!mistakeAnalysis.hasErrors ? (
+                  <div className="p-4 bg-accent/20 rounded-lg border border-accent">
+                    <p className="font-semibold text-accent">✨ Excellent! No significant errors found.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="font-semibold mb-2">Mistakes Found:</h4>
+                      {mistakeAnalysis.mistakes.map((mistake, idx) => (
+                        <div key={idx} className="p-3 bg-destructive/10 rounded-lg border border-destructive/30 mb-2">
+                          <p className="text-sm text-destructive font-medium">❌ {mistake.error}</p>
+                          <p className="text-sm text-accent mt-1">✓ {mistake.correction}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{mistake.explanation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {mistakeAnalysis.alternatives && mistakeAnalysis.alternatives.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Alternative Ways to Say It:</h4>
+                    <div className="space-y-2">
+                      {mistakeAnalysis.alternatives.map((alt, idx) => (
+                        <div key={idx} className="p-3 bg-primary/10 rounded-lg border border-primary/30">
+                          <p className="text-sm">{alt}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-4 bg-background/50 rounded-lg">
+                  <h4 className="font-semibold mb-2">Overall Assessment:</h4>
+                  <p className="text-sm text-muted-foreground">{mistakeAnalysis.overallAssessment}</p>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

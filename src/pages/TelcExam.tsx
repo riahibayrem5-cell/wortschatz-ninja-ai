@@ -151,12 +151,21 @@ const TelcExam = () => {
           return { ...q, userAnswer, isCorrect };
         });
 
+        // Use accurate TELC scoring
+        const { data: scoreData, error: scoreError } = await supabase.functions.invoke('score-telc-section', {
+          body: {
+            section: sectionId,
+            totalQuestions: questions.length,
+            correctAnswers: correct
+          }
+        });
+
+        if (scoreError) throw scoreError;
+
         setResults(prev => ({
           ...prev,
           [sectionId]: {
-            score: (correct / questions.length) * 100,
-            correctAnswers: correct,
-            totalQuestions: questions.length,
+            ...scoreData,
             results: sectionResults
           }
         }));
@@ -164,6 +173,7 @@ const TelcExam = () => {
 
       toast({ title: `${sectionId} section submitted!` });
       setCurrentSection(null);
+      setShowResults(true);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -460,21 +470,31 @@ const TelcExam = () => {
                   {hasResults && (
                     <div className="p-3 bg-background/50 rounded-lg mb-3">
                       <div className="flex items-center justify-between mb-2">
-                        {hasResults.score >= 60 ? (
+                        {hasResults.passed ? (
                           <div className="flex items-center gap-2 text-green-500">
                             <CheckCircle className="w-5 h-5" />
-                            <span className="font-semibold">Passed</span>
+                            <span className="font-semibold">{hasResults.grade || 'Passed'}</span>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 text-destructive">
                             <XCircle className="w-5 h-5" />
-                            <span className="font-semibold">Needs Improvement</span>
+                            <span className="font-semibold">{hasResults.grade || 'Needs Improvement'}</span>
                           </div>
                         )}
                       </div>
-                      {hasResults.correctAnswers && (
+                      {hasResults.earnedPoints !== undefined && (
+                        <p className="text-sm text-muted-foreground">
+                          {hasResults.earnedPoints}/{hasResults.maxPoints} points
+                        </p>
+                      )}
+                      {hasResults.correctAnswers !== undefined && (
                         <p className="text-sm text-muted-foreground">
                           {hasResults.correctAnswers}/{hasResults.totalQuestions} correct
+                        </p>
+                      )}
+                      {hasResults.feedback && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {hasResults.feedback}
                         </p>
                       )}
                     </div>

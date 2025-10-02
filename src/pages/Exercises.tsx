@@ -17,7 +17,7 @@ const Exercises = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [difficulty, setDifficulty] = useState<Difficulty>('B2');
-  const [mode, setMode] = useState<'quiz' | 'translation'>('quiz');
+  const [mode, setMode] = useState<'quiz' | 'translation' | 'gapfill'>('quiz');
   const [topic, setTopic] = useState("");
   const [loading, setLoading] = useState(false);
   const [exercise, setExercise] = useState<any>(null);
@@ -30,12 +30,19 @@ const Exercises = () => {
     setShowResult(false);
     setUserAnswer("");
     try {
-      const { data, error } = await supabase.functions.invoke("generate-exercise", {
-        body: { type: mode, topic: topic === "any" ? "" : topic, difficulty },
-      });
-
-      if (error) throw error;
-      setExercise(data);
+      if (mode === 'gapfill') {
+        const { data, error } = await supabase.functions.invoke("generate-gap-fill", {
+          body: { topic: topic === "any" ? "" : topic, difficulty, count: 10 },
+        });
+        if (error) throw error;
+        setExercise(data);
+      } else {
+        const { data, error } = await supabase.functions.invoke("generate-exercise", {
+          body: { type: mode, topic: topic === "any" ? "" : topic, difficulty },
+        });
+        if (error) throw error;
+        setExercise(data);
+      }
       toast({ title: "Exercise generated!" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -145,20 +152,27 @@ const Exercises = () => {
         <Card className="p-8 glass mb-8 mt-6">
           <h1 className="text-3xl font-bold mb-6 text-gradient">Exercises</h1>
           
-          <div className="flex gap-4 mb-6">
+          <div className="flex gap-4 mb-6 flex-wrap">
             <Button
               onClick={() => setMode('quiz')}
               variant={mode === 'quiz' ? 'default' : 'outline'}
               className={mode === 'quiz' ? 'gradient-primary' : 'glass'}
             >
-              Multiple Choice Quiz
+              Multiple Choice
             </Button>
             <Button
               onClick={() => setMode('translation')}
               variant={mode === 'translation' ? 'default' : 'outline'}
               className={mode === 'translation' ? 'gradient-primary' : 'glass'}
             >
-              Translation Challenge
+              Translation
+            </Button>
+            <Button
+              onClick={() => setMode('gapfill')}
+              variant={mode === 'gapfill' ? 'default' : 'outline'}
+              className={mode === 'gapfill' ? 'gradient-primary' : 'glass'}
+            >
+              Gap Fill
             </Button>
           </div>
 
@@ -203,7 +217,31 @@ const Exercises = () => {
 
         {exercise && !showResult && (
           <Card className="p-8 glass glow">
-            {mode === 'quiz' ? (
+            {mode === 'gapfill' ? (
+              <div className="space-y-6">
+                <h3 className="text-xl font-semibold mb-4">Fill in the Gaps</h3>
+                <div className="space-y-4">
+                  {exercise.sentences?.map((item: any, index: number) => (
+                    <div key={index} className="p-4 glass rounded-lg border-2 border-border">
+                      <p className="text-lg mb-3">{item.sentence}</p>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Your answer..."
+                          value={(userAnswer as any)[index] || ''}
+                          onChange={(e) => {
+                            const answers = { ...(userAnswer as any) };
+                            answers[index] = e.target.value;
+                            setUserAnswer(answers);
+                          }}
+                          className="bg-background/50"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">Testing: {item.grammarPoint}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : mode === 'quiz' ? (
               <div className="space-y-6">
                 <h3 className="text-xl font-semibold">{exercise.question}</h3>
                 <div className="space-y-3">
@@ -232,7 +270,7 @@ const Exercises = () => {
                   <label className="text-sm text-muted-foreground mb-2 block">Your German translation:</label>
                   <Textarea
                     placeholder="Ihre Übersetzung..."
-                    value={userAnswer}
+                    value={userAnswer as string}
                     onChange={(e) => setUserAnswer(e.target.value)}
                     className="bg-background/50 min-h-[100px]"
                   />
@@ -247,7 +285,7 @@ const Exercises = () => {
 
             <Button
               onClick={checkAnswer}
-              disabled={!userAnswer.trim() || loading}
+              disabled={!userAnswer || loading || (mode === 'gapfill' && Object.keys(userAnswer as any).length === 0)}
               className="w-full mt-6 gradient-primary hover:opacity-90"
             >
               {loading ? (
