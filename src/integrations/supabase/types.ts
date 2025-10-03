@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      content_cache: {
+        Row: {
+          access_count: number | null
+          accessed_at: string | null
+          audio_url: string | null
+          cache_key: string
+          content_data: Json
+          content_type: string
+          created_at: string | null
+          difficulty: string | null
+          id: string
+          topic: string | null
+          user_id: string
+        }
+        Insert: {
+          access_count?: number | null
+          accessed_at?: string | null
+          audio_url?: string | null
+          cache_key: string
+          content_data: Json
+          content_type: string
+          created_at?: string | null
+          difficulty?: string | null
+          id?: string
+          topic?: string | null
+          user_id: string
+        }
+        Update: {
+          access_count?: number | null
+          accessed_at?: string | null
+          audio_url?: string | null
+          cache_key?: string
+          content_data?: Json
+          content_type?: string
+          created_at?: string | null
+          difficulty?: string | null
+          id?: string
+          topic?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
@@ -265,30 +307,42 @@ export type Database = {
         Row: {
           category: string | null
           content: string
+          context: Json | null
           correction: string | null
           created_at: string
           explanation: string | null
           id: string
+          notes: string | null
+          resolved: boolean | null
+          source: string | null
           type: string
           user_id: string
         }
         Insert: {
           category?: string | null
           content: string
+          context?: Json | null
           correction?: string | null
           created_at?: string
           explanation?: string | null
           id?: string
+          notes?: string | null
+          resolved?: boolean | null
+          source?: string | null
           type: string
           user_id: string
         }
         Update: {
           category?: string | null
           content?: string
+          context?: Json | null
           correction?: string | null
           created_at?: string
           explanation?: string | null
           id?: string
+          notes?: string | null
+          resolved?: boolean | null
+          source?: string | null
           type?: string
           user_id?: string
         }
