@@ -20,6 +20,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { openInNewTab } from "@/utils/contentCache";
+import { exportMistakesToPDF } from "@/utils/exportUtils";
 
 interface Mistake {
   id: string;
@@ -201,14 +202,23 @@ const MistakeDiary = () => {
           <h1 className="text-3xl font-bold">Mistake Diary</h1>
           <p className="text-muted-foreground mt-1">Track and learn from your mistakes</p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => openInNewTab('/mistake-diary')}
-        >
-          <ExternalLink className="w-4 h-4 mr-2" />
-          Open in New Tab
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportMistakesToPDF(mistakes)}
+          >
+            Export PDF
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openInNewTab('/mistake-diary')}
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Open in New Tab
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Dashboard */}
