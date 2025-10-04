@@ -7,7 +7,6 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import AudioButton from "@/components/AudioButton";
 import AudioPlayer from "@/components/AudioPlayer";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS, GRAMMAR_BY_DIFFICULTY } from "@/utils/constants";
@@ -32,17 +31,16 @@ const SentenceGenerator = () => {
 
     const renderValue = (value: any, depth: number = 0): JSX.Element => {
       if (typeof value === 'string') {
-        return <span className="text-foreground">{value}</span>;
+        return <span className="text-sm text-foreground/90">{value}</span>;
       }
       
       if (Array.isArray(value)) {
         return (
-          <div className="space-y-1">
+          <div className="flex flex-wrap gap-2">
             {value.map((item, idx) => (
-              <div key={idx} className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                {renderValue(item, depth + 1)}
-              </div>
+              <span key={idx} className="px-2 py-1 bg-primary/10 rounded text-xs">
+                {typeof item === 'string' ? item : JSON.stringify(item)}
+              </span>
             ))}
           </div>
         );
@@ -50,13 +48,13 @@ const SentenceGenerator = () => {
       
       if (typeof value === 'object' && value !== null) {
         return (
-          <div className={`space-y-2 ${depth > 0 ? 'ml-4 pl-4 border-l-2 border-primary/20' : ''}`}>
+          <div className="grid gap-2">
             {Object.entries(value).map(([key, val]) => (
-              <div key={key} className="space-y-1">
-                <div className="font-medium text-primary capitalize">
-                  {key.replace(/_/g, ' ')}:
+              <div key={key} className="p-3 bg-background/40 rounded-lg">
+                <div className="text-xs font-semibold text-primary/80 uppercase tracking-wide mb-1">
+                  {key.replace(/_/g, ' ')}
                 </div>
-                <div className="ml-2">
+                <div className="text-sm">
                   {renderValue(val, depth + 1)}
                 </div>
               </div>
@@ -65,74 +63,12 @@ const SentenceGenerator = () => {
         );
       }
       
-      return <span className="text-foreground">{String(value)}</span>;
+      return <span className="text-sm text-foreground/90">{String(value)}</span>;
     };
 
-    return (
-      <div className="p-6 bg-background/30 rounded-lg space-y-4">
-        {renderValue(analysis)}
-      </div>
-    );
+    return renderValue(analysis);
   };
 
-  const renderWordByWord = () => {
-    if (!result?.german) return null;
-    
-    const words = result.german.split(/\s+/);
-    
-    return (
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          {words.map((word: string, idx: number) => (
-            <button
-              key={idx}
-              onClick={() => setSelectedWord({ word, index: idx })}
-              className={`px-3 py-2 rounded-lg transition-all hover:scale-105 ${
-                selectedWord?.index === idx
-                  ? 'bg-primary text-primary-foreground shadow-lg'
-                  : 'bg-background/50 hover:bg-background/80'
-              }`}
-            >
-              {word}
-            </button>
-          ))}
-        </div>
-        
-        {selectedWord && (
-          <Card className="p-4 glass border-primary/30">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xl font-bold text-primary">{selectedWord.word}</h4>
-                <AudioButton text={selectedWord.word} lang="de-DE" />
-              </div>
-              
-              <div className="space-y-2 text-sm">
-                <div className="p-3 bg-background/40 rounded-lg">
-                  <p className="text-muted-foreground mb-1">Position in sentence:</p>
-                  <p className="text-foreground font-medium">Word {selectedWord.index + 1} of {words.length}</p>
-                </div>
-                
-                <div className="p-3 bg-background/40 rounded-lg">
-                  <p className="text-muted-foreground mb-1">Context:</p>
-                  <p className="text-foreground">
-                    {words.slice(Math.max(0, selectedWord.index - 2), selectedWord.index).join(' ')}{' '}
-                    <span className="font-bold text-primary underline">{selectedWord.word}</span>{' '}
-                    {words.slice(selectedWord.index + 1, Math.min(words.length, selectedWord.index + 3)).join(' ')}
-                  </p>
-                </div>
-                
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <p className="text-xs text-muted-foreground">
-                    💡 Click any word above to see its analysis in context
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Card>
-        )}
-      </div>
-    );
-  };
 
   const generateSentence = async () => {
     setLoading(true);
@@ -231,32 +167,66 @@ const SentenceGenerator = () => {
           <>
             <Card className="p-8 glass glow mb-6">
               <div className="space-y-6">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm text-muted-foreground">{t('sentence.german')}</h3>
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm text-muted-foreground">{t('sentence.german')}</h3>
+                    <AudioPlayer text={result.german} lang="de-DE" />
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {result.german.split(/\s+/).map((word: string, idx: number) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedWord({ word, index: idx })}
+                        className={`px-3 py-2 rounded-lg transition-all hover:scale-105 text-lg font-medium ${
+                          selectedWord?.index === idx
+                            ? 'bg-primary text-primary-foreground shadow-lg'
+                            : 'bg-background/50 hover:bg-background/80 text-primary'
+                        }`}
+                      >
+                        {word}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {selectedWord && (
+                    <Card className="p-4 glass border-primary/30 mb-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xl font-bold text-primary">{selectedWord.word}</h4>
+                          <AudioPlayer text={selectedWord.word} lang="de-DE" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="p-2 bg-background/40 rounded">
+                            <p className="text-muted-foreground text-xs">Position</p>
+                            <p className="font-medium">Word {selectedWord.index + 1} of {result.german.split(/\s+/).length}</p>
+                          </div>
+                          <div className="p-2 bg-background/40 rounded">
+                            <p className="text-muted-foreground text-xs">Context</p>
+                            <p className="text-xs leading-relaxed">
+                              {result.german.split(/\s+/).slice(Math.max(0, selectedWord.index - 1), selectedWord.index).join(' ')}{' '}
+                              <span className="font-bold text-primary">{selectedWord.word}</span>{' '}
+                              {result.german.split(/\s+/).slice(selectedWord.index + 1, selectedWord.index + 2).join(' ')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  )}
                 </div>
-                <p className="text-2xl font-semibold text-primary mb-3">{result.german}</p>
-                <AudioPlayer text={result.german} lang="de-DE" />
-              </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm text-muted-foreground">{t('sentence.english')}</h3>
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm text-muted-foreground">{t('sentence.english')}</h3>
+                    <AudioPlayer text={result.english} lang="en-US" />
+                  </div>
+                  <p className="text-lg text-foreground">{result.english}</p>
                 </div>
-                <p className="text-lg text-foreground mb-3">{result.english}</p>
-                <AudioPlayer text={result.english} lang="en-US" />
               </div>
-              </div>
-            </Card>
-
-            <Card className="p-8 glass glow mb-6">
-              <h3 className="text-lg font-semibold mb-4 text-gradient">Word-by-Word Analysis</h3>
-              {renderWordByWord()}
             </Card>
 
             <Card className="p-8 glass glow">
               <h3 className="text-lg font-semibold mb-4 text-gradient">{t('sentence.analysis')}</h3>
-              <div className="space-y-4">
+              <div className="grid gap-3">
                 {renderAnalysis(result.analysis)}
               </div>
             </Card>

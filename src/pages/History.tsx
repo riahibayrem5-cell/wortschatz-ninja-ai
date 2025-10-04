@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Download, 
   FileText, 
@@ -15,7 +16,8 @@ import {
   Target,
   AlertCircle,
   Loader2,
-  FileArchive
+  FileArchive,
+  Eye
 } from "lucide-react";
 import {
   exportVocabularyToPDF,
@@ -30,6 +32,7 @@ import {
 const History = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [previewItem, setPreviewItem] = useState<any>(null);
   const [data, setData] = useState({
     vocabulary: [],
     exercises: [],
@@ -207,11 +210,16 @@ const History = () => {
                   {data.vocabulary.slice(0, 10).map((item: any) => (
                     <div key={item.id} className="p-3 bg-background/50 rounded-lg">
                       <div className="flex items-start justify-between">
-                        <div>
+                        <div className="flex-1">
                           <h4 className="font-semibold text-primary">{item.word}</h4>
-                          <p className="text-sm text-muted-foreground">{item.definition}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-1">{item.definition}</p>
                         </div>
-                        {item.topic && <Badge variant="secondary">{item.topic}</Badge>}
+                        <div className="flex items-center gap-2">
+                          {item.topic && <Badge variant="secondary">{item.topic}</Badge>}
+                          <Button size="sm" variant="ghost" onClick={() => setPreviewItem({ type: 'vocabulary', data: item })}>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -422,6 +430,30 @@ const History = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Preview Dialog */}
+        <Dialog open={!!previewItem} onOpenChange={() => setPreviewItem(null)}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Preview</DialogTitle>
+            </DialogHeader>
+            {previewItem?.type === 'vocabulary' && (
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-2xl font-bold text-primary mb-2">{previewItem.data.word}</h3>
+                  <p className="text-muted-foreground">{previewItem.data.definition}</p>
+                </div>
+                {previewItem.data.example_sentence && (
+                  <div className="p-4 bg-background/50 rounded-lg">
+                    <p className="text-sm font-medium mb-1">Example:</p>
+                    <p className="text-sm">{previewItem.data.example_sentence}</p>
+                  </div>
+                )}
+                {previewItem.data.topic && <Badge>{previewItem.data.topic}</Badge>}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
