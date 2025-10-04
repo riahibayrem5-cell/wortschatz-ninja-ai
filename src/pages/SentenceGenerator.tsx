@@ -172,24 +172,28 @@ const SentenceGenerator = () => {
                     <h3 className="text-sm text-muted-foreground">{t('sentence.german')}</h3>
                     <AudioPlayer text={result.german} lang="de-DE" />
                   </div>
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  
+                  {/* Continuous sentence with clickable words */}
+                  <p className="text-2xl font-semibold leading-relaxed mb-4">
                     {result.german.split(/\s+/).map((word: string, idx: number) => (
-                      <button
-                        key={idx}
-                        onClick={() => setSelectedWord({ word, index: idx })}
-                        className={`px-3 py-2 rounded-lg transition-all hover:scale-105 text-lg font-medium ${
-                          selectedWord?.index === idx
-                            ? 'bg-primary text-primary-foreground shadow-lg'
-                            : 'bg-background/50 hover:bg-background/80 text-primary'
-                        }`}
-                      >
-                        {word}
-                      </button>
+                      <span key={idx}>
+                        <button
+                          onClick={() => setSelectedWord({ word, index: idx })}
+                          className={`inline-block transition-all hover:scale-105 rounded px-1 ${
+                            selectedWord?.index === idx
+                              ? 'bg-primary text-primary-foreground'
+                              : 'text-primary hover:bg-primary/10'
+                          }`}
+                        >
+                          {word}
+                        </button>
+                        {idx < result.german.split(/\s+/).length - 1 && ' '}
+                      </span>
                     ))}
-                  </div>
+                  </p>
                   
                   {selectedWord && (
-                    <Card className="p-4 glass border-primary/30 mb-4">
+                    <Card className="p-4 glass border-primary/30 animate-in fade-in-50 slide-in-from-top-2">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <h4 className="text-xl font-bold text-primary">{selectedWord.word}</h4>

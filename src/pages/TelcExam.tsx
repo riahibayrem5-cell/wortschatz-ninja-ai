@@ -60,6 +60,7 @@ interface ExamState {
 
 const TelcExam = () => {
   const { toast } = useToast();
+  const [examMode, setExamMode] = useState<'practice' | 'mock' | null>(null);
   const [currentSection, setCurrentSection] = useState<string | null>(null);
   const [examState, setExamState] = useState<ExamState>({
     reading: null,
@@ -74,6 +75,8 @@ const TelcExam = () => {
   const [results, setResults] = useState<Record<string, any>>({});
   const [showResults, setShowResults] = useState(false);
   const [timeLeft, setTimeLeft] = useState<Record<string, number>>({});
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [maxTotalPoints, setMaxTotalPoints] = useState(300);
 
   const sections = [
     { id: 'reading', icon: BookOpen, title: 'Leseverstehen', duration: 90, color: 'text-blue-500' },
@@ -140,7 +143,11 @@ const TelcExam = () => {
         });
 
         if (error) throw error;
-        setResults(prev => ({ ...prev, [sectionId]: data }));
+        setResults(prev => {
+          const newResults = { ...prev, [sectionId]: data };
+          updateTotalPoints(newResults);
+          return newResults;
+        });
       } else {
         const questions = content?.questions || [];
         let correct = 0;
@@ -156,19 +163,24 @@ const TelcExam = () => {
           body: {
             section: sectionId,
             totalQuestions: questions.length,
-            correctAnswers: correct
+            correctAnswers: correct,
+            mode: examMode || 'practice'
           }
         });
 
         if (scoreError) throw scoreError;
 
-        setResults(prev => ({
-          ...prev,
-          [sectionId]: {
-            ...scoreData,
-            results: sectionResults
-          }
-        }));
+        setResults(prev => {
+          const newResults = {
+            ...prev,
+            [sectionId]: {
+              ...scoreData,
+              results: sectionResults
+            }
+          };
+          updateTotalPoints(newResults);
+          return newResults;
+        });
       }
 
       toast({ title: `${sectionId} section submitted!` });
@@ -179,6 +191,16 @@ const TelcExam = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const updateTotalPoints = (allResults: Record<string, any>) => {
+    let total = 0;
+    Object.values(allResults).forEach((result: any) => {
+      if (result.earnedPoints) {
+        total += result.earnedPoints;
+      }
+    });
+    setTotalPoints(total);
   };
 
   const exportToPDF = () => {
@@ -428,19 +450,108 @@ const TelcExam = () => {
       <Navbar />
       
       <div className="container max-w-6xl mx-auto p-4 mt-6">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-3 text-gradient">TELC B2 Mock Exam</h1>
-          <p className="text-muted-foreground mb-4">
-            AI-Powered Complete Examination with Instant Feedback
-          </p>
-          {Object.keys(results).length > 0 && (
-            <Button onClick={exportToPDF} className="gradient-accent">
-              <Download className="w-4 h-4 mr-2" />
-              Export Results to PDF
-            </Button>
-          )}
-        </div>
+        {/* Mode Selection */}
+        {!examMode && (
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold mb-3 text-gradient">TELC B2 Exam</h1>
+              <p className="text-muted-foreground">Choose your exam mode</p>
+            </div>
+            
+            <div className="grid gap-6">
+              <Card className="glass hover:shadow-xl transition-all cursor-pointer" onClick={() => setExamMode('practice')}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="w-6 h-6 text-primary" />
+                    Practice Mode
+                  </CardTitle>
+                  <CardDescription>
+                    Practice individual sections at your own pace with instant feedback
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      <span>No time pressure</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      <span>Immediate feedback after each section</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      <span>Review explanations for every question</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="glass hover:shadow-xl transition-all cursor-pointer border-primary/50" onClick={() => setExamMode('mock')}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="w-6 h-6 text-primary" />
+                    Mock Exam Mode
+                  </CardTitle>
+                  <CardDescription>
+                    Take the complete exam with official timing and scoring
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      <span>Authentic exam conditions with timers</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      <span>Official TELC scoring system (300 points)</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      <span>Complete all 5 sections sequentially</span>
+                    </li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {examMode && (
+          <>
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center gap-4 mb-3">
+                <h1 className="text-4xl font-bold text-gradient">
+                  TELC B2 {examMode === 'mock' ? 'Mock Exam' : 'Practice'}
+                </h1>
+                <Button variant="outline" size="sm" onClick={() => {
+                  setExamMode(null);
+                  setCurrentSection(null);
+                  setResults({});
+                  setShowResults(false);
+                }}>
+                  Change Mode
+                </Button>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                {examMode === 'mock' 
+                  ? 'Complete examination with authentic timing and official scoring'
+                  : 'Practice individual sections at your own pace'}
+              </p>
+              {Object.keys(results).length > 0 && (
+                <div className="flex items-center justify-center gap-4">
+                  <Badge variant="outline" className="text-lg px-4 py-2">
+                    Total: {totalPoints}/{maxTotalPoints} points
+                  </Badge>
+                  <Button onClick={exportToPDF} className="gradient-accent">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export Results
+                  </Button>
+                </div>
+              )}
+            </div>
 
         {/* Sections Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -643,6 +754,8 @@ const TelcExam = () => {
             </div>
           </CardContent>
         </Card>
+          </>
+        )}
       </div>
     </div>
   );
