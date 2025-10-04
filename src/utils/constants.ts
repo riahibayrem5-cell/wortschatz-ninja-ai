@@ -24,6 +24,17 @@ export const TELC_B2_TOPICS = [
 
 // Grammar focus by difficulty level
 export const GRAMMAR_BY_DIFFICULTY = {
+  A2: [
+    "Präsens (Present Tense)",
+    "Perfekt (Perfect Tense)",
+    "Präteritum von haben/sein (Past of haben/sein)",
+    "Modalverben (Modal Verbs)",
+    "Personalpronomen (Personal Pronouns)",
+    "Possessivartikel (Possessive Articles)",
+    "Akkusativ (Accusative Case)",
+    "Dativ (Dative Case)",
+    "Trennbare Verben (Separable Verbs)",
+  ],
   B1: [
     "Perfekt und Präteritum (Perfect and Simple Past)",
     "Modalverben (Modal Verbs)",
@@ -45,6 +56,18 @@ export const GRAMMAR_BY_DIFFICULTY = {
     "Kausale und konzessive Nebensätze (Causal/Concessive Clauses)",
     "Erweiterte Adjektivdeklination (Extended Adjective Declension)",
     "Funktionsverbgefüge (Functional Verb Structures)",
+  ],
+  "B2+": [
+    "Konjunktiv I und II (Subjunctive I and II)",
+    "Komplexe Passivkonstruktionen (Complex Passive Constructions)",
+    "Partizipialkonstruktionen (Participial Constructions)",
+    "Erweiterte Relativsätze (Extended Relative Clauses)",
+    "Nominalisierung (Nominalization)",
+    "Gehobener Wortschatz (Advanced Vocabulary)",
+    "Idiomatische Ausdrücke (Idiomatic Expressions)",
+    "Komplexe Satzstrukturen (Complex Sentence Structures)",
+    "Modalpartikeln (Modal Particles)",
+    "Stilistische Variationen (Stylistic Variations)",
   ],
   C1: [
     "Konjunktiv I (Subjunctive I - Reported Speech)",

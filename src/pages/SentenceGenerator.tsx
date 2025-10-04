@@ -203,7 +203,7 @@ const SentenceGenerator = () => {
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
                   <SelectItem value="none">{t('sentence.noGrammar')}</SelectItem>
-                  {GRAMMAR_BY_DIFFICULTY[difficulty].map((g) => (
+                  {(GRAMMAR_BY_DIFFICULTY[difficulty] || []).map((g) => (
                     <SelectItem key={g} value={g}>{g}</SelectItem>
                   ))}
                 </SelectContent>
