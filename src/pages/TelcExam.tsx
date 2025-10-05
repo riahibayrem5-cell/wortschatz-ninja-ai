@@ -83,11 +83,11 @@ const TelcExam = () => {
   const [timeLeft, setTimeLeft] = useState<Record<string, number>>({});
 
   const sections = [
-    { id: 'reading', icon: BookOpen, title: 'Leseverstehen', duration: 90, color: 'text-blue-500', maxPoints: 25 },
-    { id: 'sprachbausteine', icon: PenTool, title: 'Sprachbausteine', duration: 30, color: 'text-purple-500', maxPoints: 15 },
-    { id: 'listening', icon: Headphones, title: 'Hörverstehen', duration: 20, color: 'text-green-500', maxPoints: 25 },
+    { id: 'reading', icon: BookOpen, title: 'Leseverstehen', duration: 90, color: 'text-blue-500', maxPoints: 75 },
+    { id: 'sprachbausteine', icon: PenTool, title: 'Sprachbausteine', duration: 30, color: 'text-purple-500', maxPoints: 30 },
+    { id: 'listening', icon: Headphones, title: 'Hörverstehen', duration: 20, color: 'text-green-500', maxPoints: 75 },
     { id: 'writing', icon: PenTool, title: 'Schriftlicher Ausdruck', duration: 30, color: 'text-orange-500', maxPoints: 45 },
-    { id: 'speaking', icon: Mic, title: 'Mündlicher Ausdruck', duration: 15, color: 'text-red-500', maxPoints: 60 }
+    { id: 'speaking', icon: Mic, title: 'Mündlicher Ausdruck', duration: 15, color: 'text-red-500', maxPoints: 75 }
   ];
 
   useEffect(() => {
