@@ -20,6 +20,8 @@ const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [elevenLabsKey, setElevenLabsKey] = useState("");
   const [showElevenLabsKey, setShowElevenLabsKey] = useState(false);
+  const [geminiKey, setGeminiKey] = useState("");
+  const [showGeminiKey, setShowGeminiKey] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -38,10 +40,12 @@ const Settings = () => {
     const audioSetting = localStorage.getItem("audioEnabled");
     const notifSetting = localStorage.getItem("notificationsEnabled");
     const savedElevenLabsKey = localStorage.getItem("elevenLabsApiKey");
+    const savedGeminiKey = localStorage.getItem("geminiApiKey");
     
     if (audioSetting !== null) setAudioEnabled(audioSetting === "true");
     if (notifSetting !== null) setNotificationsEnabled(notifSetting === "true");
     if (savedElevenLabsKey) setElevenLabsKey(savedElevenLabsKey);
+    if (savedGeminiKey) setGeminiKey(savedGeminiKey);
     
     setLoading(false);
   };
@@ -53,11 +57,22 @@ const Settings = () => {
   };
 
   const handleSaveApiKeys = () => {
+    let saved = false;
+    
     if (elevenLabsKey.trim()) {
       localStorage.setItem("elevenLabsApiKey", elevenLabsKey.trim());
+      saved = true;
+    }
+    
+    if (geminiKey.trim()) {
+      localStorage.setItem("geminiApiKey", geminiKey.trim());
+      saved = true;
+    }
+    
+    if (saved) {
       toast({ title: "API Keys saved!", description: "Your API keys have been updated securely" });
     } else {
-      toast({ title: "Error", description: "Please enter a valid API key", variant: "destructive" });
+      toast({ title: "Error", description: "Please enter at least one valid API key", variant: "destructive" });
     }
   };
 
@@ -166,6 +181,34 @@ const Settings = () => {
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Used for high-quality text-to-speech. Get your key from elevenlabs.io
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="gemini-key">Google Gemini API Key</Label>
+                <div className="flex gap-2 mt-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="gemini-key"
+                      type={showGeminiKey ? "text" : "password"}
+                      value={geminiKey}
+                      onChange={(e) => setGeminiKey(e.target.value)}
+                      placeholder="AIza..."
+                      className="bg-background/50 pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full"
+                      onClick={() => setShowGeminiKey(!showGeminiKey)}
+                    >
+                      {showGeminiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Used for AI-powered features. Get your key from ai.google.dev
                 </p>
               </div>
 
