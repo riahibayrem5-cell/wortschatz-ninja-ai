@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -20,16 +20,21 @@ const WordDossier = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
 
-  const analyzeWord = async () => {
-    if (!searchWord.trim()) {
-      toast({ title: "Error", description: "Please enter a word", variant: "destructive" });
-      return;
+  // Check URL params for word
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const wordParam = params.get('word');
+    if (wordParam) {
+      setSearchWord(wordParam);
+      analyzeWordDirect(wordParam);
     }
+  }, []);
 
+  const analyzeWordDirect = async (word: string) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("analyze-word", {
-        body: { word: searchWord, targetLanguage: language },
+        body: { word, targetLanguage: language },
       });
 
       if (error) throw error;
@@ -40,6 +45,14 @@ const WordDossier = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const analyzeWord = async () => {
+    if (!searchWord.trim()) {
+      toast({ title: "Error", description: "Please enter a word", variant: "destructive" });
+      return;
+    }
+    analyzeWordDirect(searchWord);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

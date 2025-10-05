@@ -25,6 +25,37 @@ const SentenceGenerator = () => {
   const [result, setResult] = useState<any>(null);
 
   const [selectedWord, setSelectedWord] = useState<{ word: string; index: number } | null>(null);
+  const [wordAnalysis, setWordAnalysis] = useState<any>(null);
+  const [analyzingWord, setAnalyzingWord] = useState(false);
+
+  const analyzeWord = async (word: string) => {
+    setAnalyzingWord(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-word", {
+        body: { word: word.replace(/[.,!?;]/g, ''), targetLanguage: "en" },
+      });
+
+      if (error) throw error;
+      setWordAnalysis(data);
+    } catch (error: any) {
+      toast({ title: "Error analyzing word", description: error.message, variant: "destructive" });
+    } finally {
+      setAnalyzingWord(false);
+    }
+  };
+
+  const handleWordClick = (word: string, index: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (e.button === 1 || e.ctrlKey || e.metaKey) {
+      // Middle click or Ctrl/Cmd+click - open in new tab
+      const url = `/word-dossier?word=${encodeURIComponent(word.replace(/[.,!?;]/g, ''))}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      // Regular click
+      setSelectedWord({ word, index });
+      analyzeWord(word);
+    }
+  };
 
   const renderAnalysis = (analysis: any) => {
     if (!analysis) return null;
@@ -178,7 +209,13 @@ const SentenceGenerator = () => {
                     {result.german.split(/\s+/).map((word: string, idx: number) => (
                       <span key={idx}>
                         <button
-                          onClick={() => setSelectedWord({ word, index: idx })}
+                          onClick={(e) => handleWordClick(word, idx, e as any)}
+                          onMouseDown={(e) => {
+                            if (e.button === 1) e.preventDefault();
+                          }}
+                          onAuxClick={(e) => {
+                            if (e.button === 1) handleWordClick(word, idx, e as any);
+                          }}
                           className={`inline-block transition-all hover:scale-105 rounded px-1 ${
                             selectedWord?.index === idx
                               ? 'bg-primary text-primary-foreground'
@@ -194,26 +231,66 @@ const SentenceGenerator = () => {
                   
                   {selectedWord && (
                     <Card className="p-4 glass border-primary/30 animate-in fade-in-50 slide-in-from-top-2">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xl font-bold text-primary">{selectedWord.word}</h4>
-                          <AudioPlayer text={selectedWord.word} lang="de-DE" />
+                      {analyzingWord ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="p-2 bg-background/40 rounded">
-                            <p className="text-muted-foreground text-xs">Position</p>
-                            <p className="font-medium">Word {selectedWord.index + 1} of {result.german.split(/\s+/).length}</p>
+                      ) : wordAnalysis ? (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xl font-bold text-primary">
+                              {wordAnalysis.article && <span className="text-sm mr-2">{wordAnalysis.article}</span>}
+                              {selectedWord.word.replace(/[.,!?;]/g, '')}
+                            </h4>
+                            <AudioPlayer text={selectedWord.word} lang="de-DE" />
                           </div>
-                          <div className="p-2 bg-background/40 rounded">
-                            <p className="text-muted-foreground text-xs">Context</p>
-                            <p className="text-xs leading-relaxed">
-                              {result.german.split(/\s+/).slice(Math.max(0, selectedWord.index - 1), selectedWord.index).join(' ')}{' '}
-                              <span className="font-bold text-primary">{selectedWord.word}</span>{' '}
-                              {result.german.split(/\s+/).slice(selectedWord.index + 1, selectedWord.index + 2).join(' ')}
-                            </p>
+                          
+                          {wordAnalysis.translation && (
+                            <p className="text-sm text-muted-foreground">{wordAnalysis.translation}</p>
+                          )}
+                          
+                          <div className="grid grid-cols-2 gap-2">
+                            {wordAnalysis.synonyms && wordAnalysis.synonyms.length > 0 && (
+                              <div className="p-2 bg-background/40 rounded">
+                                <p className="text-xs text-muted-foreground mb-1">Synonyms</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {wordAnalysis.synonyms.slice(0, 3).map((syn: string, i: number) => (
+                                    <span key={i} className="text-xs px-1.5 py-0.5 bg-primary/10 rounded">{syn}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {wordAnalysis.wordFamily && wordAnalysis.wordFamily.length > 0 && (
+                              <div className="p-2 bg-background/40 rounded">
+                                <p className="text-xs text-muted-foreground mb-1">Related</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {wordAnalysis.wordFamily.slice(0, 3).map((item: any, i: number) => (
+                                    <span key={i} className="text-xs px-1.5 py-0.5 bg-accent/10 rounded">{item.word}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
+                          
+                          {wordAnalysis.examples && wordAnalysis.examples[0] && (
+                            <div className="p-2 bg-background/20 rounded text-xs">
+                              <p className="italic text-muted-foreground">{wordAnalysis.examples[0].german}</p>
+                            </div>
+                          )}
+                          
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={() => window.open(`/word-dossier?word=${encodeURIComponent(selectedWord.word.replace(/[.,!?;]/g, ''))}`, '_blank')}
+                          >
+                            Full Analysis →
+                          </Button>
                         </div>
-                      </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Loading analysis...</p>
+                      )}
                     </Card>
                   )}
                 </div>
