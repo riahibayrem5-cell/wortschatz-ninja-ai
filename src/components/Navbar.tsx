@@ -148,11 +148,10 @@ const Navbar = () => {
             variant="default"
             size="sm"
             onClick={() => navigate("/ai-companion")}
-            className={`gradient-primary animate-pulse hover:opacity-90 ${isActive("/ai-companion") ? "ring-2 ring-primary" : ""}`}
+            className={`gradient-primary hover:opacity-90 ${isActive("/ai-companion") ? "ring-2 ring-primary" : ""}`}
           >
             <Sparkles className="w-4 h-4 mr-1.5" />
             <span className="font-bold">AI Companion</span>
-            <Badge variant="secondary" className="ml-2 text-xs">NEW!</Badge>
           </Button>
 
           {menuSections.map((section) => (
@@ -310,11 +309,10 @@ const Navbar = () => {
                   navigate("/ai-companion");
                   setMobileOpen(false);
                 }}
-                className="justify-start h-9 gradient-primary animate-pulse"
+                className="justify-start h-9 gradient-primary"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
                 AI Companion
-                <Badge variant="secondary" className="ml-auto text-xs">NEW!</Badge>
               </Button>
 
               {menuSections.map((section) => (

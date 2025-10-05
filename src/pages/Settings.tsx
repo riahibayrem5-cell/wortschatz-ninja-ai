@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
-import { User, Mail, Bell, Volume2 } from "lucide-react";
+import { User, Mail, Bell, Volume2, Key, Eye, EyeOff } from "lucide-react";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -18,6 +18,8 @@ const Settings = () => {
   const [email, setEmail] = useState("");
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [elevenLabsKey, setElevenLabsKey] = useState("");
+  const [showElevenLabsKey, setShowElevenLabsKey] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -35,9 +37,11 @@ const Settings = () => {
     // Load preferences from localStorage
     const audioSetting = localStorage.getItem("audioEnabled");
     const notifSetting = localStorage.getItem("notificationsEnabled");
+    const savedElevenLabsKey = localStorage.getItem("elevenLabsApiKey");
     
     if (audioSetting !== null) setAudioEnabled(audioSetting === "true");
     if (notifSetting !== null) setNotificationsEnabled(notifSetting === "true");
+    if (savedElevenLabsKey) setElevenLabsKey(savedElevenLabsKey);
     
     setLoading(false);
   };
@@ -46,6 +50,15 @@ const Settings = () => {
     localStorage.setItem("audioEnabled", audioEnabled.toString());
     localStorage.setItem("notificationsEnabled", notificationsEnabled.toString());
     toast({ title: "Settings saved!", description: "Your preferences have been updated" });
+  };
+
+  const handleSaveApiKeys = () => {
+    if (elevenLabsKey.trim()) {
+      localStorage.setItem("elevenLabsApiKey", elevenLabsKey.trim());
+      toast({ title: "API Keys saved!", description: "Your API keys have been updated securely" });
+    } else {
+      toast({ title: "Error", description: "Please enter a valid API key", variant: "destructive" });
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -117,6 +130,51 @@ const Settings = () => {
                   className="bg-background/50 mt-2 font-mono text-xs"
                 />
               </div>
+            </div>
+          </Card>
+
+          {/* API Keys */}
+          <Card className="p-6 glass">
+            <div className="flex items-center gap-3 mb-6">
+              <Key className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-semibold">API Keys</h2>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="elevenlabs-key">ElevenLabs API Key</Label>
+                <div className="flex gap-2 mt-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="elevenlabs-key"
+                      type={showElevenLabsKey ? "text" : "password"}
+                      value={elevenLabsKey}
+                      onChange={(e) => setElevenLabsKey(e.target.value)}
+                      placeholder="sk-..."
+                      className="bg-background/50 pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full"
+                      onClick={() => setShowElevenLabsKey(!showElevenLabsKey)}
+                    >
+                      {showElevenLabsKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Used for high-quality text-to-speech. Get your key from elevenlabs.io
+                </p>
+              </div>
+
+              <Button
+                onClick={handleSaveApiKeys}
+                className="w-full gradient-primary hover:opacity-90"
+              >
+                Save API Keys
+              </Button>
             </div>
           </Card>
 
