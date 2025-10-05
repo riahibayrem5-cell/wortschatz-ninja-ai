@@ -20,19 +20,21 @@ serve(async (req) => {
     }
 
     const prompts: Record<string, string> = {
-      reading: `Generate a complete TELC B2 Leseverstehen section with all 3 Teile. Create authentic German texts and comprehension questions.
+      reading: `Generate a complete TELC B2 Leseverstehen section with all 3 Teile. Create authentic German texts and comprehension questions. Each Teil has 5 questions worth 5 points each = 25 points per Teil.
 
 Return JSON with this EXACT structure:
 {
   "title": "Leseverstehen",
   "instructions": "Lesen Sie die Texte und beantworten Sie die Fragen.",
   "timeLimit": 90,
-  "maxPoints": 25,
+  "maxPoints": 75,
   "teile": [
     {
       "teilNumber": 1,
       "title": "Globalverstehen",
       "instructions": "Ordnen Sie die Überschriften den Textabschnitten zu.",
+      "maxPoints": 25,
+      "pointsPerQuestion": 5,
       "text": "<authentic German text 200-250 words about work/society>",
       "questions": [
         {
@@ -40,7 +42,8 @@ Return JSON with this EXACT structure:
           "question": "Welche Überschrift passt zu diesem Abschnitt?",
           "options": ["a) Option 1", "b) Option 2", "c) Option 3", "d) Option 4"],
           "correctAnswer": "a",
-          "explanation": "Explanation in German"
+          "explanation": "Explanation in German",
+          "points": 5
         }
       ]
     },
@@ -48,14 +51,17 @@ Return JSON with this EXACT structure:
       "teilNumber": 2,
       "title": "Detailverstehen",
       "instructions": "Lesen Sie den Text und beantworten Sie die Fragen.",
+      "maxPoints": 25,
+      "pointsPerQuestion": 5,
       "text": "<authentic German text 300-350 words>",
       "questions": [
         {
           "id": 6,
           "question": "Question about details",
-          "options": ["a) ...", "b) ...", "c) ...", "d) ..."],
-          "correctAnswer": "b",
-          "explanation": "..."
+          "options": ["a) Richtig", "b) Falsch", "c) Steht nicht im Text"],
+          "correctAnswer": "a",
+          "explanation": "...",
+          "points": 5
         }
       ]
     },
@@ -63,6 +69,8 @@ Return JSON with this EXACT structure:
       "teilNumber": 3,
       "title": "Selektives Verstehen",
       "instructions": "Lesen Sie die kurzen Texte und finden Sie die passenden Informationen.",
+      "maxPoints": 25,
+      "pointsPerQuestion": 5,
       "text": "<6-8 short texts or notices in German>",
       "questions": [
         {
@@ -70,26 +78,29 @@ Return JSON with this EXACT structure:
           "question": "Wo finden Sie...?",
           "options": ["a) Text A", "b) Text B", "c) Text C", "d) Text D"],
           "correctAnswer": "c",
-          "explanation": "..."
+          "explanation": "...",
+          "points": 5
         }
       ]
     }
   ]
 }`,
 
-      sprachbausteine: `Generate TELC B2 Sprachbausteine section with 2 Teile (20 questions total).
+      sprachbausteine: `Generate TELC B2 Sprachbausteine section with 2 Teile (20 questions total). Teil 1 has 10 questions worth 1.5 points each. Teil 2 has 10 questions worth 1.5 points each.
 
 Return JSON:
 {
   "title": "Sprachbausteine",
   "instructions": "Ergänzen Sie die Lücken im Text.",
   "timeLimit": 30,
-  "maxPoints": 15,
+  "maxPoints": 30,
   "teile": [
     {
       "teilNumber": 1,
       "title": "Grammatik",
       "instructions": "Wählen Sie die richtige grammatische Form.",
+      "maxPoints": 15,
+      "pointsPerQuestion": 1.5,
       "text": "<German text with [GAP_1] through [GAP_10] placeholders>",
       "questions": [
         {
@@ -97,7 +108,8 @@ Return JSON:
           "question": "Lücke 1",
           "options": ["a) der", "b) die", "c) das", "d) dem"],
           "correctAnswer": "a",
-          "explanation": "Grammar explanation"
+          "explanation": "Grammar explanation",
+          "points": 1.5
         }
       ]
     },
@@ -105,6 +117,8 @@ Return JSON:
       "teilNumber": 2,
       "title": "Wortschatz",
       "instructions": "Wählen Sie das passende Wort.",
+      "maxPoints": 15,
+      "pointsPerQuestion": 1.5,
       "text": "<German text with [GAP_11] through [GAP_20] placeholders>",
       "questions": [
         {
@@ -112,26 +126,29 @@ Return JSON:
           "question": "Lücke 11",
           "options": ["a) word1", "b) word2", "c) word3", "d) word4"],
           "correctAnswer": "b",
-          "explanation": "Vocabulary explanation"
+          "explanation": "Vocabulary explanation",
+          "points": 1.5
         }
       ]
     }
   ]
 }`,
 
-      listening: `Generate TELC B2 Hörverstehen section with 3 Teile.
+      listening: `Generate TELC B2 Hörverstehen section with 3 Teile. Teil 1: 5 questions x 5 points = 25 points. Teil 2: 10 questions x 2.5 points = 25 points. Teil 3: 5 questions x 5 points = 25 points.
 
 Return JSON:
 {
   "title": "Hörverstehen",
   "instructions": "Hören Sie die Texte und beantworten Sie die Fragen.",
   "timeLimit": 20,
-  "maxPoints": 25,
+  "maxPoints": 75,
   "teile": [
     {
       "teilNumber": 1,
       "title": "Globalverstehen - Radiointerview",
       "instructions": "Hören Sie das Interview und beantworten Sie die Fragen zum Hauptthema.",
+      "maxPoints": 25,
+      "pointsPerQuestion": 5,
       "text": "<German radio interview script 200 words>",
       "questions": [
         {
@@ -139,7 +156,8 @@ Return JSON:
           "question": "Worum geht es hauptsächlich?",
           "options": ["a) ...", "b) ...", "c) ...", "d) ..."],
           "correctAnswer": "a",
-          "explanation": "..."
+          "explanation": "...",
+          "points": 5
         }
       ]
     },
@@ -147,14 +165,17 @@ Return JSON:
       "teilNumber": 2,
       "title": "Detailverstehen - Vortrag",
       "instructions": "Hören Sie den Vortrag und beantworten Sie die detaillierten Fragen.",
+      "maxPoints": 25,
+      "pointsPerQuestion": 2.5,
       "text": "<German lecture script 250 words>",
       "questions": [
         {
           "id": 6,
           "question": "Was sagt der Sprecher über...?",
-          "options": ["a) ...", "b) ...", "c) ...", "d) ..."],
-          "correctAnswer": "b",
-          "explanation": "..."
+          "options": ["a) Richtig", "b) Falsch"],
+          "correctAnswer": "a",
+          "explanation": "...",
+          "points": 2.5
         }
       ]
     },
@@ -162,6 +183,8 @@ Return JSON:
       "teilNumber": 3,
       "title": "Selektives Verstehen - Durchsagen",
       "instructions": "Hören Sie die Durchsagen und finden Sie die passenden Informationen.",
+      "maxPoints": 25,
+      "pointsPerQuestion": 5,
       "text": "<5 short German announcements>",
       "questions": [
         {
@@ -169,66 +192,64 @@ Return JSON:
           "question": "Welche Durchsage passt zu...?",
           "options": ["a) 1", "b) 2", "c) 3", "d) 4"],
           "correctAnswer": "c",
-          "explanation": "..."
+          "explanation": "...",
+          "points": 5
         }
       ]
     }
   ]
 }`,
 
-      writing: `Generate TELC B2 Schriftlicher Ausdruck section with 2 Teile.
+      writing: `Generate TELC B2 Schriftlicher Ausdruck section. This section is worth 45 points total and has only 1 Teil - a formal email.
 
 Return JSON:
 {
   "title": "Schriftlicher Ausdruck",
-  "instructions": "Bearbeiten Sie beide Aufgaben.",
+  "instructions": "Schreiben Sie einen formellen Brief.",
   "timeLimit": 30,
   "maxPoints": 45,
   "teile": [
     {
       "teilNumber": 1,
       "title": "Formeller Brief",
-      "instructions": "Schreiben Sie einen formellen Brief (ca. 80 Wörter).",
+      "instructions": "Schreiben Sie einen formellen Brief (ca. 150 Wörter).",
+      "maxPoints": 45,
       "task": "Sie haben in der Zeitung eine Anzeige für eine Wohnung gesehen. Schreiben Sie einen Brief an den Vermieter. Berücksichtigen Sie alle vier Punkte: 1) Grund für Ihr Schreiben, 2) Informationen über sich selbst, 3) Fragen zur Wohnung, 4) Bitte um einen Besichtigungstermin.",
-      "wordCount": 80
-    },
-    {
-      "teilNumber": 2,
-      "title": "Meinungsäußerung",
-      "instructions": "Schreiben Sie einen Text zu einem aktuellen Thema (ca. 180 Wörter).",
-      "task": "In Ihrer Stadt wird diskutiert, ob ein neues Einkaufszentrum gebaut werden soll. Schreiben Sie Ihre Meinung dazu. Berücksichtigen Sie: 1) Ihre persönliche Meinung, 2) Argumente dafür und dagegen, 3) Beispiele aus Ihrer Erfahrung, 4) Ihre Schlussfolgerung.",
-      "wordCount": 180
+      "wordCount": 150
     }
   ]
 }`,
 
-      speaking: `Generate TELC B2 Mündlicher Ausdruck section with 3 Teile.
+      speaking: `Generate TELC B2 Mündlicher Ausdruck section with 3 Teile. Teil 1: 25 points. Teil 2a: 25 points. Teil 2b: 25 points.
 
 Return JSON:
 {
   "title": "Mündlicher Ausdruck",
   "instructions": "Bearbeiten Sie alle drei Aufgaben.",
   "timeLimit": 15,
-  "maxPoints": 60,
+  "maxPoints": 75,
   "teile": [
     {
       "teilNumber": 1,
       "title": "Präsentation",
       "instructions": "Präsentieren Sie ein Thema (ca. 3-4 Minuten). Vorbereitungszeit: 3 Minuten.",
+      "maxPoints": 25,
       "task": "Sie sollen Ihren Gesprächspartnern ein aktuelles Thema präsentieren. Wählen Sie eines von zwei Themen aus. Strukturieren Sie Ihre Präsentation so: 1) Beschreiben Sie das Thema, 2) Berichten Sie von Ihren persönlichen Erfahrungen, 3) Nennen Sie Vor- und Nachteile, 4) Fassen Sie zusammen.",
       "wordCount": 0
     },
     {
       "teilNumber": 2,
-      "title": "Diskussion",
+      "title": "Diskussion - Vor- und Nachteile",
       "instructions": "Diskutieren Sie mit Ihren Partnern über die Präsentation (ca. 4-5 Minuten).",
+      "maxPoints": 25,
       "task": "Nach der Präsentation diskutieren Sie mit Ihren Gesprächspartnern. Reagieren Sie auf die Präsentation, stellen Sie Fragen, äußern Sie Ihre Meinung, geben Sie Beispiele aus eigener Erfahrung.",
       "wordCount": 0
     },
     {
       "teilNumber": 3,
-      "title": "Problemlösung",
+      "title": "Diskussion - Problemlösung",
       "instructions": "Lösen Sie gemeinsam ein Problem (ca. 5-6 Minuten).",
+      "maxPoints": 25,
       "task": "Sie und Ihre Gesprächspartner sollen ein gemeinsames Problem lösen. Sie planen ein Fest für Ihre Deutschklasse. Diskutieren Sie: Wann und wo findet das Fest statt? Was wird gegessen und getrunken? Wer organisiert was? Budget? Am Ende sollten Sie zu einer gemeinsamen Lösung kommen.",
       "wordCount": 0
     }

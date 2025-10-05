@@ -53,3 +53,6 @@ verify_jwt = true
 
 [functions.generate-gap-fill]
 verify_jwt = true
+
+[functions.telc-practice-helper]
+verify_jwt = true

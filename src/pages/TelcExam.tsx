@@ -35,12 +35,15 @@ interface Question {
   options: string[];
   correctAnswer: string;
   explanation: string;
+  points?: number;
 }
 
 interface Teil {
   teilNumber: number;
   title: string;
   instructions: string;
+  maxPoints?: number;
+  pointsPerQuestion?: number;
   questions?: Question[];
   text?: string;
   task?: string;
@@ -81,6 +84,8 @@ const TelcExam = () => {
   const [results, setResults] = useState<Record<string, any>>({});
   const [showResults, setShowResults] = useState(false);
   const [timeLeft, setTimeLeft] = useState<Record<string, number>>({});
+  const [aiHelp, setAiHelp] = useState<Record<string, any>>({});
+  const [loadingHelp, setLoadingHelp] = useState(false);
 
   const sections = [
     { id: 'reading', icon: BookOpen, title: 'Leseverstehen', duration: 90, color: 'text-blue-500', maxPoints: 75 },
@@ -131,6 +136,17 @@ const TelcExam = () => {
       ...prev,
       [sectionId]: { ...(prev[sectionId] || {}), [questionId]: answer }
     }));
+
+    // In practice mode, provide instant AI feedback
+    if (examMode === 'practice') {
+      const content = examState[sectionId as keyof ExamState];
+      const teil = content?.teile.find(t => t.questions?.some(q => q.id === questionId));
+      const question = teil?.questions?.find(q => q.id === questionId);
+      
+      if (question && answer !== question.correctAnswer) {
+        requestAiHelp('hint', questionId, question, answer, teil?.text);
+      }
+    }
   };
 
   const submitSection = async (sectionId: string) => {
@@ -193,7 +209,45 @@ const TelcExam = () => {
   };
 
   const getMaxTotalPoints = () => {
-    return sections.reduce((sum, section) => sum + section.maxPoints, 0);
+    return 300; // TELC B2 is always 300 points
+  };
+
+  const requestAiHelp = async (
+    type: 'hint' | 'explanation',
+    questionId: number,
+    question: Question,
+    userAnswer: string,
+    text?: string
+  ) => {
+    setLoadingHelp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('telc-practice-helper', {
+        body: {
+          type,
+          question: question.question,
+          userAnswer,
+          correctAnswer: question.correctAnswer,
+          context: question.explanation,
+          text
+        }
+      });
+
+      if (error) throw error;
+
+      setAiHelp(prev => ({
+        ...prev,
+        [questionId]: { ...data, type }
+      }));
+    } catch (error) {
+      console.error('Error requesting AI help:', error);
+      toast({
+        title: "Error",
+        description: "Could not get AI help. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingHelp(false);
+    }
   };
 
   const getGrade = (percentage: number) => {
@@ -307,10 +361,19 @@ const TelcExam = () => {
           {/* Teil Content */}
           {teil && (
             <>
-              <Card className="glass mb-6">
+               <Card className="glass mb-6">
                 <CardHeader>
-                  <CardTitle className="text-lg">Teil {teil.teilNumber}: {teil.title}</CardTitle>
-                  <CardDescription>{teil.instructions}</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Teil {teil.teilNumber}: {teil.title}</CardTitle>
+                      <CardDescription>{teil.instructions}</CardDescription>
+                    </div>
+                    {teil.maxPoints && (
+                      <Badge variant="outline" className="text-lg px-3 py-1">
+                        {teil.maxPoints} Punkte
+                      </Badge>
+                    )}
+                  </div>
                 </CardHeader>
                 {teil.text && (
                   <CardContent>
@@ -333,9 +396,14 @@ const TelcExam = () => {
                   {teil.questions.map((q, idx) => (
                     <Card key={q.id} className="glass">
                       <CardHeader>
-                        <CardTitle className="text-base">{idx + 1}. {q.question}</CardTitle>
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base">{idx + 1}. {q.question}</CardTitle>
+                          {q.points && (
+                            <Badge variant="secondary">{q.points} Punkte</Badge>
+                          )}
+                        </div>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="space-y-4">
                         <RadioGroup
                           value={answers[currentSection]?.[q.id]}
                           onValueChange={(val) => handleAnswerSelect(currentSection, q.id, val)}
@@ -349,6 +417,86 @@ const TelcExam = () => {
                             </div>
                           ))}
                         </RadioGroup>
+
+                        {/* Practice Mode AI Help */}
+                        {examMode === 'practice' && (
+                          <div className="pt-4 border-t space-y-3">
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => requestAiHelp('hint', q.id, q, answers[currentSection]?.[q.id] || '', teil.text)}
+                                disabled={loadingHelp}
+                              >
+                                {loadingHelp ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                                Get Hint
+                              </Button>
+                              {answers[currentSection]?.[q.id] && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => requestAiHelp('explanation', q.id, q, answers[currentSection]?.[q.id], teil.text)}
+                                  disabled={loadingHelp}
+                                >
+                                  Explain Answer
+                                </Button>
+                              )}
+                            </div>
+
+                            {/* Show AI Help */}
+                            {aiHelp[q.id] && (
+                              <Card className="bg-primary/5 border-primary/20">
+                                <CardContent className="pt-4">
+                                  {aiHelp[q.id].type === 'hint' && (
+                                    <div className="space-y-2">
+                                      <p className="text-sm font-semibold">💡 Hinweis:</p>
+                                      <p className="text-sm">{aiHelp[q.id].hint}</p>
+                                      {aiHelp[q.id].strategy && (
+                                        <>
+                                          <p className="text-sm font-semibold mt-3">📚 Strategie:</p>
+                                          <p className="text-sm">{aiHelp[q.id].strategy}</p>
+                                        </>
+                                      )}
+                                      {aiHelp[q.id].keyVocabulary?.length > 0 && (
+                                        <>
+                                          <p className="text-sm font-semibold mt-3">🔑 Wichtige Wörter:</p>
+                                          <div className="flex flex-wrap gap-2">
+                                            {aiHelp[q.id].keyVocabulary.map((word: string, i: number) => (
+                                              <Badge key={i} variant="outline">{word}</Badge>
+                                            ))}
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {aiHelp[q.id].type === 'explanation' && (
+                                    <div className="space-y-2">
+                                      <p className="text-sm font-semibold">✅ Erklärung:</p>
+                                      <p className="text-sm">{aiHelp[q.id].explanation}</p>
+                                      {aiHelp[q.id].concept && (
+                                        <>
+                                          <p className="text-sm font-semibold mt-3">📖 Konzept:</p>
+                                          <p className="text-sm">{aiHelp[q.id].concept}</p>
+                                        </>
+                                      )}
+                                      {aiHelp[q.id].tips?.length > 0 && (
+                                        <>
+                                          <p className="text-sm font-semibold mt-3">💡 Tipps:</p>
+                                          <ul className="text-sm list-disc pl-5 space-y-1">
+                                            {aiHelp[q.id].tips.map((tip: string, i: number) => (
+                                              <li key={i}>{tip}</li>
+                                            ))}
+                                          </ul>
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
