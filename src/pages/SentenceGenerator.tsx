@@ -12,6 +12,7 @@ import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS, GRAMMAR_BY_DIFFICULTY } from "@/utils/constants";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { trackActivity } from "@/utils/activityTracker";
 
 const SentenceGenerator = () => {
   const navigate = useNavigate();
@@ -111,6 +112,10 @@ const SentenceGenerator = () => {
 
       if (error) throw error;
       setResult(data);
+      
+      // Track activity
+      await trackActivity('exercise', 1);
+      
       toast({ title: t('sentence.generated') });
     } catch (error: any) {
       toast({ title: t('sentence.error'), description: error.message, variant: "destructive" });

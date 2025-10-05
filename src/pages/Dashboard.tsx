@@ -333,34 +333,50 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Weak Spots Analysis */}
-            <Card className="glass">
+            {/* Areas Needing Focus */}
+            <Card className="glass border-destructive/20">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
-                  {t('dashboard.weakSpots')}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                    <Target className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
+                    Areas Needing Focus
+                  </CardTitle>
+                  {aiAnalysis && (
+                    <Badge variant="secondary" className="text-xs">AI Analyzed</Badge>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {weakSpots.length === 0 ? (
                   <div className="text-center py-6 sm:py-8 text-muted-foreground">
                     <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 text-green-500" />
-                    <p className="text-sm">{t('dashboard.noWeakSpots')}</p>
+                    <p className="text-sm">Great job! No major weak areas detected.</p>
+                    <p className="text-xs mt-2">Complete more exercises for detailed analysis</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 sm:space-y-4">
+                  <div className="space-y-4">
                     {weakSpots.map((spot: any, idx: number) => (
-                      <div key={idx} className="space-y-2">
-                        <div className="flex items-start sm:items-center justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium capitalize text-sm sm:text-base truncate">{spot.name}</p>
-                            <p className="text-xs text-muted-foreground line-clamp-2">{spot.recommendation}</p>
+                      <div key={idx} className="p-3 rounded-lg bg-destructive/5 border border-destructive/10">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold capitalize text-sm">{spot.name}</h4>
+                              <Badge variant="destructive" className="text-xs">
+                                {spot.severity}/10
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                              {spot.recommendation}
+                            </p>
                           </div>
-                          <Badge variant="destructive" className="text-xs shrink-0">
-                            {spot.severity}/10
-                          </Badge>
                         </div>
-                        <Progress value={spot.severity * 10} className="h-1.5 sm:h-2" />
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>Priority Level</span>
+                            <span>{spot.severity >= 7 ? 'High' : spot.severity >= 4 ? 'Medium' : 'Low'}</span>
+                          </div>
+                          <Progress value={spot.severity * 10} className="h-2" />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -393,27 +409,47 @@ const Dashboard = () => {
 
           {/* Right Column - Recommendations & Mistakes */}
           <div className="space-y-4 sm:space-y-6">
-            {/* Recommendations */}
-            <Card className="glass">
+            {/* Smart Recommendations */}
+            <Card className="glass border-primary/20">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-                  <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                  {t('dashboard.recommendations')}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                    Recommended Next Steps
+                  </CardTitle>
+                  {aiAnalysis && (
+                    <Badge variant="default" className="text-xs">AI Powered</Badge>
+                  )}
+                </div>
               </CardHeader>
-              <CardContent className="space-y-2 sm:space-y-3">
-                {(aiAnalysis?.nextSteps || recommendations).slice(0, 4).map((rec: any, idx: number) => (
-                  <Button
-                    key={idx}
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start glass hover:glow text-left h-auto py-2 px-3"
-                    onClick={() => rec.path && navigate(rec.path)}
-                  >
-                    {rec.icon && <rec.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />}
-                    <span className="flex-1 text-xs sm:text-sm">{rec.text || rec}</span>
-                  </Button>
-                ))}
+              <CardContent className="space-y-2">
+                {(aiAnalysis?.nextSteps || recommendations).slice(0, 5).map((rec: any, idx: number) => {
+                  const Icon = rec.icon || Brain;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => rec.path && navigate(rec.path)}
+                      className="w-full p-3 rounded-lg bg-primary/5 hover:bg-primary/10 border border-primary/10 hover:border-primary/30 transition-all text-left group"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 text-primary">
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium group-hover:text-primary transition-colors">
+                            {rec.text || rec}
+                          </p>
+                          {rec.description && (
+                            <p className="text-xs text-muted-foreground mt-1">{rec.description}</p>
+                          )}
+                        </div>
+                        <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                          →
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
               </CardContent>
             </Card>
 

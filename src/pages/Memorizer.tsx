@@ -12,6 +12,7 @@ import AudioButton from "@/components/AudioButton";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS } from "@/utils/constants";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
+import { trackActivity } from "@/utils/activityTracker";
 
 const Memorizer = () => {
   const navigate = useNavigate();
@@ -41,6 +42,10 @@ const Memorizer = () => {
 
       if (error) throw error;
       setParagraph(data);
+      
+      // Track activity
+      await trackActivity('review', 1);
+      
       toast({ title: "Paragraph generated!" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });

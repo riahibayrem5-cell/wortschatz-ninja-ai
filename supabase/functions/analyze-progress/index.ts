@@ -14,56 +14,107 @@ serve(async (req) => {
   try {
     const { mistakes, progress } = await req.json();
     
-    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
-    if (!GOOGLE_GEMINI_API_KEY) {
-      throw new Error('GOOGLE_GEMINI_API_KEY is not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const prompt = `You are a German language learning analyst. Analyze the following student data and provide personalized insights:
+    // Analyze mistake patterns
+    const mistakesByType = mistakes.reduce((acc: any, m: any) => {
+      acc[m.type] = (acc[m.type] || 0) + 1;
+      return acc;
+    }, {});
 
-Student Progress:
+    const mistakesByCategory = mistakes.reduce((acc: any, m: any) => {
+      acc[m.category] = (acc[m.category] || 0) + 1;
+      return acc;
+    }, {});
+
+    const recentMistakes = mistakes.slice(0, 15).map((m: any) => ({
+      type: m.type,
+      category: m.category,
+      content: m.content?.substring(0, 100)
+    }));
+
+    const prompt = `You are an expert German language learning coach and TELC B2 exam specialist. Analyze this student's learning data and provide actionable, personalized insights.
+
+STUDENT PROGRESS:
 - Words Learned: ${progress?.words_learned || 0}
 - Exercises Completed: ${progress?.exercises_completed || 0}
 - Current Streak: ${progress?.streak_days || 0} days
+- Total Mistakes: ${mistakes.length}
 
-Recent Mistakes (${mistakes.length} total):
-${mistakes.slice(0, 20).map((m: any) => `- Type: ${m.type}, Category: ${m.category}, Content: ${m.content}`).join('\n')}
+MISTAKE PATTERNS:
+By Type: ${JSON.stringify(mistakesByType)}
+By Category: ${JSON.stringify(mistakesByCategory)}
 
-Provide a JSON response with:
-1. weakSpots: Array of top 3-5 areas needing focus with {name, severity (1-10), recommendation}
-2. strengths: Array of 2-3 areas where student excels
-3. nextSteps: Array of 3-4 specific actionable recommendations
-4. overallAssessment: Brief summary of student's current level
+RECENT MISTAKES (Sample):
+${recentMistakes.map((m: any, i: number) => `${i + 1}. Type: ${m.type}, Category: ${m.category}\n   Content: "${m.content}"`).join('\n')}
 
-Focus on TELC B2 exam preparation. Be encouraging but honest.`;
+ANALYSIS REQUIREMENTS:
+Provide a detailed JSON response with:
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: prompt }]
-          }],
-          generationConfig: {
-            response_mime_type: "application/json"
-          }
-        }),
-      }
-    );
+1. "weakSpots": Array of 3-5 specific areas needing focus. For each:
+   - "name": Specific skill/topic (e.g., "Dativ/Akkusativ Prepositions", "Subjunctive II", "Separable Verbs")
+   - "severity": Integer 1-10 (base on frequency and importance for B2)
+   - "recommendation": Specific, actionable advice (e.g., "Practice 10 Dativ exercises daily focusing on 'in, an, auf'")
+   - "priority": "High", "Medium", or "Low"
+
+2. "strengths": Array of 2-3 areas where student excels (be specific, don't be generic)
+
+3. "nextSteps": Array of 4-5 concrete action items with:
+   - "text": Clear action (e.g., "🎯 Complete 5 gap-fill exercises on modal verbs")
+   - "path": Relevant page (/exercises, /vocabulary, /telc-exam, etc.)
+   - "icon": lucide icon name (Brain, BookOpen, Target, etc.)
+   - "description": Why this helps (brief, 1 sentence)
+
+4. "overallAssessment": 2-3 sentence honest evaluation of current B2 level and exam readiness
+
+IMPORTANT GUIDELINES:
+- Be specific, not generic (avoid "practice more grammar" - say "practice Konjunktiv II with würde + infinitive")
+- Base severity on both frequency AND importance for TELC B2
+- If mistakes are low, suggest proactive learning (vocabulary expansion, exam practice)
+- Consider the student's streak and consistency
+- Recommendations should be immediately actionable
+- If mistakes show confusion between similar concepts, point that out
+- Prioritize exam-relevant skills (formal writing, reading comprehension, listening)
+
+Return ONLY valid JSON, no markdown formatting.`;
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: 'You are an expert German language tutor and TELC B2 exam specialist. Provide detailed, specific, and actionable learning insights.' },
+          { role: 'user', content: prompt }
+        ],
+        response_format: { type: 'json_object' },
+        temperature: 0.7
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      throw new Error(`AI Gateway error: ${response.status}`);
+      console.error('AI API error:', response.status, errorText);
+      throw new Error(`AI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const analysisText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const analysisText = data.choices[0].message.content;
     const analysis = JSON.parse(analysisText);
+
+    // Ensure proper structure
+    if (!analysis.weakSpots) analysis.weakSpots = [];
+    if (!analysis.strengths) analysis.strengths = [];
+    if (!analysis.nextSteps) analysis.nextSteps = [];
+    if (!analysis.overallAssessment) analysis.overallAssessment = "Keep practicing to improve your German skills.";
+
+    console.log('AI Analysis generated successfully');
 
     return new Response(JSON.stringify(analysis), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -71,7 +122,13 @@ Focus on TELC B2 exam preparation. Be encouraging but honest.`;
   } catch (error) {
     console.error('Error in analyze-progress:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        weakSpots: [],
+        strengths: [],
+        nextSteps: [],
+        overallAssessment: "Unable to generate analysis at this time."
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
