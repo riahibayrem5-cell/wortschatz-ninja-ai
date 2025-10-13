@@ -398,6 +398,36 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_tiers: {
+        Row: {
+          created_at: string | null
+          features: Json
+          id: string
+          max_ai_requests: number | null
+          max_exercises: number | null
+          name: string
+          price_tnd: number
+        }
+        Insert: {
+          created_at?: string | null
+          features?: Json
+          id?: string
+          max_ai_requests?: number | null
+          max_exercises?: number | null
+          name: string
+          price_tnd: number
+        }
+        Update: {
+          created_at?: string | null
+          features?: Json
+          id?: string
+          max_ai_requests?: number | null
+          max_exercises?: number | null
+          name?: string
+          price_tnd?: number
+        }
+        Relationships: []
+      }
       user_progress: {
         Row: {
           created_at: string
@@ -435,6 +465,50 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_permanent: boolean | null
+          started_at: string | null
+          status: string
+          tier_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_permanent?: boolean | null
+          started_at?: string | null
+          status?: string
+          tier_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_permanent?: boolean | null
+          started_at?: string | null
+          status?: string
+          tier_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_tiers"
             referencedColumns: ["id"]
           },
         ]
@@ -538,6 +612,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_active_subscription: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
       track_daily_activity: {
         Args: { activity_type: string; increment_value?: number }
         Returns: undefined

@@ -4,14 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X } from "lucide-react";
+import { Check, X, Brain, Trophy } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
 import Navbar from "@/components/Navbar";
 import { trackActivity } from "@/utils/activityTracker";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { Progress } from "@/components/ui/progress";
 
 const Review = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [dueItems, setDueItems] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -74,7 +77,7 @@ const Review = () => {
         setCurrentIndex(currentIndex + 1);
         setShowAnswer(false);
       } else {
-        toast({ title: "Review complete!", description: "Great work!" });
+        toast({ title: t('reviewComplete'), description: t('greatWork') });
         navigate("/dashboard");
       }
     } catch (error: any) {
@@ -87,7 +90,10 @@ const Review = () => {
       <div className="min-h-screen gradient-hero">
         <Navbar />
         <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-          <p className="text-muted-foreground">Loading...</p>
+          <div className="text-center space-y-4">
+            <Brain className="w-16 h-16 mx-auto text-primary animate-pulse" />
+            <p className="text-muted-foreground">{t('loading')}</p>
+          </div>
         </div>
       </div>
     );
@@ -98,9 +104,16 @@ const Review = () => {
       <div className="min-h-screen gradient-hero">
         <Navbar />
         <div className="container max-w-4xl mx-auto p-4">
-          <Card className="p-12 glass text-center mt-6">
-            <h2 className="text-2xl font-bold mb-4">No reviews due!</h2>
-            <p className="text-muted-foreground">Come back later or add more vocabulary.</p>
+          <Card className="p-12 glass text-center mt-6 animate-fade-in">
+            <Trophy className="w-24 h-24 mx-auto mb-6 text-accent" />
+            <h2 className="text-3xl font-bold mb-4 text-gradient">{t('noReviewsDue')}</h2>
+            <p className="text-muted-foreground text-lg">{t('comeBackLater')}</p>
+            <Button 
+              onClick={() => navigate('/vocabulary')}
+              className="mt-6 gradient-primary hover:opacity-90"
+            >
+              {t('vocabulary')}
+            </Button>
           </Card>
         </div>
       </div>
@@ -108,57 +121,88 @@ const Review = () => {
   }
 
   const currentItem = dueItems[currentIndex];
+  const progressPercent = ((currentIndex + 1) / dueItems.length) * 100;
 
   return (
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
       <div className="container max-w-4xl mx-auto p-4">
-        <div className="mb-4 text-center mt-6">
-          <p className="text-muted-foreground">
-            {currentIndex + 1} / {dueItems.length}
-          </p>
+        {/* Progress Header */}
+        <div className="mb-6 mt-6 space-y-3 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">
+              {t('reviewPage')}: {currentIndex + 1} / {dueItems.length}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              {Math.round(progressPercent)}%
+            </span>
+          </div>
+          <Progress value={progressPercent} className="h-2" />
         </div>
 
-        <Card className="p-12 glass glow text-center">
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <h2 className="text-4xl font-bold text-primary">{currentItem.word}</h2>
-            <AudioButton text={currentItem.word} lang="de-DE" />
+        <Card className="p-8 md:p-12 glass glow text-center animate-scale-in">
+          {/* Word Display */}
+          <div className="mb-10">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <h2 className="text-5xl md:text-6xl font-bold text-gradient animate-fade-in">
+                {currentItem.word}
+              </h2>
+              <AudioButton text={currentItem.word} lang="de-DE" />
+            </div>
+            {currentItem.article && (
+              <p className="text-sm text-muted-foreground uppercase tracking-wide">
+                {currentItem.article}
+              </p>
+            )}
           </div>
 
           {!showAnswer ? (
-            <Button
-              onClick={() => setShowAnswer(true)}
-              className="gradient-primary hover:opacity-90"
-            >
-              Show Answer
-            </Button>
-          ) : (
             <div className="space-y-6">
-              <div>
-                <p className="text-xl mb-4">{currentItem.definition}</p>
-                <div className="p-4 bg-background/30 rounded-lg">
-                  <p className="text-muted-foreground italic">{currentItem.example}</p>
-                </div>
+              <Button
+                onClick={() => setShowAnswer(true)}
+                size="lg"
+                className="gradient-primary hover:opacity-90 text-lg px-12 py-6 hover-scale"
+              >
+                {t('showAnswer')}
+              </Button>
+              
+              {/* Visual hint */}
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <Brain className="w-4 h-4" />
+                <span>Think about the meaning first</span>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-8 animate-fade-in">
+              {/* Definition */}
+              <div className="p-6 bg-background/40 rounded-xl border border-primary/20">
+                <p className="text-2xl mb-4 text-foreground">{currentItem.definition}</p>
+                {currentItem.example && (
+                  <div className="p-4 bg-background/50 rounded-lg border border-primary/10">
+                    <p className="text-muted-foreground italic text-lg">"{currentItem.example}"</p>
+                  </div>
+                )}
               </div>
 
-              <div className="flex gap-4 justify-center pt-6">
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                 <Button
                   onClick={() => handleReview(false)}
                   variant="outline"
                   size="lg"
-                  className="glass hover:bg-destructive/20"
+                  className="glass hover:bg-destructive/20 hover:border-destructive transition-all hover-scale group"
                 >
-                  <X className="w-5 h-5 mr-2" />
-                  Needs Practice
+                  <X className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                  {t('needsPractice')}
                 </Button>
                 <Button
                   onClick={() => handleReview(true)}
                   size="lg"
-                  className="gradient-accent hover:opacity-90"
+                  className="gradient-accent hover:opacity-90 hover-scale group"
                 >
-                  <Check className="w-5 h-5 mr-2" />
-                  Knew It
+                  <Check className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                  {t('knewIt')}
                 </Button>
               </div>
             </div>

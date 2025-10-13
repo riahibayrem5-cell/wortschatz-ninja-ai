@@ -12,7 +12,38 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 const translations: Record<Language, Record<string, string>> = {
   en: {
-    // Navigation
+    // Navigation  
+    dashboard: "Dashboard",
+    vocabulary: "Vocabulary",
+    exercises: "Exercises",
+    writingAssistant: "Writing Assistant",
+    conversations: "Conversations",
+    review: "Review",
+    history: "History",
+    telcExam: "TELC Exam",
+    progress: "Progress",
+    communication: "Communication",
+    practice: "Practice",
+    foundations: "Foundations",
+    aiCompanion: "AI Companion",
+    settings: "Settings",
+    subscriptions: "Subscriptions",
+    
+    // Common
+    loading: "Loading...",
+    error: "Error",
+    success: "Success",
+    cancel: "Cancel",
+    save: "Save",
+    delete: "Delete",
+    edit: "Edit",
+    back: "Back",
+    next: "Next",
+    previous: "Previous",
+    submit: "Submit",
+    close: "Close",
+    
+    // Dashboard
     'nav.dashboard': 'Dashboard',
     'nav.vocabulary': 'Vocabulary',
     'nav.sentence': 'Sentences',

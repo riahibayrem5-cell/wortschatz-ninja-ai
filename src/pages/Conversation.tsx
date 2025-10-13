@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Loader2, Lightbulb, Volume2, VolumeX } from "lucide-react";
+import { Send, Loader2, Lightbulb, Volume2, VolumeX, Mic, MicOff } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { trackActivity } from "@/utils/activityTracker";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
@@ -52,6 +52,9 @@ const Conversation = () => {
   const [analyzingMessage, setAnalyzingMessage] = useState<string | null>(null);
   const [mistakeAnalysis, setMistakeAnalysis] = useState<MistakeAnalysis | null>(null);
   const [showMistakeDialog, setShowMistakeDialog] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -103,6 +106,78 @@ const Conversation = () => {
       toast({ title: "Error analyzing mistakes", description: error.message, variant: "destructive" });
     } finally {
       setAnalyzingMessage(null);
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await transcribeAudio(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+      
+      toast({ 
+        title: "🎤 Recording...", 
+        description: "Speak in German now" 
+      });
+    } catch (error) {
+      toast({ 
+        title: "Microphone Error", 
+        description: "Please allow microphone access.",
+        variant: "destructive" 
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const transcribeAudio = async (audioBlob: Blob) => {
+    setLoading(true);
+    try {
+      // Convert to base64
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+      
+      reader.onloadend = async () => {
+        const base64Audio = reader.result?.toString().split(',')[1];
+        
+        // Transcribe
+        const { data: transcriptData, error: transcriptError } = await supabase.functions.invoke('speech-to-text', {
+          body: { audio: base64Audio, language: 'de' }
+        });
+
+        if (transcriptError) throw transcriptError;
+
+        const transcribedText = transcriptData.text;
+        setInput(transcribedText);
+        
+        toast({
+          title: "Transcribed",
+          description: "Your speech was converted to text"
+        });
+      };
+    } catch (error: any) {
+      toast({ title: "Transcription Error", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -325,6 +400,17 @@ const Conversation = () => {
               </div>
 
               <div className="flex gap-2">
+                {audioMode === 'verbal' && (
+                  <Button
+                    onClick={isRecording ? stopRecording : startRecording}
+                    disabled={loading}
+                    variant={isRecording ? "destructive" : "outline"}
+                    size="icon"
+                    className={isRecording ? "animate-pulse" : ""}
+                  >
+                    {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                  </Button>
+                )}
                 <Input
                   placeholder="Schreiben Sie Ihre Antwort auf Deutsch..."
                   value={input}

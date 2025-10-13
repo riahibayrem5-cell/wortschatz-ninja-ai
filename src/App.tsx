@@ -20,6 +20,7 @@ import Settings from "./pages/Settings";
 import TelcExam from "./pages/TelcExam";
 import AICompanion from "./pages/AICompanion";
 import History from "./pages/History";
+import Subscriptions from "./pages/Subscriptions";
 import AuthPage from "./components/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/telc-exam" element={<TelcExam />} />
             <Route path="/ai-companion" element={<AICompanion />} />
             <Route path="/history" element={<History />} />
+            <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
