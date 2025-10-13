@@ -127,9 +127,9 @@ const Navbar = () => {
           onClick={() => navigate("/dashboard")}
           className="flex items-center gap-1.5 sm:gap-2 font-bold text-base sm:text-xl hover:opacity-80 transition-opacity"
         >
-          <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-          <span className="text-gradient hidden xs:inline">WortschatzNinja</span>
-          <span className="text-gradient xs:hidden">WN</span>
+          <img src="/fluentpass-logo.png" alt="FluentPass" className="w-6 h-6 sm:w-8 sm:h-8" />
+          <span className="text-gradient hidden xs:inline">FluentPass</span>
+          <span className="text-gradient xs:hidden">FP</span>
         </button>
 
         {/* Desktop Navigation */}

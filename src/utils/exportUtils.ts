@@ -308,7 +308,7 @@ export const exportAllDataToPDF = async (data: {
   // Cover Page
   doc.setFontSize(24);
   doc.setTextColor(147, 51, 234);
-  doc.text('WortschatzNinja', doc.internal.pageSize.getWidth() / 2, 40, { align: 'center' });
+  doc.text('FluentPass', doc.internal.pageSize.getWidth() / 2, 40, { align: 'center' });
   doc.setFontSize(18);
   doc.text('Complete Learning Report', doc.internal.pageSize.getWidth() / 2, 50, { align: 'center' });
   

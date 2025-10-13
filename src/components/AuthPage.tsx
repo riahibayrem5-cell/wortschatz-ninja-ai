@@ -73,9 +73,9 @@ const AuthPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 gradient-hero">
       <Card className="w-full max-w-md p-8 glass">
-        <div className="flex items-center justify-center mb-8">
-          <Sparkles className="w-8 h-8 text-primary mr-2" />
-          <h1 className="text-3xl font-bold text-gradient">WortschatzNinja</h1>
+        <div className="flex flex-col items-center justify-center mb-8">
+          <img src="/fluentpass-logo.png" alt="FluentPass" className="w-16 h-16 mb-3" />
+          <h1 className="text-3xl font-bold text-gradient">FluentPass</h1>
         </div>
         
         <form onSubmit={handleAuth} className="space-y-4">

@@ -12,9 +12,9 @@ const Index = () => {
       {/* Hero Section */}
       <div className="container mx-auto px-4 pt-16 pb-24">
         <div className="text-center max-w-5xl mx-auto">
-          <div className="flex items-center justify-center mb-6 animate-fade-in">
-            <Sparkles className="w-14 h-14 text-primary mr-3" />
-            <h1 className="text-6xl md:text-7xl font-bold text-gradient">WortschatzNinja</h1>
+          <div className="flex flex-col items-center justify-center mb-6 animate-fade-in">
+            <img src="/fluentpass-logo.png" alt="FluentPass" className="w-24 h-24 mb-4" />
+            <h1 className="text-6xl md:text-7xl font-bold text-gradient">FluentPass</h1>
           </div>
           
           <p className="text-2xl md:text-3xl font-semibold mb-4 animate-fade-in">
@@ -178,7 +178,7 @@ const Index = () => {
         <div className="glass p-12 rounded-2xl max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-bold mb-4">Ready to Master German?</h2>
           <p className="text-xl text-muted-foreground mb-8">
-            Join thousands of learners achieving B2-C1 fluency with WortschatzNinja
+            Join thousands of learners achieving B2-C1 fluency with FluentPass
           </p>
           <Button
             onClick={() => navigate("/auth")}
