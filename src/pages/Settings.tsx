@@ -9,10 +9,12 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import { User, Mail, Bell, Volume2, Key, Eye, EyeOff } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [email, setEmail] = useState("");
@@ -109,7 +111,7 @@ const Settings = () => {
       <Navbar />
       
       <div className="container max-w-4xl mx-auto p-4 py-8">
-        <h1 className="text-3xl font-bold mb-8 text-gradient">Settings</h1>
+        <h1 className="text-3xl font-bold mb-8 text-gradient">{t('settings.title')}</h1>
 
         <div className="space-y-6">
           {/* Account Information */}

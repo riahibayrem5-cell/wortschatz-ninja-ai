@@ -12,6 +12,7 @@ import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS } from "@/utils/constants";
 import { trackActivity } from "@/utils/activityTracker";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface VocabularyItem {
   word: string;
@@ -22,6 +23,7 @@ interface VocabularyItem {
 const Vocabulary = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [difficulty, setDifficulty] = useState<Difficulty>('B2');
   const [topic, setTopic] = useState("");
   const [customTopic, setCustomTopic] = useState("");
@@ -104,7 +106,7 @@ const Vocabulary = () => {
       
       <div className="container max-w-4xl mx-auto p-4">
         <Card className="p-8 glass mb-8 mt-6">
-          <h1 className="text-3xl font-bold mb-6 text-gradient">Vocabulary Generator</h1>
+          <h1 className="text-3xl font-bold mb-6 text-gradient">{t('vocabulary.title')}</h1>
           
           <div className="space-y-4">
             <DifficultySelector 
@@ -114,7 +116,7 @@ const Vocabulary = () => {
             />
             
             <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Topic</label>
+              <label className="text-sm text-muted-foreground mb-2 block">{t('vocabulary.topic')}</label>
               <Select value={topic} onValueChange={setTopic}>
                 <SelectTrigger className="bg-background/50">
                   <SelectValue placeholder="Select a TELC B2 topic" />
@@ -130,7 +132,7 @@ const Vocabulary = () => {
 
             {topic === "custom" && (
               <div>
-                <label className="text-sm text-muted-foreground mb-2 block">Custom Topic</label>
+                <label className="text-sm text-muted-foreground mb-2 block">{t('vocabulary.customTopic')}</label>
                 <Input
                   placeholder="Enter your own topic..."
                   value={customTopic}
@@ -141,7 +143,7 @@ const Vocabulary = () => {
             )}
 
             <div>
-              <label className="text-sm text-muted-foreground mb-2 block">Number of words</label>
+              <label className="text-sm text-muted-foreground mb-2 block">{t('vocabulary.numberOfWords')}</label>
               <Input
                 type="number"
                 min="5"
@@ -163,7 +165,7 @@ const Vocabulary = () => {
                   Generating...
                 </>
               ) : (
-                "Generate Vocabulary"
+                t('vocabulary.generate')
               )}
             </Button>
           </div>
@@ -185,7 +187,7 @@ const Vocabulary = () => {
                       className="bg-green-500/20 text-green-500 cursor-default"
                     >
                       <Check className="w-4 h-4 mr-1" />
-                      Added to review!
+                      {t('vocabulary.added')}
                     </Button>
                   ) : (
                     <Button

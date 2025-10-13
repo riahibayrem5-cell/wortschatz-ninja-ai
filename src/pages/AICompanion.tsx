@@ -25,6 +25,7 @@ import {
   Lightbulb
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -57,6 +58,7 @@ interface MistakeAnalysis {
 const AICompanion = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -163,7 +165,7 @@ const AICompanion = () => {
       setIsListening(true);
       
       toast({ 
-        title: "🎤 Listening...", 
+        title: `🎤 ${t('aiCompanion.listening')}`, 
         description: "Speak in German. I'm analyzing in real-time!" 
       });
     } catch (error) {
@@ -419,7 +421,7 @@ const AICompanion = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Brain className="w-5 h-5 text-primary animate-pulse" />
-                  AI Learning Companion
+                  {t('aiCompanion.title')}
                   {isProcessing && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
                 </CardTitle>
                 <CardDescription>
@@ -450,7 +452,7 @@ const AICompanion = () => {
                           ) : (
                             <>
                               <Sparkles className="w-4 h-4 mr-2" />
-                              Start Conversation
+                              {t('aiCompanion.startConversation')}
                             </>
                           )}
                         </Button>

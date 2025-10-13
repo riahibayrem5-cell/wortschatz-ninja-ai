@@ -118,6 +118,43 @@ const translations: Record<Language, Record<string, string>> = {
     'word.synonyms': 'Synonyms',
     'word.antonyms': 'Antonyms',
     'word.examples': 'Example Sentences',
+    
+    // Vocabulary
+    'vocabulary.title': 'Vocabulary Generator',
+    'vocabulary.topic': 'Topic',
+    'vocabulary.customTopic': 'Custom Topic',
+    'vocabulary.numberOfWords': 'Number of words',
+    'vocabulary.generate': 'Generate Vocabulary',
+    'vocabulary.addToReview': 'Add to Review',
+    'vocabulary.added': 'Added to review!',
+    
+    // Settings
+    'settings.title': 'Settings',
+    'settings.account': 'Account Information',
+    'settings.email': 'Email',
+    'settings.apiKeys': 'API Keys',
+    'settings.preferences': 'Preferences',
+    'settings.audioPlayback': 'Audio Playback',
+    'settings.reviewReminders': 'Review Reminders',
+    'settings.savePreferences': 'Save Preferences',
+    'settings.dangerZone': 'Danger Zone',
+    'settings.deleteAccount': 'Delete Account',
+    
+    // AI Companion
+    'aiCompanion.title': 'AI Learning Companion',
+    'aiCompanion.startConversation': 'Start Conversation',
+    'aiCompanion.listening': 'Listening...',
+    'aiCompanion.processing': 'Processing...',
+    'aiCompanion.textMode': 'Text Mode',
+    'aiCompanion.verbalMode': 'Verbal Mode',
+    'aiCompanion.analyzeMistakes': 'Analyze Mistakes',
+    
+    // Subscriptions
+    'subscriptions.title': 'Subscriptions',
+    'subscriptions.choosePlan': 'Choose Your Plan',
+    'subscriptions.currentPlan': 'Current Plan',
+    'subscriptions.upgradeNow': 'Upgrade Now',
+    'subscriptions.perMonth': 'per month',
   },
   de: {
     // Navigation
@@ -195,6 +232,43 @@ const translations: Record<Language, Record<string, string>> = {
     'word.synonyms': 'Synonyme',
     'word.antonyms': 'Antonyme',
     'word.examples': 'Beispielsätze',
+    
+    // Vocabulary
+    'vocabulary.title': 'Vokabel-Generator',
+    'vocabulary.topic': 'Thema',
+    'vocabulary.customTopic': 'Benutzerdefiniertes Thema',
+    'vocabulary.numberOfWords': 'Anzahl der Wörter',
+    'vocabulary.generate': 'Vokabeln generieren',
+    'vocabulary.addToReview': 'Zur Wiederholung hinzufügen',
+    'vocabulary.added': 'Zur Wiederholung hinzugefügt!',
+    
+    // Settings
+    'settings.title': 'Einstellungen',
+    'settings.account': 'Kontoinformationen',
+    'settings.email': 'E-Mail',
+    'settings.apiKeys': 'API-Schlüssel',
+    'settings.preferences': 'Einstellungen',
+    'settings.audioPlayback': 'Audio-Wiedergabe',
+    'settings.reviewReminders': 'Wiederholungserinnerungen',
+    'settings.savePreferences': 'Einstellungen speichern',
+    'settings.dangerZone': 'Gefahrenzone',
+    'settings.deleteAccount': 'Konto löschen',
+    
+    // AI Companion
+    'aiCompanion.title': 'KI-Lernbegleiter',
+    'aiCompanion.startConversation': 'Gespräch starten',
+    'aiCompanion.listening': 'Höre zu...',
+    'aiCompanion.processing': 'Verarbeitung...',
+    'aiCompanion.textMode': 'Textmodus',
+    'aiCompanion.verbalMode': 'Verbaler Modus',
+    'aiCompanion.analyzeMistakes': 'Fehler analysieren',
+    
+    // Subscriptions
+    'subscriptions.title': 'Abonnements',
+    'subscriptions.choosePlan': 'Wählen Sie Ihren Plan',
+    'subscriptions.currentPlan': 'Aktueller Plan',
+    'subscriptions.upgradeNow': 'Jetzt upgraden',
+    'subscriptions.perMonth': 'pro Monat',
   },
   ar: {
     // Navigation
@@ -272,6 +346,43 @@ const translations: Record<Language, Record<string, string>> = {
     'word.synonyms': 'المرادفات',
     'word.antonyms': 'الأضداد',
     'word.examples': 'جمل مثالية',
+    
+    // Vocabulary
+    'vocabulary.title': 'مولد المفردات',
+    'vocabulary.topic': 'الموضوع',
+    'vocabulary.customTopic': 'موضوع مخصص',
+    'vocabulary.numberOfWords': 'عدد الكلمات',
+    'vocabulary.generate': 'توليد المفردات',
+    'vocabulary.addToReview': 'إضافة للمراجعة',
+    'vocabulary.added': 'تمت الإضافة للمراجعة!',
+    
+    // Settings
+    'settings.title': 'الإعدادات',
+    'settings.account': 'معلومات الحساب',
+    'settings.email': 'البريد الإلكتروني',
+    'settings.apiKeys': 'مفاتيح API',
+    'settings.preferences': 'التفضيلات',
+    'settings.audioPlayback': 'تشغيل الصوت',
+    'settings.reviewReminders': 'تذكيرات المراجعة',
+    'settings.savePreferences': 'حفظ التفضيلات',
+    'settings.dangerZone': 'منطقة الخطر',
+    'settings.deleteAccount': 'حذف الحساب',
+    
+    // AI Companion
+    'aiCompanion.title': 'رفيق التعلم الذكي',
+    'aiCompanion.startConversation': 'بدء المحادثة',
+    'aiCompanion.listening': 'الاستماع...',
+    'aiCompanion.processing': 'جاري المعالجة...',
+    'aiCompanion.textMode': 'وضع النص',
+    'aiCompanion.verbalMode': 'الوضع الشفهي',
+    'aiCompanion.analyzeMistakes': 'تحليل الأخطاء',
+    
+    // Subscriptions
+    'subscriptions.title': 'الاشتراكات',
+    'subscriptions.choosePlan': 'اختر خطتك',
+    'subscriptions.currentPlan': 'الخطة الحالية',
+    'subscriptions.upgradeNow': 'ترقية الآن',
+    'subscriptions.perMonth': 'شهريًا',
   },
 };
 
