@@ -199,7 +199,16 @@ const Subscriptions = () => {
                     <span className="text-4xl font-bold text-foreground">
                       {tier.price_tnd} TND
                     </span>
-                    <span className="text-muted-foreground">{t('perMonth')}</span>
+                    <span className="text-muted-foreground ml-1">/month</span>
+                    {index === 0 && (
+                      <p className="mt-2 text-xs">Perfect for beginners starting their journey</p>
+                    )}
+                    {index === 1 && (
+                      <p className="mt-2 text-xs">Ideal for serious learners with specific goals</p>
+                    )}
+                    {index === 2 && (
+                      <p className="mt-2 text-xs">Best value for committed German speakers</p>
+                    )}
                   </CardDescription>
                 </CardHeader>
 
@@ -245,10 +254,10 @@ const Subscriptions = () => {
                     disabled={subscribing !== null || isPermanent}
                     className={`w-full ${
                       index === 2 
-                        ? 'gradient-primary' 
+                        ? 'gradient-primary text-lg py-6' 
                         : index === 1 
-                        ? 'gradient-accent' 
-                        : 'glass'
+                        ? 'gradient-accent py-6' 
+                        : 'glass py-6'
                     } ${isCurrentPlan && !isPermanent ? 'opacity-50' : ''}`}
                   >
                     {subscribing === tier.id ? (
@@ -257,11 +266,19 @@ const Subscriptions = () => {
                         Processing...
                       </>
                     ) : isPermanent ? (
-                      'Active - Permanent'
+                      <>
+                        <Crown className="w-4 h-4 mr-2" />
+                        Active - Permanent
+                      </>
                     ) : isCurrentPlan ? (
-                      'Current Plan'
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Current Plan
+                      </>
                     ) : (
-                      t('subscribe')
+                      <>
+                        Get Started with {tier.name}
+                      </>
                     )}
                   </Button>
                 </CardContent>
@@ -271,7 +288,7 @@ const Subscriptions = () => {
         </div>
 
         {userSubscription && !userSubscription.is_permanent && (
-          <div className="mt-12 text-center">
+          <div className="mt-12 text-center space-y-2">
             <p className="text-muted-foreground">
               Your subscription renews automatically on{" "}
               <span className="font-semibold text-foreground">
@@ -282,9 +299,36 @@ const Subscriptions = () => {
                 })}
               </span>
             </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Manage your subscription in Settings or contact support for assistance
+            <p className="text-xs text-muted-foreground">
+              Manage your subscription, update payment methods, or cancel anytime in your{" "}
+              <Button 
+                variant="link" 
+                className="p-0 h-auto text-xs text-primary"
+                onClick={() => navigate('/settings')}
+              >
+                Settings
+              </Button>
             </p>
+          </div>
+        )}
+
+        {!userSubscription && (
+          <div className="mt-12 text-center space-y-4 max-w-2xl mx-auto p-6 bg-background/50 rounded-lg border border-border">
+            <h3 className="font-semibold text-lg">Why Choose FluentPass Premium?</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="space-y-1">
+                <div className="font-semibold text-primary">AI-Powered Learning</div>
+                <p className="text-muted-foreground">Get instant, personalized feedback on your German</p>
+              </div>
+              <div className="space-y-1">
+                <div className="font-semibold text-primary">Flexible Practice</div>
+                <p className="text-muted-foreground">Study at your pace with unlimited exercises</p>
+              </div>
+              <div className="space-y-1">
+                <div className="font-semibold text-primary">Real Results</div>
+                <p className="text-muted-foreground">Track progress toward TELC B2 certification</p>
+              </div>
+            </div>
           </div>
         )}
       </div>
