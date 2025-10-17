@@ -36,7 +36,7 @@ export const SubscriptionBanner = () => {
       .select("*, subscription_tiers(*)")
       .eq("user_id", session.user.id)
       .eq("status", "active")
-      .single();
+      .maybeSingle();
 
     if (!data) {
       setShow(true);
