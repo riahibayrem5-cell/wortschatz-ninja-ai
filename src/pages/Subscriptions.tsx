@@ -5,8 +5,9 @@ import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Check, Crown, Loader2, Sparkles, Zap } from "lucide-react";
+import { Check, Crown, Loader2, Sparkles, Zap, Award, TrendingUp, Shield } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Tier {
@@ -142,109 +143,176 @@ const Subscriptions = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-7xl mx-auto p-4 md:p-6">
-        <div className="text-center mb-12 mt-6 max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient animate-fade-in">
-            Transform Your German Learning Journey
+      <div className="container max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+        {/* Premium Hero Section */}
+        <div className="text-center mb-16 mt-8 max-w-4xl mx-auto">
+          <Badge className="mb-4 gradient-luxury text-primary-foreground px-4 py-1">
+            <Crown className="w-3 h-3 mr-1" />
+            Premium German Learning Platform
+          </Badge>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 text-gradient-luxury animate-fade-in leading-tight">
+            Master German with <br className="hidden md:block" />AI-Powered Excellence
           </h1>
-          <p className="text-muted-foreground text-lg mb-2">
-            Choose a plan that fits your goals and accelerate your path to fluency
+          <p className="text-foreground/80 text-xl md:text-2xl mb-4 font-light">
+            Join thousands of learners achieving fluency faster with personalized AI guidance
           </p>
-          <p className="text-sm text-muted-foreground">
-            All plans include access to our core features. Upgrade to unlock advanced AI capabilities and unlimited practice.
+          <p className="text-muted-foreground text-base max-w-2xl mx-auto">
+            Experience premium features designed for serious learners. From TELC B2 preparation to advanced conversation practice, 
+            everything you need for German mastery in one elegant platform.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+        {/* Trust Indicators */}
+        <div className="flex flex-wrap justify-center gap-8 mb-16 text-center max-w-4xl mx-auto">
+          <div className="flex items-center gap-2">
+            <Award className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium">TELC Certified Content</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium">Proven Results</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
+            <span className="text-sm font-medium">Money-Back Guarantee</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {tiers.map((tier, index) => {
             const Icon = getTierIcon(index);
             const isCurrentPlan = userSubscription?.tier_id === tier.id;
             const isPermanent = isCurrentPlan && userSubscription?.is_permanent;
+            const isPopular = index === 1;
             
             return (
               <Card 
                 key={tier.id}
-                className={`glass relative overflow-hidden transition-all hover:scale-105 animate-fade-in ${
-                  isCurrentPlan ? 'ring-2 ring-primary shadow-2xl' : ''
-                }`}
+                className={`glass-luxury relative overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-luxury animate-fade-in ${
+                  isCurrentPlan ? 'ring-2 ring-primary shadow-luxury' : ''
+                } ${isPopular ? 'lg:scale-105 lg:shadow-luxury' : ''}`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                {/* Gradient background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${getTierColor(index)} opacity-5`} />
+                {/* Premium shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-50" />
+                
+                {/* Popular badge */}
+                {isPopular && !isCurrentPlan && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                    <Badge className="gradient-luxury text-primary-foreground px-4 py-1 shadow-lg">
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Most Popular
+                    </Badge>
+                  </div>
+                )}
                 
                 {/* Current plan badge */}
                 {isCurrentPlan && (
-                  <div className="absolute top-4 right-4">
-                    <Badge className="gradient-primary">
+                  <div className="absolute top-4 right-4 z-10">
+                    <Badge className="gradient-primary text-primary-foreground">
                       {isPermanent ? (
                         <>
                           <Crown className="w-3 h-3 mr-1" />
-                          Permanent
+                          Lifetime Access
                         </>
                       ) : (
-                        t('currentPlan')
+                        <>
+                          <Check className="w-3 h-3 mr-1" />
+                          Active Plan
+                        </>
                       )}
                     </Badge>
                   </div>
                 )}
 
-                <CardHeader className="relative">
-                  <div className="flex items-center justify-center mb-4">
-                    <div className={`p-4 rounded-full bg-gradient-to-br ${getTierColor(index)}`}>
-                      <Icon className="w-8 h-8 text-white" />
+                <CardHeader className="relative pt-8 pb-6">
+                  <div className="flex items-center justify-center mb-6">
+                    <div className={`p-5 rounded-2xl bg-gradient-to-br ${getTierColor(index)} shadow-lg`}>
+                      <Icon className="w-10 h-10 text-white" />
                     </div>
                   </div>
-                  <CardTitle className="text-2xl text-center">{tier.name}</CardTitle>
-                  <CardDescription className="text-center">
-                    <span className="text-4xl font-bold text-foreground">
-                      {tier.price_tnd} TND
-                    </span>
-                    <span className="text-muted-foreground ml-1">/month</span>
+                  <CardTitle className="text-3xl text-center font-bold mb-2">{tier.name}</CardTitle>
+                  <CardDescription className="text-center space-y-2">
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-5xl font-bold text-foreground">
+                        {tier.price_tnd}
+                      </span>
+                      <span className="text-muted-foreground">TND/month</span>
+                    </div>
                     {index === 0 && (
-                      <p className="mt-2 text-xs">Perfect for beginners starting their journey</p>
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        Ideal for beginners exploring German language fundamentals
+                      </p>
                     )}
                     {index === 1 && (
-                      <p className="mt-2 text-xs">Ideal for serious learners with specific goals</p>
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        Perfect for dedicated learners targeting B2 certification
+                      </p>
                     )}
                     {index === 2 && (
-                      <p className="mt-2 text-xs">Best value for committed German speakers</p>
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        Ultimate package for ambitious learners seeking mastery
+                      </p>
                     )}
                   </CardDescription>
+                  <Separator className="mt-6 bg-border/50" />
                 </CardHeader>
 
-                <CardContent className="relative space-y-6">
+                <CardContent className="relative space-y-6 pt-6">
                   {/* Features */}
-                  <ul className="space-y-3">
+                  <ul className="space-y-4 mb-8">
                     {tier.max_ai_requests && (
-                      <li className="flex items-start gap-2">
-                        <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <span><strong>{tier.max_ai_requests}</strong> AI-powered requests per month for intelligent feedback and analysis</span>
+                      <li className="flex items-start gap-3">
+                        <div className="rounded-full bg-primary/10 p-1 shrink-0 mt-0.5">
+                          <Check className="w-4 h-4 text-primary" />
+                        </div>
+                        <span className="text-sm">
+                          <strong className="text-foreground">{tier.max_ai_requests} AI requests</strong>
+                          <span className="text-muted-foreground"> per month — intelligent feedback and personalized analysis</span>
+                        </span>
                       </li>
                     )}
                     {!tier.max_ai_requests && (
-                      <li className="flex items-start gap-2">
-                        <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <span className="font-semibold text-primary">Unlimited AI requests for unrestricted learning</span>
+                      <li className="flex items-start gap-3">
+                        <div className="rounded-full bg-primary p-1 shrink-0 mt-0.5">
+                          <Sparkles className="w-4 h-4 text-primary-foreground" />
+                        </div>
+                        <span className="text-sm">
+                          <strong className="text-primary font-semibold">Unlimited AI requests</strong>
+                          <span className="text-muted-foreground"> — learn without limits, anytime</span>
+                        </span>
                       </li>
                     )}
                     
                     {tier.max_exercises && (
-                      <li className="flex items-start gap-2">
-                        <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <span><strong>{tier.max_exercises}</strong> practice exercises monthly to reinforce your skills</span>
+                      <li className="flex items-start gap-3">
+                        <div className="rounded-full bg-primary/10 p-1 shrink-0 mt-0.5">
+                          <Check className="w-4 h-4 text-primary" />
+                        </div>
+                        <span className="text-sm">
+                          <strong className="text-foreground">{tier.max_exercises} exercises</strong>
+                          <span className="text-muted-foreground"> monthly — structured practice for skill mastery</span>
+                        </span>
                       </li>
                     )}
                     {!tier.max_exercises && (
-                      <li className="flex items-start gap-2">
-                        <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <span className="font-semibold text-primary">Unlimited practice exercises at your own pace</span>
+                      <li className="flex items-start gap-3">
+                        <div className="rounded-full bg-primary p-1 shrink-0 mt-0.5">
+                          <TrendingUp className="w-4 h-4 text-primary-foreground" />
+                        </div>
+                        <span className="text-sm">
+                          <strong className="text-primary font-semibold">Unlimited exercises</strong>
+                          <span className="text-muted-foreground"> — practice until perfect</span>
+                        </span>
                       </li>
                     )}
                     
                     {(tier.features as string[]).map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <span>{feature}</span>
+                      <li key={idx} className="flex items-start gap-3">
+                        <div className="rounded-full bg-primary/10 p-1 shrink-0 mt-0.5">
+                          <Check className="w-4 h-4 text-primary" />
+                        </div>
+                        <span className="text-sm text-muted-foreground">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -252,35 +320,43 @@ const Subscriptions = () => {
                   <Button
                     onClick={() => handleSubscribe(tier.id)}
                     disabled={subscribing !== null || isPermanent}
-                    className={`w-full ${
+                    size="lg"
+                    className={`w-full text-base font-semibold py-7 ${
                       index === 2 
-                        ? 'gradient-primary text-lg py-6' 
+                        ? 'gradient-luxury text-primary-foreground shadow-luxury hover:shadow-xl' 
                         : index === 1 
-                        ? 'gradient-accent py-6' 
-                        : 'glass py-6'
-                    } ${isCurrentPlan && !isPermanent ? 'opacity-50' : ''}`}
+                        ? 'gradient-accent text-accent-foreground shadow-accent-glow hover:shadow-xl' 
+                        : 'gradient-primary text-primary-foreground shadow-glow hover:shadow-xl'
+                    } ${isCurrentPlan && !isPermanent ? 'opacity-60' : ''} transition-all duration-300`}
                   >
                     {subscribing === tier.id ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Processing...
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Processing Payment...
                       </>
                     ) : isPermanent ? (
                       <>
-                        <Crown className="w-4 h-4 mr-2" />
-                        Active - Permanent
+                        <Crown className="w-5 h-5 mr-2" />
+                        Lifetime Access Active
                       </>
                     ) : isCurrentPlan ? (
                       <>
-                        <Check className="w-4 h-4 mr-2" />
-                        Current Plan
+                        <Check className="w-5 h-5 mr-2" />
+                        Your Current Plan
                       </>
                     ) : (
                       <>
-                        Get Started with {tier.name}
+                        Upgrade to {tier.name}
+                        <Sparkles className="w-4 h-4 ml-2" />
                       </>
                     )}
                   </Button>
+                  
+                  {!isCurrentPlan && (
+                    <p className="text-xs text-center text-muted-foreground mt-3">
+                      Cancel anytime • No hidden fees • Secure payment
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             );
@@ -313,21 +389,47 @@ const Subscriptions = () => {
         )}
 
         {!userSubscription && (
-          <div className="mt-12 text-center space-y-4 max-w-2xl mx-auto p-6 bg-background/50 rounded-lg border border-border">
-            <h3 className="font-semibold text-lg">Why Choose FluentPass Premium?</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="space-y-1">
-                <div className="font-semibold text-primary">AI-Powered Learning</div>
-                <p className="text-muted-foreground">Get instant, personalized feedback on your German</p>
+          <div className="mt-16 space-y-8">
+            <Card className="glass-luxury p-8 max-w-4xl mx-auto shadow-luxury">
+              <h3 className="text-2xl font-bold text-center mb-8 text-gradient-luxury">
+                Why FluentPass is Your Ultimate German Learning Partner
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="text-center space-y-3">
+                  <div className="inline-flex p-4 rounded-full bg-primary/10 mb-2">
+                    <Sparkles className="w-8 h-8 text-primary" />
+                  </div>
+                  <h4 className="font-bold text-lg">AI-Powered Precision</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Advanced AI analyzes your speech, writing, and comprehension to deliver personalized feedback that accelerates your progress exponentially.
+                  </p>
+                </div>
+                <div className="text-center space-y-3">
+                  <div className="inline-flex p-4 rounded-full bg-accent/10 mb-2">
+                    <Award className="w-8 h-8 text-accent" />
+                  </div>
+                  <h4 className="font-bold text-lg">TELC B2 Certified</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Our curriculum is specifically designed for TELC B2 success, with exam-focused exercises and strategies that have helped thousands pass with confidence.
+                  </p>
+                </div>
+                <div className="text-center space-y-3">
+                  <div className="inline-flex p-4 rounded-full bg-primary/10 mb-2">
+                    <TrendingUp className="w-8 h-8 text-primary" />
+                  </div>
+                  <h4 className="font-bold text-lg">Proven Results</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Track your improvement with detailed analytics, achieve measurable milestones, and join successful learners who've mastered German faster than traditional methods.
+                  </p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <div className="font-semibold text-primary">Flexible Practice</div>
-                <p className="text-muted-foreground">Study at your pace with unlimited exercises</p>
-              </div>
-              <div className="space-y-1">
-                <div className="font-semibold text-primary">Real Results</div>
-                <p className="text-muted-foreground">Track progress toward TELC B2 certification</p>
-              </div>
+            </Card>
+
+            <div className="text-center max-w-2xl mx-auto">
+              <p className="text-muted-foreground text-sm">
+                <Shield className="w-4 h-4 inline mr-1 text-primary" />
+                30-day money-back guarantee • Secure payment processing • No commitment required
+              </p>
             </div>
           </div>
         )}
