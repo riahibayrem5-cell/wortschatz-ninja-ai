@@ -357,34 +357,48 @@ const Conversation = () => {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="whitespace-pre-line flex-1">{message.content}</p>
-                        {message.role === 'user' && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => analyzeMistakes(message.content)}
-                            disabled={analyzingMessage === message.content}
-                            className="shrink-0"
-                          >
-                            {analyzingMessage === message.content ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Lightbulb className="w-4 h-4 text-yellow-500" />
-                            )}
-                          </Button>
-                        )}
-                        {message.role === 'assistant' && audioMode === 'text' && message.audio && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              const audio = new Audio(`data:audio/mpeg;base64,${message.audio}`);
-                              audio.play();
-                            }}
-                            className="shrink-0"
-                          >
-                            <Volume2 className="w-4 h-4" />
-                          </Button>
-                        )}
+                        <div className="flex gap-1 shrink-0">
+                          {message.role === 'user' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => analyzeMistakes(message.content)}
+                              disabled={analyzingMessage === message.content}
+                            >
+                              {analyzingMessage === message.content ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Lightbulb className="w-4 h-4 text-yellow-500" />
+                              )}
+                            </Button>
+                          )}
+                          {message.role === 'assistant' && (
+                            <>
+                              <AudioButton text={message.content} lang="de-DE" showPlayer />
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={async () => {
+                                  try {
+                                    const { data } = await supabase.functions.invoke('analyze-translation', {
+                                      body: { text: message.content, targetLanguage: 'en' }
+                                    });
+                                    toast({
+                                      title: "Translation",
+                                      description: data.translation,
+                                      duration: 8000,
+                                    });
+                                  } catch (error: any) {
+                                    toast({ title: "Translation Error", description: error.message, variant: "destructive" });
+                                  }
+                                }}
+                                title="Translate to English"
+                              >
+                                EN
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -77,44 +77,37 @@ const Subscriptions = () => {
   const handleSubscribe = async (tierId: string) => {
     setSubscribing(tierId);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
+      const tier = tiers.find(t => t.id === tierId);
+      if (!tier) throw new Error("Tier not found");
+
+      // Get Stripe price ID (you'll need to map tier IDs to Stripe price IDs)
+      // For now, using a placeholder - replace with actual price IDs
+      const priceIdMap: { [key: string]: string } = {
+        // Add your actual Stripe price IDs here
+        // Example: 'tier-uuid': 'price_xxxxx'
+      };
+
+      const priceId = priceIdMap[tierId];
+      if (!priceId) {
+        toast({ 
+          title: "Configuration Error", 
+          description: "Please contact support to set up Stripe prices.",
+          variant: "destructive" 
+        });
         return;
       }
 
-      // Calculate expiration (30 days from now)
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 30);
+      // Create Stripe checkout session
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { priceId }
+      });
 
-      if (userSubscription) {
-        // Update existing subscription
-        const { error } = await supabase
-          .from("user_subscriptions")
-          .update({
-            tier_id: tierId,
-            expires_at: expiresAt.toISOString(),
-            status: 'active'
-          })
-          .eq("user_id", session.user.id);
+      if (error) throw error;
 
-        if (error) throw error;
-      } else {
-        // Create new subscription
-        const { error } = await supabase
-          .from("user_subscriptions")
-          .insert({
-            user_id: session.user.id,
-            tier_id: tierId,
-            expires_at: expiresAt.toISOString(),
-            status: 'active'
-          });
-
-        if (error) throw error;
+      if (data?.url) {
+        // Open Stripe checkout in new tab
+        window.open(data.url, '_blank');
       }
-
-      toast({ title: t('success'), description: "Subscription activated successfully!" });
-      await loadData();
     } catch (error: any) {
       toast({ title: t('error'), description: error.message, variant: "destructive" });
     } finally {

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
-import { User, Mail, Bell, Volume2, Key, Eye, EyeOff } from "lucide-react";
+import { User, Mail, Bell, Volume2, Key, Eye, EyeOff, Crown, ExternalLink, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Settings = () => {
@@ -24,6 +24,8 @@ const Settings = () => {
   const [showElevenLabsKey, setShowElevenLabsKey] = useState(false);
   const [geminiKey, setGeminiKey] = useState("");
   const [showGeminiKey, setShowGeminiKey] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
+  const [loadingPortal, setLoadingPortal] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -48,6 +50,14 @@ const Settings = () => {
     if (notifSetting !== null) setNotificationsEnabled(notifSetting === "true");
     if (savedElevenLabsKey) setElevenLabsKey(savedElevenLabsKey);
     if (savedGeminiKey) setGeminiKey(savedGeminiKey);
+    
+    // Check subscription status
+    try {
+      const { data: subData } = await supabase.functions.invoke('check-subscription');
+      setSubscriptionStatus(subData);
+    } catch (error) {
+      console.error('Failed to load subscription:', error);
+    }
     
     setLoading(false);
   };
@@ -92,6 +102,25 @@ const Settings = () => {
       });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setLoadingPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
+      toast({ 
+        title: "Error", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setLoadingPortal(false);
     }
   };
 
@@ -220,6 +249,64 @@ const Settings = () => {
               >
                 Save API Keys
               </Button>
+            </div>
+          </Card>
+
+          {/* Subscription Management */}
+          <Card className="p-6 glass">
+            <div className="flex items-center gap-3 mb-6">
+              <Crown className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-semibold">Subscription</h2>
+            </div>
+            
+            <div className="space-y-4">
+              {subscriptionStatus?.subscribed ? (
+                <>
+                  <div className="p-4 bg-primary/10 rounded-lg border border-primary/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Crown className="w-4 h-4 text-primary" />
+                      <span className="font-semibold text-primary">Active Subscription</span>
+                    </div>
+                    {subscriptionStatus.subscription_end && (
+                      <p className="text-sm text-muted-foreground">
+                        Renews on: {new Date(subscriptionStatus.subscription_end).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    onClick={handleManageSubscription}
+                    disabled={loadingPortal}
+                    className="w-full gradient-primary hover:opacity-90"
+                  >
+                    {loadingPortal ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Loading...
+                      </>
+                    ) : (
+                      <>
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Manage Subscription
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Update payment method, view invoices, or cancel subscription
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    You don't have an active subscription. Upgrade to unlock premium features!
+                  </p>
+                  <Button
+                    onClick={() => navigate('/subscriptions')}
+                    className="w-full gradient-primary hover:opacity-90"
+                  >
+                    View Plans
+                  </Button>
+                </>
+              )}
             </div>
           </Card>
 

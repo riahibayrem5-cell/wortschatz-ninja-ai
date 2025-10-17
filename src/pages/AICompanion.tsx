@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
+import AudioButton from "@/components/AudioButton";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -474,34 +475,48 @@ const AICompanion = () => {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="whitespace-pre-line mb-2 flex-1">{msg.content}</p>
-                        {msg.role === 'user' && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => analyzeMistakes(msg.content)}
-                            disabled={analyzingMessage === msg.content}
-                            className="shrink-0"
-                          >
-                            {analyzingMessage === msg.content ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Lightbulb className="w-4 h-4 text-yellow-500" />
-                            )}
-                          </Button>
-                        )}
-                        {msg.role === 'assistant' && audioMode === 'text' && msg.audio && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              const audio = new Audio(`data:audio/mpeg;base64,${msg.audio}`);
-                              audio.play();
-                            }}
-                            className="shrink-0"
-                          >
-                            <Volume2 className="w-4 h-4" />
-                          </Button>
-                        )}
+                        <div className="flex gap-1 shrink-0">
+                          {msg.role === 'user' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => analyzeMistakes(msg.content)}
+                              disabled={analyzingMessage === msg.content}
+                            >
+                              {analyzingMessage === msg.content ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Lightbulb className="w-4 h-4 text-yellow-500" />
+                              )}
+                            </Button>
+                          )}
+                          {msg.role === 'assistant' && (
+                            <>
+                              <AudioButton text={msg.content} lang="de-DE" showPlayer />
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={async () => {
+                                  try {
+                                    const { data } = await supabase.functions.invoke('analyze-translation', {
+                                      body: { text: msg.content, targetLanguage: 'en' }
+                                    });
+                                    toast({
+                                      title: "Translation",
+                                      description: data.translation,
+                                      duration: 8000,
+                                    });
+                                  } catch (error: any) {
+                                    toast({ title: "Translation Error", description: error.message, variant: "destructive" });
+                                  }
+                                }}
+                                title="Translate to English"
+                              >
+                                EN
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
                       {msg.feedback && msg.role === 'assistant' && (
                         <div className="text-xs space-y-1 mt-3 pt-3 border-t border-primary/20">
