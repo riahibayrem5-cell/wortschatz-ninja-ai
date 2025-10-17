@@ -143,12 +143,15 @@ const Subscriptions = () => {
       <Navbar />
       
       <div className="container max-w-7xl mx-auto p-4 md:p-6">
-        <div className="text-center mb-12 mt-6">
+        <div className="text-center mb-12 mt-6 max-w-3xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient animate-fade-in">
-            {t('chooseYourPlan')}
+            Transform Your German Learning Journey
           </h1>
-          <p className="text-muted-foreground text-lg">
-            Unlock your full potential with premium features
+          <p className="text-muted-foreground text-lg mb-2">
+            Choose a plan that fits your goals and accelerate your path to fluency
+          </p>
+          <p className="text-sm text-muted-foreground">
+            All plans include access to our core features. Upgrade to unlock advanced AI capabilities and unlimited practice.
           </p>
         </div>
 
@@ -206,26 +209,26 @@ const Subscriptions = () => {
                     {tier.max_ai_requests && (
                       <li className="flex items-start gap-2">
                         <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <span>{tier.max_ai_requests} {t('aiRequests')}</span>
+                        <span><strong>{tier.max_ai_requests}</strong> AI-powered requests per month for intelligent feedback and analysis</span>
                       </li>
                     )}
                     {!tier.max_ai_requests && (
                       <li className="flex items-start gap-2">
                         <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <span className="font-semibold text-primary">{t('unlimitedAIRequests')}</span>
+                        <span className="font-semibold text-primary">Unlimited AI requests for unrestricted learning</span>
                       </li>
                     )}
                     
                     {tier.max_exercises && (
                       <li className="flex items-start gap-2">
                         <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <span>{tier.max_exercises} {t('exercisesPerMonth')}</span>
+                        <span><strong>{tier.max_exercises}</strong> practice exercises monthly to reinforce your skills</span>
                       </li>
                     )}
                     {!tier.max_exercises && (
                       <li className="flex items-start gap-2">
                         <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <span className="font-semibold text-primary">{t('unlimitedExercises')}</span>
+                        <span className="font-semibold text-primary">Unlimited practice exercises at your own pace</span>
                       </li>
                     )}
                     
@@ -268,9 +271,20 @@ const Subscriptions = () => {
         </div>
 
         {userSubscription && !userSubscription.is_permanent && (
-          <div className="mt-8 text-center text-sm text-muted-foreground">
-            Your subscription will renew on{" "}
-            {new Date(userSubscription.expires_at!).toLocaleDateString()}
+          <div className="mt-12 text-center">
+            <p className="text-muted-foreground">
+              Your subscription renews automatically on{" "}
+              <span className="font-semibold text-foreground">
+                {new Date(userSubscription.expires_at!).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </span>
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Manage your subscription in Settings or contact support for assistance
+            </p>
           </div>
         )}
       </div>

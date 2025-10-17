@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff, Plus } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
+import AudioPlayer from "@/components/AudioPlayer";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS } from "@/utils/constants";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
@@ -24,6 +25,10 @@ const Memorizer = () => {
   const [paragraph, setParagraph] = useState<any>(null);
   const [userInput, setUserInput] = useState("");
   const [showAnswer, setShowAnswer] = useState(false);
+  
+  const [selectedWord, setSelectedWord] = useState<{ word: string; index: number } | null>(null);
+  const [wordAnalysis, setWordAnalysis] = useState<any>(null);
+  const [analyzingWord, setAnalyzingWord] = useState(false);
 
   const generateParagraph = async () => {
     const finalTheme = theme === "custom" ? customTheme : theme;
@@ -73,6 +78,33 @@ const Memorizer = () => {
       toast({ title: "Added to review!" });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const analyzeWord = async (word: string) => {
+    setAnalyzingWord(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-word", {
+        body: { word: word.replace(/[.,!?;]/g, ''), targetLanguage: "en" },
+      });
+
+      if (error) throw error;
+      setWordAnalysis(data);
+    } catch (error: any) {
+      toast({ title: "Error analyzing word", description: error.message, variant: "destructive" });
+    } finally {
+      setAnalyzingWord(false);
+    }
+  };
+
+  const handleWordClick = (word: string, index: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (e.button === 1 || e.ctrlKey || e.metaKey) {
+      const url = `/word-dossier?word=${encodeURIComponent(word.replace(/[.,!?;]/g, ''))}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      setSelectedWord({ word, index });
+      analyzeWord(word);
     }
   };
 
@@ -180,10 +212,99 @@ const Memorizer = () => {
               {showAnswer ? (
                 <div className="space-y-4">
                   <div className="p-4 bg-background/30 rounded-lg">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <p className="text-lg leading-relaxed flex-1">{paragraph.germanText}</p>
-                      <AudioButton text={paragraph.germanText} lang="de-DE" />
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm text-muted-foreground">German Text</h3>
+                      <AudioPlayer text={paragraph.germanText} lang="de-DE" />
                     </div>
+                    
+                    <p className="text-lg leading-relaxed mb-4">
+                      {paragraph.germanText.split(/\s+/).map((word: string, idx: number) => (
+                        <span key={idx}>
+                          <button
+                            onClick={(e) => handleWordClick(word, idx, e as any)}
+                            onMouseDown={(e) => {
+                              if (e.button === 1) e.preventDefault();
+                            }}
+                            onAuxClick={(e) => {
+                              if (e.button === 1) handleWordClick(word, idx, e as any);
+                            }}
+                            className={`inline-block transition-all hover:scale-105 rounded px-1 ${
+                              selectedWord?.index === idx
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-primary hover:bg-primary/10'
+                            }`}
+                          >
+                            {word}
+                          </button>
+                          {idx < paragraph.germanText.split(/\s+/).length - 1 && ' '}
+                        </span>
+                      ))}
+                    </p>
+                    
+                    {selectedWord && (
+                      <Card className="p-4 glass border-primary/30 animate-in fade-in-50 slide-in-from-top-2">
+                        {analyzingWord ? (
+                          <div className="flex items-center justify-center py-4">
+                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                          </div>
+                        ) : wordAnalysis ? (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-xl font-bold text-primary">
+                                {wordAnalysis.article && <span className="text-sm mr-2">{wordAnalysis.article}</span>}
+                                {selectedWord.word.replace(/[.,!?;]/g, '')}
+                              </h4>
+                              <AudioPlayer text={selectedWord.word} lang="de-DE" />
+                            </div>
+                            
+                            {wordAnalysis.translation && (
+                              <p className="text-sm text-muted-foreground">{wordAnalysis.translation}</p>
+                            )}
+                            
+                            <div className="grid grid-cols-2 gap-2">
+                              {wordAnalysis.synonyms && wordAnalysis.synonyms.length > 0 && (
+                                <div className="p-2 bg-background/40 rounded">
+                                  <p className="text-xs text-muted-foreground mb-1">Synonyms</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {wordAnalysis.synonyms.slice(0, 3).map((syn: string, i: number) => (
+                                      <span key={i} className="text-xs px-1.5 py-0.5 bg-primary/10 rounded">{syn}</span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {wordAnalysis.wordFamily && wordAnalysis.wordFamily.length > 0 && (
+                                <div className="p-2 bg-background/40 rounded">
+                                  <p className="text-xs text-muted-foreground mb-1">Related</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {wordAnalysis.wordFamily.slice(0, 3).map((item: any, i: number) => (
+                                      <span key={i} className="text-xs px-1.5 py-0.5 bg-accent/10 rounded">{item.word}</span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {wordAnalysis.examples && wordAnalysis.examples[0] && (
+                              <div className="p-2 bg-background/20 rounded text-xs">
+                                <p className="italic text-muted-foreground">{wordAnalysis.examples[0].german}</p>
+                              </div>
+                            )}
+                            
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="w-full"
+                              onClick={() => window.open(`/word-dossier?word=${encodeURIComponent(selectedWord.word.replace(/[.,!?;]/g, ''))}`, '_blank')}
+                            >
+                              Full Analysis →
+                            </Button>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">Loading analysis...</p>
+                        )}
+                      </Card>
+                    )}
                   </div>
                   <div className="p-4 bg-background/20 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
