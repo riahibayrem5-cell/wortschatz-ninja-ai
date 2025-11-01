@@ -72,57 +72,83 @@ const AuthPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 gradient-hero">
-      <Card className="w-full max-w-md p-8 glass">
-        <div className="flex flex-col items-center justify-center mb-8">
-          <img src="/fluentpass-logo.png" alt="FluentPass" className="w-16 h-16 mb-3" />
-          <h1 className="text-3xl font-bold text-gradient">FluentPass</h1>
+      <Card className="w-full max-w-lg p-10 md:p-12 glass-luxury luxury-glow">
+        <div className="flex flex-col items-center justify-center mb-10">
+          <div className="relative mb-4">
+            <div className="absolute inset-0 blur-2xl opacity-30 bg-gradient-luxury"></div>
+            <img 
+              src="/fluentpass-logo.png" 
+              alt="FluentPass" 
+              className="relative w-20 h-20 md:w-24 md:h-24 hover:scale-105 transition-transform duration-300" 
+            />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-gradient-luxury mb-2">FluentPass</h1>
+          <p className="text-muted-foreground text-lg">Master German B2-C1 with AI</p>
         </div>
         
-        <form onSubmit={handleAuth} className="space-y-4">
+        <form onSubmit={handleAuth} className="space-y-5">
           <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">Email Address</label>
             <Input
               type="email"
-              placeholder="Email"
+              placeholder="your.email@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="bg-background/50"
+              className="bg-background/50 h-12 text-base border-2 focus:border-primary transition-all"
             />
           </div>
           <div>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">Password</label>
             <Input
               type="password"
-              placeholder="Password"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="bg-background/50"
+              className="bg-background/50 h-12 text-base border-2 focus:border-primary transition-all"
             />
+            <p className="text-xs text-muted-foreground mt-2">Minimum 6 characters</p>
           </div>
           
           <Button
             type="submit"
-            className="w-full gradient-primary hover:opacity-90 transition-opacity"
+            className="w-full gradient-luxury hover:scale-105 transition-all h-12 text-lg font-bold luxury-glow mt-6"
             disabled={loading}
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <>
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                Processing...
+              </>
             ) : isLogin ? (
-              "Sign In"
+              <>
+                <Sparkles className="w-5 h-5 mr-2" />
+                Sign In to FluentPass
+              </>
             ) : (
-              "Sign Up"
+              <>
+                <Sparkles className="w-5 h-5 mr-2" />
+                Create Free Account
+              </>
             )}
           </Button>
         </form>
 
-        <div className="mt-4 text-center">
+        <div className="mt-6 text-center">
           <button
             onClick={() => setIsLogin(!isLogin)}
-            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            className="text-base text-muted-foreground hover:text-primary transition-colors font-medium"
           >
-            {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+            {isLogin ? "Don't have an account? Sign up free →" : "Already have an account? Sign in →"}
           </button>
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-border/50 text-center">
+          <p className="text-sm text-muted-foreground">
+            ✓ No credit card required  •  ✓ Free forever  •  ✓ Full TELC B2 access
+          </p>
         </div>
       </Card>
     </div>
