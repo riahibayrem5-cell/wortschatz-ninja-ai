@@ -414,9 +414,9 @@ const MistakeDiary = () => {
                           {mistake.notes ? "Edit Note" : "Add Note"}
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="glass-luxury">
                         <DialogHeader>
-                          <DialogTitle>
+                          <DialogTitle className="text-xl font-bold">
                             {mistake.notes ? "Edit Note" : "Add Note"}
                           </DialogTitle>
                         </DialogHeader>

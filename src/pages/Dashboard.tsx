@@ -214,7 +214,7 @@ const Dashboard = () => {
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 sm:pt-4">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gradient">{t('dashboard.title')}</h1>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gradient-luxury">{t('dashboard.title')}</h1>
           <div className="flex gap-2 items-center w-full sm:w-auto">
             <Button
               onClick={analyzeProgressWithAI}

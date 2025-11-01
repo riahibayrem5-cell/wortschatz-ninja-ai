@@ -446,10 +446,10 @@ const Conversation = () => {
         )}
 
         <Dialog open={showMistakeDialog} onOpenChange={setShowMistakeDialog}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto glass-luxury">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Lightbulb className="w-5 h-5 text-yellow-500" />
+              <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+                <Lightbulb className="w-6 h-6 text-accent" />
                 Mistake Analysis & Suggestions
               </DialogTitle>
             </DialogHeader>

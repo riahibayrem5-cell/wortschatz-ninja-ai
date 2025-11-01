@@ -433,9 +433,9 @@ const History = () => {
 
         {/* Preview Dialog */}
         <Dialog open={!!previewItem} onOpenChange={() => setPreviewItem(null)}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto glass-luxury">
             <DialogHeader>
-              <DialogTitle>Preview</DialogTitle>
+              <DialogTitle className="text-xl font-bold">Content Preview</DialogTitle>
             </DialogHeader>
             {previewItem?.type === 'vocabulary' && (
               <div className="space-y-4">

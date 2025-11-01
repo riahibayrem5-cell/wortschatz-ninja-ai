@@ -57,43 +57,44 @@ export const SubscriptionReminder = () => {
   if (!show || dismissed || !daysUntilExpiry) return null;
 
   return (
-    <Card className="fixed top-20 right-4 max-w-sm p-4 glass-luxury shadow-luxury z-50 animate-slide-in-right border-primary/30">
+    <Card className="fixed top-20 right-4 max-w-sm p-5 glass-luxury luxury-glow z-50 animate-slide-in-right border-primary/20">
       <button
         onClick={handleDismiss}
-        className="absolute top-2 right-2 text-muted-foreground hover:text-foreground transition-colors"
+        className="absolute top-3 right-3 text-muted-foreground hover:text-primary transition-colors"
+        aria-label="Dismiss reminder"
       >
         <X className="w-4 h-4" />
       </button>
       
-      <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg gradient-primary">
-          <Bell className="w-5 h-5 text-primary-foreground" />
+      <div className="flex items-start gap-4">
+        <div className="p-2.5 rounded-xl gradient-primary shadow-md">
+          <Bell className="w-6 h-6 text-primary-foreground animate-pulse" />
         </div>
         
         <div className="flex-1 pr-4">
-          <h3 className="font-semibold mb-1 flex items-center gap-2">
+          <h3 className="font-bold text-base mb-2 flex items-center gap-2 text-gradient-luxury">
             Subscription Reminder
-            <Calendar className="w-4 h-4 text-primary" />
+            <Calendar className="w-4 h-4 text-accent" />
           </h3>
-          <p className="text-sm text-muted-foreground mb-3">
-            Your premium subscription expires in <span className="font-bold text-accent">{daysUntilExpiry} {daysUntilExpiry === 1 ? 'day' : 'days'}</span>. 
-            Renew now to continue enjoying unlimited access.
+          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+            Your premium subscription expires in <span className="font-bold text-accent text-base">{daysUntilExpiry} {daysUntilExpiry === 1 ? 'day' : 'days'}</span>. 
+            Renew now to continue enjoying unlimited access to all features.
           </p>
           
           <div className="flex gap-2">
             <Button
               size="sm"
               onClick={() => navigate("/subscriptions")}
-              className="gradient-luxury hover:opacity-90 text-primary-foreground"
+              className="gradient-luxury hover:scale-105 transition-all luxury-glow font-semibold"
             >
-              <Crown className="w-3 h-3 mr-1" />
+              <Crown className="w-3.5 h-3.5 mr-1.5" />
               Renew Now
             </Button>
             <Button
               size="sm"
               variant="ghost"
               onClick={handleDismiss}
-              className="text-xs"
+              className="text-xs hover:bg-muted"
             >
               Remind Later
             </Button>

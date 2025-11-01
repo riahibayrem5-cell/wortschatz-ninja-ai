@@ -125,11 +125,15 @@ const Navbar = () => {
         {/* Logo */}
         <button
           onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-1.5 sm:gap-2 font-bold text-base sm:text-xl hover:opacity-80 transition-opacity"
+          className="flex items-center gap-1.5 sm:gap-2 font-bold text-base sm:text-xl hover:scale-105 transition-all group"
         >
-          <img src="/fluentpass-logo.png" alt="FluentPass" className="w-6 h-6 sm:w-8 sm:h-8" />
-          <span className="text-gradient hidden xs:inline">FluentPass</span>
-          <span className="text-gradient xs:hidden">FP</span>
+          <img 
+            src="/fluentpass-logo.png" 
+            alt="FluentPass" 
+            className="w-7 h-7 sm:w-9 sm:h-9 group-hover:rotate-6 transition-transform duration-300" 
+          />
+          <span className="text-gradient-luxury hidden xs:inline">FluentPass</span>
+          <span className="text-gradient-luxury xs:hidden">FP</span>
         </button>
 
         {/* Desktop Navigation */}
