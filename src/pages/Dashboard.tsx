@@ -437,7 +437,7 @@ const Dashboard = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium group-hover:text-primary transition-colors">
-                            {rec.text || rec}
+                            {typeof rec === 'string' ? rec : (rec.text || rec.name || 'Recommendation')}
                           </p>
                           {rec.description && (
                             <p className="text-xs text-muted-foreground mt-1">{rec.description}</p>
