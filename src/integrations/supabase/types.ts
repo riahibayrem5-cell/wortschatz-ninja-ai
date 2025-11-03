@@ -398,6 +398,62 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_product_mappings: {
+        Row: {
+          created_at: string | null
+          id: string
+          stripe_price_id: string
+          stripe_product_id: string
+          tier_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          stripe_price_id: string
+          stripe_product_id: string
+          tier_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          stripe_price_id?: string
+          stripe_product_id?: string
+          tier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_product_mappings_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_reminders: {
+        Row: {
+          created_at: string | null
+          dismissed_at: string | null
+          id: string
+          reminder_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          dismissed_at?: string | null
+          id?: string
+          reminder_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          dismissed_at?: string | null
+          id?: string
+          reminder_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscription_tiers: {
         Row: {
           created_at: string | null

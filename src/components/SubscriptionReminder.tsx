@@ -23,11 +23,11 @@ export const SubscriptionReminder = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // Check if reminder was dismissed recently (within 6 hours)
+      // Check if reminder was dismissed recently (within 24 hours)
       const dismissedTime = localStorage.getItem('subscriptionReminderDismissed');
       if (dismissedTime) {
         const hoursSinceDismissed = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60);
-        if (hoursSinceDismissed < 6) return;
+        if (hoursSinceDismissed < 24) return;
       }
 
       const { data } = await supabase
@@ -76,8 +76,24 @@ export const SubscriptionReminder = () => {
     }
   };
 
-  const handleDismiss = () => {
-    localStorage.setItem('subscriptionReminderDismissed', Date.now().toString());
+  const handleDismiss = async () => {
+    const timestamp = Date.now().toString();
+    localStorage.setItem('subscriptionReminderDismissed', timestamp);
+    
+    // Track dismissal in database for analytics
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase.from("subscription_reminders").insert({
+          user_id: session.user.id,
+          reminder_type: "renewal",
+          dismissed_at: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error("Error saving reminder dismissal:", error);
+    }
+    
     setDismissed(true);
   };
 
