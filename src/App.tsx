@@ -15,6 +15,7 @@ import Review from "./pages/Review";
 import WritingAssistant from "./pages/WritingAssistant";
 import Exercises from "./pages/Exercises";
 import Memorizer from "./pages/Memorizer";
+import WordAssociation from "./pages/WordAssociation";
 import Conversation from "./pages/Conversation";
 import TextHighlighter from "./pages/TextHighlighter";
 import MistakeDiary from "./pages/MistakeDiary";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/writing" element={<WritingAssistant />} />
             <Route path="/exercises" element={<Exercises />} />
             <Route path="/memorizer" element={<Memorizer />} />
+            <Route path="/word-association" element={<WordAssociation />} />
             <Route path="/conversation" element={<Conversation />} />
             <Route path="/highlighter" element={<TextHighlighter />} />
             <Route path="/diary" element={<MistakeDiary />} />

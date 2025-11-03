@@ -81,30 +81,31 @@ const Navbar = () => {
 
   const menuSections = [
     {
-      label: "Foundations",
+      label: t('nav.foundations'),
       items: [
         { name: t('nav.vocabulary'), path: "/vocabulary" },
-        { name: "Word Dossier", path: "/word-dossier" },
+        { name: t('nav.wordDossier'), path: "/word-dossier" },
         { name: t('nav.sentence'), path: "/sentence-generator" },
         { name: t('nav.writing'), path: "/writing" },
       ],
     },
     {
-      label: "Practice",
+      label: t('nav.practice'),
       items: [
         { name: t('nav.exercises'), path: "/exercises" },
         { name: t('nav.memorizer'), path: "/memorizer" },
+        { name: t('nav.wordAssociation'), path: "/word-association" },
       ],
     },
     {
-      label: "Communication",
+      label: t('nav.communication'),
       items: [
         { name: t('nav.conversation'), path: "/conversation" },
         { name: t('nav.highlighter'), path: "/highlighter" },
       ],
     },
     {
-      label: "Progress",
+      label: t('nav.progress'),
       items: [
         { name: t('nav.review'), path: "/review" },
         { name: t('nav.diary'), path: "/diary" },
@@ -113,8 +114,8 @@ const Navbar = () => {
   ];
 
   const singlePageLinks = [
-    { name: "TELC B2 Exam", path: "/telc-exam" },
-    { name: "History & Export", path: "/history" },
+    { name: t('nav.telcExam'), path: "/telc-exam" },
+    { name: t('nav.history'), path: "/history" },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -155,7 +156,7 @@ const Navbar = () => {
             className={`gradient-primary hover:opacity-90 ${isActive("/ai-companion") ? "ring-2 ring-primary" : ""}`}
           >
             <Sparkles className="w-4 h-4 mr-1.5" />
-            <span className="font-bold">AI Companion</span>
+            <span className="font-bold">{t('nav.aiCompanion')}</span>
           </Button>
 
           {menuSections.map((section) => (
@@ -205,30 +206,30 @@ const Navbar = () => {
             <DropdownMenuContent align="end" className="w-64 text-xs">
               <div className="p-3 space-y-2">
                 <div className="font-semibold text-sm">
-                  {serverHealth === 'healthy' && '🟢 All Systems Operational'}
-                  {serverHealth === 'degraded' && '🟡 Performance Degraded'}
-                  {serverHealth === 'down' && '🔴 Service Unavailable'}
+                  {serverHealth === 'healthy' && `🟢 ${t('nav.allSystemsOperational')}`}
+                  {serverHealth === 'degraded' && `🟡 ${t('nav.performanceDegraded')}`}
+                  {serverHealth === 'down' && `🔴 ${t('nav.serviceUnavailable')}`}
                 </div>
                 <div className="space-y-1.5 text-muted-foreground">
                   <div className="flex justify-between">
-                    <span>Database:</span>
+                    <span>{t('nav.database')}:</span>
                     <span className={serverHealth === 'down' ? 'text-destructive' : 'text-green-500'}>
-                      {serverHealth === 'down' ? 'Down' : 'Online'}
+                      {serverHealth === 'down' ? t('nav.down') : t('nav.online')}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span>API Latency:</span>
+                    <span>{t('nav.apiLatency')}:</span>
                     <span className={serverHealth === 'degraded' ? 'text-yellow-500' : 'text-green-500'}>
                       {serverHealth === 'healthy' ? '<500ms' : serverHealth === 'degraded' ? '>1500ms' : 'N/A'}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Auth Service:</span>
-                    <span className="text-green-500">Active</span>
+                    <span>{t('nav.authService')}:</span>
+                    <span className="text-green-500">{t('nav.active')}</span>
                   </div>
                 </div>
                 <div className="pt-2 border-t text-xs text-muted-foreground">
-                  Last checked: {new Date().toLocaleTimeString()}
+                  {t('nav.lastChecked')}: {new Date().toLocaleTimeString()}
                 </div>
               </div>
             </DropdownMenuContent>
@@ -316,7 +317,7 @@ const Navbar = () => {
                 className="justify-start h-9 gradient-primary"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                AI Companion
+                {t('nav.aiCompanion')}
               </Button>
 
               {menuSections.map((section) => (
