@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Trophy, Timer, Zap, Target, Sparkles, Lightbulb, Brain } from "lucide-react";
+import { Loader2, Trophy, Timer, Zap, Target, Sparkles, Lightbulb, Brain, BookmarkPlus } from "lucide-react";
 import { trackActivity } from "@/utils/activityTracker";
 
 interface Word {
@@ -150,6 +150,40 @@ const WordAssociation = () => {
       setTimeout(() => loadNextRound(), 2500);
     } else {
       setTimeout(() => endGame(), 2500);
+    }
+  };
+
+  const saveToReview = async () => {
+    if (!currentGameData) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: "Bitte anmelden", variant: "destructive" });
+        return;
+      }
+
+      const { error } = await supabase.from("vocabulary_items").insert({
+        user_id: session.user.id,
+        word: currentGameData.word.german,
+        article: currentGameData.word.article || null,
+        definition: currentGameData.word.correctAnswer,
+        example: currentGameData.word.example || null,
+        topic: currentGameData.word.category
+      });
+
+      if (error) throw error;
+
+      toast({ 
+        title: "✅ Gespeichert!", 
+        description: "Wort zur Wiederholung hinzugefügt" 
+      });
+    } catch (error: any) {
+      toast({ 
+        title: "Fehler", 
+        description: error.message, 
+        variant: "destructive" 
+      });
     }
   };
 
@@ -331,8 +365,8 @@ const WordAssociation = () => {
                       </div>
                     )}
 
-                    {/* Hint Button */}
-                    <div className="mt-4">
+                    {/* Action Buttons */}
+                    <div className="mt-4 flex gap-2 justify-center">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -342,12 +376,24 @@ const WordAssociation = () => {
                         <Lightbulb className={`w-4 h-4 ${showHint ? 'text-yellow-500' : ''}`} />
                         {showHint ? 'Hinweis verbergen' : 'Hinweis anzeigen'}
                       </Button>
-                      {showHint && (
-                        <div className="mt-2 p-3 glass-luxury rounded-lg animate-fade-in">
-                          <p className="text-sm text-primary">💡 {currentGameData.hint}</p>
-                        </div>
-                      )}
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={saveToReview}
+                        className="gap-2"
+                        disabled={selectedAnswer !== null}
+                      >
+                        <BookmarkPlus className="w-4 h-4" />
+                        Speichern
+                      </Button>
                     </div>
+                    
+                    {showHint && (
+                      <div className="mt-2 p-3 glass-luxury rounded-lg animate-fade-in">
+                        <p className="text-sm text-primary">💡 {currentGameData.hint}</p>
+                      </div>
+                    )}
                   </CardHeader>
                 </Card>
 
