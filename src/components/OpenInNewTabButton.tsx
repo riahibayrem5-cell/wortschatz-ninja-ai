@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
-import { openInNewTab } from "@/utils/contentCache";
+import { openInNewTab } from "@/utils/multiTab";
 
 interface OpenInNewTabButtonProps {
   path: string;

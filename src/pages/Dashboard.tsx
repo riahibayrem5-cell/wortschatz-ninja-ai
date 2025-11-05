@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { BookOpen, MessageSquare, Target, Brain, TrendingUp, AlertCircle, CheckCircle2, Activity, Sparkles, Loader2 } from "lucide-react";
+import { BookOpen, MessageSquare, Target, Brain, TrendingUp, AlertCircle, CheckCircle2, Activity, Sparkles, Loader2, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Navbar from "@/components/Navbar";
@@ -409,6 +409,36 @@ const Dashboard = () => {
 
           {/* Right Column - Recommendations & Mistakes */}
           <div className="space-y-4 sm:space-y-6">
+            {/* Activity Log Quick Access */}
+            <Card className="glass-luxury border-primary/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  Your Monthly Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="glass p-3 rounded-lg">
+                    <p className="text-muted-foreground text-xs">Streak</p>
+                    <p className="text-2xl font-bold text-primary">{progress?.streak_days || 0} 🔥</p>
+                  </div>
+                  <div className="glass p-3 rounded-lg">
+                    <p className="text-muted-foreground text-xs">Active Days</p>
+                    <p className="text-2xl font-bold">{weeklyActivity.filter(d => d.exercises > 0 || d.words > 0).length}/7</p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full gradient-accent text-white border-0"
+                  onClick={() => navigate("/activity-log")}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  View Activity Log
+                </Button>
+              </CardContent>
+            </Card>
+
             {/* Smart Recommendations */}
             <Card className="glass border-primary/20">
               <CardHeader>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Trophy, Timer, Zap, Target, Sparkles, Lightbulb, Brain, BookmarkPlus } from "lucide-react";
+import { Loader2, Trophy, Timer, Zap, Target, Sparkles, Lightbulb, Brain, BookmarkPlus, CheckCircle2 } from "lucide-react";
 import { trackActivity } from "@/utils/activityTracker";
 
 interface Word {
@@ -39,6 +39,10 @@ const WordAssociation = () => {
   const [previousWords, setPreviousWords] = useState<string[]>([]);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [aiExplanation, setAiExplanation] = useState<string>("");
+  const [loadingExplanation, setLoadingExplanation] = useState(false);
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [lastPointsEarned, setLastPointsEarned] = useState(0);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -78,6 +82,8 @@ const WordAssociation = () => {
       setShowHint(false);
       setSelectedAnswer(null);
       setShowFeedback(false);
+      setAiExplanation("");
+      setHintsUsed(0);
 
       // Call AI to generate word association question
       const { data, error } = await supabase.functions.invoke('generate-word-association', {
@@ -108,6 +114,32 @@ const WordAssociation = () => {
     }
   };
 
+  const loadAIExplanation = async () => {
+    if (!currentGameData || loadingExplanation) return;
+    
+    setLoadingExplanation(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('explain-word-association', {
+        body: {
+          germanWord: currentGameData.word.german,
+          correctAnswer: currentGameData.word.correctAnswer,
+          userAnswer: selectedAnswer
+        }
+      });
+
+      if (error) throw error;
+      setAiExplanation(data.explanation);
+    } catch (error: any) {
+      toast({
+        title: "Error loading explanation",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingExplanation(false);
+    }
+  };
+
   const handleAnswer = async (answer: string) => {
     if (!currentGameData || selectedAnswer) return;
     
@@ -117,17 +149,25 @@ const WordAssociation = () => {
     const isCorrect = answer === currentGameData.word.correctAnswer;
     
     if (isCorrect) {
-      const points = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30;
-      const bonusPoints = Math.floor(timeLeft / 2);
+      const basePoints = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30;
+      const timeBonus = Math.floor(timeLeft / 2);
+      const hintPenalty = hintsUsed * 5;
+      const totalPoints = Math.max(5, basePoints + timeBonus - hintPenalty);
+      
       const newStreak = streak + 1;
       
-      setScore(score + points + bonusPoints);
+      setScore(score + totalPoints);
+      setLastPointsEarned(totalPoints);
       setStreak(newStreak);
       if (newStreak > bestStreak) setBestStreak(newStreak);
       
+      // Trigger celebration animation
+      const btn = document.querySelector('.correct-answer');
+      btn?.classList.add('animate-celebrate');
+      
       toast({ 
         title: "🎯 Perfekt!", 
-        description: `+${points + bonusPoints} Punkte! Streak: ${newStreak}`,
+        description: `+${totalPoints} Punkte! Streak: ${newStreak}`,
         className: "bg-primary text-primary-foreground"
       });
     } else {
@@ -176,7 +216,16 @@ const WordAssociation = () => {
 
       toast({ 
         title: "✅ Gespeichert!", 
-        description: "Wort zur Wiederholung hinzugefügt" 
+        description: "Wort zur Wiederholung hinzugefügt. View in Review page.",
+        action: (
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={() => window.location.href = '/review'}
+          >
+            View
+          </Button>
+        )
       });
     } catch (error: any) {
       toast({ 
@@ -297,13 +346,33 @@ const WordAssociation = () => {
           </Card>
         ) : (
           <div className="space-y-6">
+            {/* Session Progress Bar */}
+            <div className="glass-luxury p-3 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium">Session Progress</p>
+                <Badge variant="outline" className="text-xs">{round}/10 Questions</Badge>
+              </div>
+              <Progress value={(round / 10) * 100} className="h-2" />
+            </div>
+
             {/* Stats Bar */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="glass">
-                <CardContent className="p-4 text-center">
-                  <Trophy className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
-                  <p className="text-2xl font-bold">{score}</p>
-                  <p className="text-xs text-muted-foreground">Score</p>
+              <Card className="glass-luxury border-primary/20">
+                <CardContent className="p-4 text-center relative">
+                  <div className="relative">
+                    <Trophy className="w-8 h-8 mx-auto mb-2 text-yellow-500 animate-pulse" />
+                    {lastPointsEarned > 0 && showFeedback && (
+                      <Badge className="absolute -top-1 -right-1 animate-bounce bg-green-500">
+                        +{lastPointsEarned}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-3xl font-bold text-gradient-luxury">{score}</p>
+                  <p className="text-xs text-muted-foreground">Punkte</p>
+                  <Progress 
+                    value={(score / 300) * 100} 
+                    className="mt-2 h-1"
+                  />
                 </CardContent>
               </Card>
               <Card className="glass">
@@ -315,14 +384,14 @@ const WordAssociation = () => {
               </Card>
               <Card className="glass">
                 <CardContent className="p-4 text-center">
-                  <Timer className="w-6 h-6 mx-auto mb-2 text-destructive" />
+                  <Timer className={`w-6 h-6 mx-auto mb-2 ${timeLeft < 10 ? 'text-destructive animate-pulse' : 'text-accent'}`} />
                   <p className="text-2xl font-bold">{timeLeft}s</p>
                   <p className="text-xs text-muted-foreground">Time</p>
                 </CardContent>
               </Card>
               <Card className="glass">
                 <CardContent className="p-4 text-center">
-                  <Zap className="w-6 h-6 mx-auto mb-2 text-orange-500" />
+                  <Zap className={`w-6 h-6 mx-auto mb-2 ${streak >= 3 ? 'text-orange-500 animate-pulse' : 'text-orange-500'}`} />
                   <p className="text-2xl font-bold">{streak}</p>
                   <p className="text-xs text-muted-foreground">Streak</p>
                 </CardContent>
@@ -330,7 +399,7 @@ const WordAssociation = () => {
             </div>
 
             {/* Time Progress */}
-            <Progress value={(timeLeft / 30) * 100} className="h-2" />
+            <Progress value={(timeLeft / 30) * 100} className={`h-2 ${timeLeft < 10 ? 'animate-pulse' : ''}`} />
 
             {/* Current Word */}
             {currentGameData && (
@@ -366,15 +435,19 @@ const WordAssociation = () => {
                     )}
 
                     {/* Action Buttons */}
-                    <div className="mt-4 flex gap-2 justify-center">
+                    <div className="mt-4 flex gap-2 justify-center flex-wrap">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setShowHint(!showHint)}
+                        onClick={() => {
+                          setShowHint(!showHint);
+                          if (!showHint) setHintsUsed(hintsUsed + 1);
+                        }}
                         className="gap-2"
+                        disabled={selectedAnswer !== null}
                       >
                         <Lightbulb className={`w-4 h-4 ${showHint ? 'text-yellow-500' : ''}`} />
-                        {showHint ? 'Hinweis verbergen' : 'Hinweis anzeigen'}
+                        {showHint ? 'Hide Hint (-5pts)' : 'Show Hint'}
                       </Button>
                       
                       <Button
@@ -385,7 +458,7 @@ const WordAssociation = () => {
                         disabled={selectedAnswer !== null}
                       >
                         <BookmarkPlus className="w-4 h-4" />
-                        Speichern
+                        Save for Review
                       </Button>
                     </div>
                     
@@ -394,12 +467,53 @@ const WordAssociation = () => {
                         <p className="text-sm text-primary">💡 {currentGameData.hint}</p>
                       </div>
                     )}
+                    
+                    {/* AI Explanation Button */}
+                    {showFeedback && (
+                      <div className="mt-3 flex flex-col gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={loadAIExplanation}
+                          className="gap-2"
+                          disabled={loadingExplanation}
+                        >
+                          {loadingExplanation ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Loading...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="w-4 h-4" />
+                              Why is this the answer?
+                            </>
+                          )}
+                        </Button>
+                        
+                        {aiExplanation && (
+                          <Card className="glass-luxury animate-fade-in">
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-2">
+                                <Brain className="w-5 h-5 text-primary mt-1 shrink-0" />
+                                <div className="text-sm">
+                                  <p className="font-semibold mb-2">AI Explanation:</p>
+                                  <p className="text-muted-foreground leading-relaxed">
+                                    {aiExplanation}
+                                  </p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </div>
+                    )}
                   </CardHeader>
                 </Card>
 
                 {/* Options */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {currentGameData.options.map((option, index) => {
+                {currentGameData.options.map((option, index) => {
                     const isSelected = selectedAnswer === option;
                     const isCorrect = option === currentGameData.word.correctAnswer;
                     const showResult = showFeedback && isSelected;
@@ -411,18 +525,21 @@ const WordAssociation = () => {
                         disabled={loading || selectedAnswer !== null}
                         variant="outline"
                         className={`
-                          h-auto py-6 text-lg font-semibold transition-all glass
-                          ${!selectedAnswer ? 'hover:scale-105 hover:border-primary' : ''}
-                          ${showResult && isCorrect ? 'border-green-500 bg-green-500/20 scale-105' : ''}
+                          h-auto py-8 text-lg font-semibold transition-all glass relative
+                          ${!selectedAnswer ? 'hover:scale-105 hover:border-primary hover:shadow-lg' : ''}
+                          ${showResult && isCorrect ? 'border-green-500 bg-green-500/20 scale-105 correct-answer' : ''}
                           ${showResult && !isCorrect ? 'border-destructive bg-destructive/20' : ''}
                           ${showFeedback && isCorrect && !isSelected ? 'border-green-500 bg-green-500/10' : ''}
                         `}
                       >
                         <span>{option}</span>
                         {showResult && (
-                          <span className="ml-2">
+                          <span className="ml-2 text-2xl">
                             {isCorrect ? '✅' : '❌'}
                           </span>
+                        )}
+                        {showFeedback && isCorrect && (
+                          <CheckCircle2 className="absolute top-2 right-2 w-5 h-5 text-green-500" />
                         )}
                       </Button>
                     );
