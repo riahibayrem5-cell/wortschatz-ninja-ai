@@ -365,94 +365,97 @@ const AICompanion = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-7xl mx-auto p-4">
-        {/* Header with Progress */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6 mt-6">
-          <Card className="glass">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
+      <div className="container max-w-7xl mx-auto p-4 md:p-6">
+        {/* Compact Header with Progress */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 mt-2">
+          <Card className="glass-luxury">
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4 text-primary" />
-                Level {userLevel}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Progress value={xp} className="h-2 mb-2" />
-              <p className="text-xs text-muted-foreground">{xp}/100 XP</p>
+                <p className="text-xs font-semibold text-muted-foreground">Level</p>
+              </div>
+              <p className="text-2xl font-bold text-gradient-luxury">{userLevel}</p>
+              <Progress value={xp} className="h-1.5 mt-2" />
+              <p className="text-xs text-muted-foreground mt-1">{xp}/100 XP</p>
             </CardContent>
           </Card>
 
-          <Card className="glass">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
+          <Card className="glass-luxury">
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center gap-2 mb-2">
                 <Target className="w-4 h-4 text-accent" />
-                Streak
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-accent">{streak} days</p>
+                <p className="text-xs font-semibold text-muted-foreground">Streak</p>
+              </div>
+              <p className="text-2xl font-bold text-accent">{streak}</p>
+              <p className="text-xs text-muted-foreground">days</p>
             </CardContent>
           </Card>
 
-          <Card className="glass col-span-1 lg:col-span-2">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
+          <Card className="glass-luxury col-span-2">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-2">
                 <Award className="w-4 h-4 text-primary" />
-                Recent Achievements
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex gap-2 flex-wrap">
-              {achievements.filter(a => a.unlocked).slice(0, 3).map(ach => (
-                <Badge key={ach.id} variant="secondary" className="text-xs">
-                  <ach.icon className="w-3 h-3 mr-1" />
-                  {ach.title}
-                </Badge>
-              ))}
-              {achievements.filter(a => a.unlocked).length === 0 && (
-                <p className="text-xs text-muted-foreground">Keep practicing to unlock!</p>
-              )}
+                <p className="text-xs font-semibold text-muted-foreground">Recent Achievements</p>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {achievements.filter(a => a.unlocked).slice(0, 3).map(ach => (
+                  <Badge key={ach.id} className="gradient-primary text-xs">
+                    <ach.icon className="w-3 h-3 mr-1" />
+                    {ach.title}
+                  </Badge>
+                ))}
+                {achievements.filter(a => a.unlocked).length === 0 && (
+                  <p className="text-xs text-muted-foreground">Start chatting to unlock!</p>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Chat Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Chat Area - Full Width on Mobile, 2/3 on Desktop */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           {/* Chat */}
-          <div className="lg:col-span-2">
-            <Card className="glass h-[calc(100vh-300px)] flex flex-col">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="w-5 h-5 text-primary animate-pulse" />
-                  {t('aiCompanion.title')}
-                  {isProcessing && <Loader2 className="w-4 h-4 animate-spin ml-2" />}
-                </CardTitle>
-                <CardDescription>
+          <div className="xl:col-span-2">
+            <Card className="glass-luxury h-[calc(100vh-280px)] flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Brain className="w-5 h-5 text-primary animate-pulse" />
+                    <CardTitle className="text-lg">{t('aiCompanion.title')}</CardTitle>
+                  </div>
+                  {isProcessing && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
+                </div>
+                <CardDescription className="text-xs">
                   Voice or text - I adapt to YOUR learning style in real-time!
                 </CardDescription>
               </CardHeader>
               
-              <CardContent className="flex-1 overflow-y-auto space-y-4">
+              <CardContent className="flex-1 overflow-y-auto space-y-3 px-4">
                 {messages.length === 0 && (
                   <div className="flex items-center justify-center h-full">
-                    <div className="text-center space-y-4">
-                      <Brain className="w-16 h-16 mx-auto text-primary animate-pulse" />
+                    <div className="text-center space-y-4 max-w-md animate-fade-in">
+                      <Brain className="w-20 h-20 mx-auto text-primary animate-pulse" />
                       <div>
-                        <h3 className="text-xl font-semibold mb-2">Ready to Practice!</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Click "Start Conversation" to begin your AI-powered German practice session.
+                        <h3 className="text-2xl font-bold mb-2 text-gradient-luxury">
+                          AI Learning Companion
+                        </h3>
+                        <p className="text-muted-foreground mb-6 text-sm">
+                          Your personal German tutor that adapts to your level and provides instant feedback!
                         </p>
                         <Button
                           onClick={startCompanion}
                           disabled={isProcessing}
-                          className="gradient-primary hover:opacity-90"
+                          size="lg"
+                          className="gradient-luxury luxury-glow"
                         >
                           {isProcessing ? (
                             <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Starting...
+                              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                              Wird gestartet...
                             </>
                           ) : (
                             <>
-                              <Sparkles className="w-4 h-4 mr-2" />
+                              <Sparkles className="w-5 h-5 mr-2" />
                               {t('aiCompanion.startConversation')}
                             </>
                           )}
@@ -464,17 +467,17 @@ const AICompanion = () => {
                 {messages.map((msg, idx) => (
                   <div
                     key={idx}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
                   >
                     <div
-                      className={`max-w-[80%] p-4 rounded-lg ${
+                      className={`max-w-[85%] md:max-w-[75%] p-3 rounded-xl transition-all hover:scale-[1.02] ${
                         msg.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-background/50 border border-primary/20'
+                          ? 'gradient-primary text-primary-foreground shadow-lg'
+                          : 'glass-luxury border border-primary/20'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <p className="whitespace-pre-line mb-2 flex-1">{msg.content}</p>
+                        <p className="whitespace-pre-line text-sm flex-1">{msg.content}</p>
                         <div className="flex gap-1 shrink-0">
                           {msg.role === 'user' && (
                             <Button
@@ -482,11 +485,12 @@ const AICompanion = () => {
                               variant="ghost"
                               onClick={() => analyzeMistakes(msg.content)}
                               disabled={analyzingMessage === msg.content}
+                              className="h-7 w-7 p-0"
                             >
                               {analyzingMessage === msg.content ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Loader2 className="w-3 h-3 animate-spin" />
                               ) : (
-                                <Lightbulb className="w-4 h-4 text-yellow-500" />
+                                <Lightbulb className="w-3 h-3 text-yellow-500" />
                               )}
                             </Button>
                           )}
@@ -496,6 +500,7 @@ const AICompanion = () => {
                               <Button
                                 size="sm"
                                 variant="ghost"
+                                className="h-7 w-7 p-0 text-xs"
                                 onClick={async () => {
                                   try {
                                     const { data } = await supabase.functions.invoke('analyze-translation', {
@@ -519,15 +524,15 @@ const AICompanion = () => {
                         </div>
                       </div>
                       {msg.feedback && msg.role === 'assistant' && (
-                        <div className="text-xs space-y-1 mt-3 pt-3 border-t border-primary/20">
-                          <div className="flex items-center gap-2">
-                            <TrendingUp className="w-3 h-3" />
-                            <span className="text-muted-foreground">Instant Feedback:</span>
+                        <div className="text-xs space-y-1 mt-2 pt-2 border-t border-primary/20">
+                          <div className="flex items-center gap-1">
+                            <TrendingUp className="w-3 h-3 text-accent" />
+                            <span className="text-muted-foreground font-medium">Instant Feedback:</span>
                           </div>
-                          <div className="grid grid-cols-3 gap-2">
-                            <Badge variant="outline" className="text-xs">Grammar ✓</Badge>
-                            <Badge variant="outline" className="text-xs">Vocab ✓</Badge>
-                            <Badge variant="outline" className="text-xs">Fluency +2</Badge>
+                          <div className="flex gap-1 flex-wrap">
+                            <Badge variant="outline" className="text-xs bg-primary/10">Grammar ✓</Badge>
+                            <Badge variant="outline" className="text-xs bg-accent/10">Vocab ✓</Badge>
+                            <Badge variant="outline" className="text-xs bg-green-500/10">Fluency +2</Badge>
                           </div>
                         </div>
                       )}
@@ -537,22 +542,23 @@ const AICompanion = () => {
                 <div ref={messagesEndRef} />
               </CardContent>
 
-              <CardContent className="border-t pt-4">
-                <div className="flex gap-2 mb-3">
+              <CardContent className="border-t pt-3 pb-4 px-4">
+                <div className="flex gap-2 mb-2">
                   <Button
                     onClick={isListening ? stopVoiceRecording : startVoiceRecording}
                     variant={isListening ? "destructive" : "default"}
-                    className={isListening ? "" : "gradient-primary"}
+                    className={isListening ? "animate-pulse" : "gradient-primary"}
                     disabled={isProcessing}
+                    size="sm"
                   >
                     {isListening ? (
                       <>
-                        <MicOff className="w-4 h-4 mr-2" />
+                        <MicOff className="w-4 h-4 mr-1" />
                         Stop
                       </>
                     ) : (
                       <>
-                        <Mic className="w-4 h-4 mr-2" />
+                        <Mic className="w-4 h-4 mr-1" />
                         Voice
                       </>
                     )}
@@ -563,9 +569,10 @@ const AICompanion = () => {
                     variant="outline"
                     className="glass"
                     disabled={messages.length === 0 || isSpeaking}
+                    size="sm"
                   >
                     {isSpeaking ? (
-                      <VolumeX className="w-4 h-4" />
+                      <VolumeX className="w-4 h-4 animate-pulse" />
                     ) : (
                       <Volume2 className="w-4 h-4" />
                     )}
@@ -579,49 +586,54 @@ const AICompanion = () => {
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendTextMessage())}
                     disabled={isProcessing}
-                    className="bg-background/50 min-h-[60px]"
+                    className="glass min-h-[60px] text-sm resize-none"
+                    rows={2}
                   />
                   <Button
                     onClick={sendTextMessage}
                     disabled={!inputText.trim() || isProcessing}
-                    className="gradient-accent"
+                    className="gradient-accent self-end"
                   >
-                    Send
+                    {isProcessing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Send"
+                    )}
                   </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Achievements Sidebar */}
-          <div className="space-y-4">
-            <Card className="glass">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-primary" />
+          {/* Achievements Sidebar - Responsive */}
+          <div className="xl:block space-y-3">
+            <Card className="glass-luxury">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-primary" />
                   Achievements
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2">
                 {achievements.map(ach => (
                   <div
                     key={ach.id}
-                    className={`p-3 rounded-lg border ${
+                    className={`p-2.5 rounded-lg border transition-all hover:scale-[1.02] ${
                       ach.unlocked 
-                        ? 'bg-primary/10 border-primary/30' 
-                        : 'bg-background/30 border-border'
+                        ? 'gradient-primary/10 border-primary/40 shadow-sm' 
+                        : 'bg-background/20 border-border/50'
                     }`}
                   >
-                    <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
                         <ach.icon className={`w-4 h-4 ${ach.unlocked ? 'text-primary' : 'text-muted-foreground'}`} />
-                        <p className="font-semibold text-sm">{ach.title}</p>
+                        <p className="font-semibold text-xs">{ach.title}</p>
                       </div>
-                      {ach.unlocked && <Badge variant="secondary" className="text-xs">✓</Badge>}
+                      {ach.unlocked && <Badge className="text-xs h-5 gradient-accent">✓</Badge>}
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">{ach.description}</p>
-                    <Progress value={(ach.progress / ach.total) * 100} className="h-1.5" />
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-muted-foreground mb-1.5 line-clamp-1">{ach.description}</p>
+                    <Progress value={(ach.progress / ach.total) * 100} className="h-1.5 mb-1" />
+                    <p className="text-xs text-muted-foreground">
                       {ach.progress}/{ach.total}
                     </p>
                   </div>
@@ -629,24 +641,24 @@ const AICompanion = () => {
               </CardContent>
             </Card>
 
-            <Card className="glass">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-accent" />
+            <Card className="glass-luxury">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-accent" />
                   AI Insights
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="p-2 bg-accent/10 rounded-lg border border-accent/30">
-                  <p className="text-accent font-semibold mb-1">Learning Style</p>
+              <CardContent className="space-y-2">
+                <div className="p-2.5 bg-accent/10 rounded-lg border border-accent/30 transition-all hover:bg-accent/15">
+                  <p className="text-accent font-semibold text-xs mb-0.5">Learning Style</p>
                   <p className="text-xs text-muted-foreground">Visual & Conversational</p>
                 </div>
-                <div className="p-2 bg-primary/10 rounded-lg border border-primary/30">
-                  <p className="text-primary font-semibold mb-1">Strength</p>
+                <div className="p-2.5 bg-primary/10 rounded-lg border border-primary/30 transition-all hover:bg-primary/15">
+                  <p className="text-primary font-semibold text-xs mb-0.5">Strength</p>
                   <p className="text-xs text-muted-foreground">Vocabulary retention</p>
                 </div>
-                <div className="p-2 bg-destructive/10 rounded-lg border border-destructive/30">
-                  <p className="text-destructive font-semibold mb-1">Focus Area</p>
+                <div className="p-2.5 bg-destructive/10 rounded-lg border border-destructive/30 transition-all hover:bg-destructive/15">
+                  <p className="text-destructive font-semibold text-xs mb-0.5">Focus Area</p>
                   <p className="text-xs text-muted-foreground">Article usage (der/die/das)</p>
                 </div>
               </CardContent>
