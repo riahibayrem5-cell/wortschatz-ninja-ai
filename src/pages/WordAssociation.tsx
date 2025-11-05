@@ -6,27 +6,39 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Trophy, Timer, Zap, Target, RefreshCw } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { Loader2, Trophy, Timer, Zap, Target, Sparkles, Lightbulb, Brain } from "lucide-react";
+import { trackActivity } from "@/utils/activityTracker";
 
 interface Word {
   german: string;
-  english: string;
+  article?: string;
+  correctAnswer: string;
   category: string;
+  example?: string;
+  level?: string;
+}
+
+interface GameData {
+  word: Word;
+  options: string[];
+  hint: string;
 }
 
 const WordAssociation = () => {
   const { toast } = useToast();
-  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [gameActive, setGameActive] = useState(false);
-  const [currentWord, setCurrentWord] = useState<Word | null>(null);
-  const [options, setOptions] = useState<Word[]>([]);
+  const [currentGameData, setCurrentGameData] = useState<GameData | null>(null);
   const [score, setScore] = useState(0);
   const [round, setRound] = useState(0);
   const [timeLeft, setTimeLeft] = useState(30);
   const [streak, setStreak] = useState(0);
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
+  const [bestStreak, setBestStreak] = useState(0);
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [showHint, setShowHint] = useState(false);
+  const [previousWords, setPreviousWords] = useState<string[]>([]);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -62,102 +74,94 @@ const WordAssociation = () => {
 
   const loadNextRound = async () => {
     try {
-      // Fetch random words from vocabulary_items
-      const limit = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 15 : 20;
-      const { data: words, error } = await supabase
-        .from("vocabulary_items")
-        .select("word, definition, example")
-        .limit(limit);
+      setLoading(true);
+      setShowHint(false);
+      setSelectedAnswer(null);
+      setShowFeedback(false);
 
-      if (error) throw error;
-      if (!words || words.length < 4) {
-        toast({ title: "Not enough vocabulary", description: "Add more words to play", variant: "destructive" });
-        setGameActive(false);
-        return;
-      }
-
-      // Pick random word as answer
-      const shuffled = words.sort(() => Math.random() - 0.5);
-      const correct = shuffled[0];
-      setCurrentWord({
-        german: correct.word,
-        english: correct.definition,
-        category: 'German'
+      // Call AI to generate word association question
+      const { data, error } = await supabase.functions.invoke('generate-word-association', {
+        body: { 
+          difficulty, 
+          round: round + 1,
+          previousWords 
+        }
       });
 
-      // Create options (3 wrong + 1 correct)
-      const wrongOptions = shuffled.slice(1, 4);
-      const allOptions = [correct, ...wrongOptions].sort(() => Math.random() - 0.5);
-      setOptions(allOptions.map(w => ({
-        german: w.word,
-        english: w.definition,
-        category: 'German'
-      })));
+      if (error) throw error;
 
+      setCurrentGameData(data);
+      setPreviousWords([...previousWords, data.word.german]);
       setRound(round + 1);
+      setTimeLeft(30);
     } catch (error: any) {
-      toast({ title: "Error loading round", description: error.message, variant: "destructive" });
-      setGameActive(false);
+      toast({ 
+        title: "Error loading question", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+      if (error.message.includes('Rate limit') || error.message.includes('credits')) {
+        setGameActive(false);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAnswer = async (selectedWord: Word) => {
-    const isCorrect = selectedWord.german === currentWord?.german;
+  const handleAnswer = async (answer: string) => {
+    if (!currentGameData || selectedAnswer) return;
+    
+    setSelectedAnswer(answer);
+    setShowFeedback(true);
+    
+    const isCorrect = answer === currentGameData.word.correctAnswer;
     
     if (isCorrect) {
       const points = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30;
       const bonusPoints = Math.floor(timeLeft / 2);
+      const newStreak = streak + 1;
+      
       setScore(score + points + bonusPoints);
-      setStreak(streak + 1);
-      toast({ title: "✅ Correct!", description: `+${points + bonusPoints} points` });
+      setStreak(newStreak);
+      if (newStreak > bestStreak) setBestStreak(newStreak);
+      
+      toast({ 
+        title: "🎯 Perfekt!", 
+        description: `+${points + bonusPoints} Punkte! Streak: ${newStreak}`,
+        className: "bg-primary text-primary-foreground"
+      });
     } else {
       setStreak(0);
-      toast({ title: "❌ Wrong", description: `Correct: ${currentWord?.german} = ${currentWord?.english}`, variant: "destructive" });
+      toast({ 
+        title: "❌ Nicht ganz", 
+        description: `Richtig: ${currentGameData.word.correctAnswer}`, 
+        variant: "destructive" 
+      });
     }
 
-    // Save to progress
+    // Track activity
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await supabase.from("user_progress").insert({
-          user_id: session.user.id,
-          activity_type: 'word_association',
-          score: isCorrect ? 1 : 0,
-          details: { word: currentWord?.german, correct: isCorrect }
-        });
-      }
+      await trackActivity('word', 1);
     } catch (error) {
-      console.error("Error saving progress:", error);
+      console.error("Error tracking activity:", error);
     }
 
     if (round < 10) {
-      setTimeout(() => loadNextRound(), 1500);
+      setTimeout(() => loadNextRound(), 2500);
     } else {
-      setTimeout(() => endGame(), 1500);
+      setTimeout(() => endGame(), 2500);
     }
   };
 
   const endGame = async () => {
     setGameActive(false);
+    
+    const earnedStars = score > 200 ? 3 : score > 100 ? 2 : 1;
+    
     toast({
-      title: "🎮 Game Over!",
-      description: `Final Score: ${score} | Rounds: ${round}`,
+      title: `🏆 Spiel Beendet!`,
+      description: `Punktzahl: ${score} | Beste Serie: ${bestStreak} | ${'⭐'.repeat(earnedStars)}`,
     });
-
-    // Save final score
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await supabase.from("user_progress").insert({
-          user_id: session.user.id,
-          activity_type: 'word_association_game',
-          score,
-          details: { difficulty, rounds_completed: round, final_score: score }
-        });
-      }
-    } catch (error) {
-      console.error("Error saving score:", error);
-    }
   };
 
   return (
@@ -165,41 +169,75 @@ const WordAssociation = () => {
       <Navbar />
       
       <div className="container max-w-4xl mx-auto p-4 md:p-6">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient-luxury">
-            🎯 Word Association Game
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Match German words with their English translations as fast as you can!
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="inline-flex items-center gap-3 mb-4">
+            <Brain className="w-12 h-12 text-primary animate-pulse" />
+            <h1 className="text-4xl md:text-5xl font-bold text-gradient-luxury">
+              Wortassoziation
+            </h1>
+          </div>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Test your German vocabulary with AI-generated word associations! 
+            Match words with their correct English translations and build your streak.
           </p>
         </div>
 
         {!gameActive ? (
-          <Card className="glass-luxury">
+          <Card className="glass-luxury animate-scale-in">
             <CardHeader>
-              <CardTitle className="text-2xl">Ready to Play?</CardTitle>
-              <CardDescription>Choose your difficulty and start matching words!</CardDescription>
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-6 h-6 text-primary" />
+                <div>
+                  <CardTitle className="text-2xl">AI-Powered Word Association</CardTitle>
+                  <CardDescription>
+                    Dynamically generated questions tailored to your level
+                  </CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <p className="font-semibold">Select Difficulty:</p>
+                <div className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-primary" />
+                  <p className="font-semibold">Schwierigkeitsgrad wählen:</p>
+                </div>
                 <div className="grid grid-cols-3 gap-3">
                   {(['easy', 'medium', 'hard'] as const).map((level) => (
                     <Button
                       key={level}
                       variant={difficulty === level ? "default" : "outline"}
                       onClick={() => setDifficulty(level)}
-                      className="capitalize"
+                      className={`capitalize transition-all ${
+                        difficulty === level ? 'gradient-primary scale-105' : ''
+                      }`}
                     >
-                      {level}
+                      {level === 'easy' ? 'Leicht (A2-B1)' : 
+                       level === 'medium' ? 'Mittel (B1-B2)' : 
+                       'Schwer (B2-C1)'}
                     </Button>
                   ))}
                 </div>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p>• Easy: 10 points per correct answer</p>
-                  <p>• Medium: 20 points per correct answer</p>
-                  <p>• Hard: 30 points per correct answer</p>
-                  <p>• Bonus: Time remaining ÷ 2</p>
+                
+                <div className="glass p-4 rounded-lg space-y-2">
+                  <p className="font-semibold text-sm">🎯 Punktesystem:</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">Leicht</Badge>
+                      <span>10 Punkte</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">Mittel</Badge>
+                      <span>20 Punkte</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">Schwer</Badge>
+                      <span>30 Punkte</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-yellow-500" />
+                      <span>Bonus: Zeit ÷ 2</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -207,17 +245,17 @@ const WordAssociation = () => {
                 onClick={startGame}
                 disabled={loading}
                 size="lg"
-                className="w-full gradient-luxury"
+                className="w-full gradient-luxury luxury-glow"
               >
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Loading...
+                    Wird geladen...
                   </>
                 ) : (
                   <>
-                    <Zap className="w-5 h-5 mr-2" />
-                    Start Game
+                    <Brain className="w-5 h-5 mr-2" />
+                    Spiel Starten
                   </>
                 )}
               </Button>
@@ -261,31 +299,97 @@ const WordAssociation = () => {
             <Progress value={(timeLeft / 30) * 100} className="h-2" />
 
             {/* Current Word */}
-            <Card className="glass-luxury border-2 border-primary">
-              <CardHeader className="text-center pb-3">
-                <Badge className="w-fit mx-auto mb-2">{currentWord?.category}</Badge>
-                <CardTitle className="text-4xl md:text-5xl font-bold text-primary">
-                  {currentWord?.german}
-                </CardTitle>
-                <CardDescription className="text-lg">
-                  Select the correct English translation
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            {currentGameData && (
+              <>
+                <Card className="glass-luxury border-2 border-primary luxury-glow animate-scale-in">
+                  <CardHeader className="text-center pb-3">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <Badge className="gradient-primary px-3 py-1">
+                        {currentGameData.word.level || 'B1-B2'}
+                      </Badge>
+                      <Badge variant="outline" className="px-3 py-1">
+                        {currentGameData.word.category}
+                      </Badge>
+                    </div>
+                    
+                    <CardTitle className="text-4xl md:text-6xl font-bold text-gradient-luxury mb-3">
+                      {currentGameData.word.article ? 
+                        `${currentGameData.word.article} ${currentGameData.word.german}` : 
+                        currentGameData.word.german
+                      }
+                    </CardTitle>
+                    
+                    <CardDescription className="text-lg">
+                      Wähle die richtige englische Übersetzung
+                    </CardDescription>
 
-            {/* Options */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {options.map((word, index) => (
-                <Button
-                  key={index}
-                  onClick={() => handleAnswer(word)}
-                  variant="outline"
-                  className="h-auto py-6 text-lg font-semibold hover:scale-105 transition-all glass"
-                >
-                  {word.english}
-                </Button>
-              ))}
-            </div>
+                    {currentGameData.word.example && (
+                      <div className="mt-4 p-3 glass rounded-lg">
+                        <p className="text-sm italic text-muted-foreground">
+                          "{currentGameData.word.example}"
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Hint Button */}
+                    <div className="mt-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowHint(!showHint)}
+                        className="gap-2"
+                      >
+                        <Lightbulb className={`w-4 h-4 ${showHint ? 'text-yellow-500' : ''}`} />
+                        {showHint ? 'Hinweis verbergen' : 'Hinweis anzeigen'}
+                      </Button>
+                      {showHint && (
+                        <div className="mt-2 p-3 glass-luxury rounded-lg animate-fade-in">
+                          <p className="text-sm text-primary">💡 {currentGameData.hint}</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardHeader>
+                </Card>
+
+                {/* Options */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {currentGameData.options.map((option, index) => {
+                    const isSelected = selectedAnswer === option;
+                    const isCorrect = option === currentGameData.word.correctAnswer;
+                    const showResult = showFeedback && isSelected;
+                    
+                    return (
+                      <Button
+                        key={index}
+                        onClick={() => handleAnswer(option)}
+                        disabled={loading || selectedAnswer !== null}
+                        variant="outline"
+                        className={`
+                          h-auto py-6 text-lg font-semibold transition-all glass
+                          ${!selectedAnswer ? 'hover:scale-105 hover:border-primary' : ''}
+                          ${showResult && isCorrect ? 'border-green-500 bg-green-500/20 scale-105' : ''}
+                          ${showResult && !isCorrect ? 'border-destructive bg-destructive/20' : ''}
+                          ${showFeedback && isCorrect && !isSelected ? 'border-green-500 bg-green-500/10' : ''}
+                        `}
+                      >
+                        <span>{option}</span>
+                        {showResult && (
+                          <span className="ml-2">
+                            {isCorrect ? '✅' : '❌'}
+                          </span>
+                        )}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+            
+            {loading && (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-12 h-12 animate-spin text-primary" />
+              </div>
+            )}
 
             <Button
               onClick={() => {

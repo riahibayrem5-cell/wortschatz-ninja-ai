@@ -57,6 +57,9 @@ verify_jwt = true
 [functions.telc-practice-helper]
 verify_jwt = true
 
+[functions.generate-word-association]
+verify_jwt = true
+
 [functions.create-checkout]
 verify_jwt = true
 
