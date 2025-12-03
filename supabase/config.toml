@@ -68,3 +68,12 @@ verify_jwt = true
 
 [functions.customer-portal]
 verify_jwt = true
+
+[functions.explain-word-association]
+verify_jwt = true
+
+[functions.generate-word-association-dynamic]
+verify_jwt = true
+
+[functions.analyze-word]
+verify_jwt = true
