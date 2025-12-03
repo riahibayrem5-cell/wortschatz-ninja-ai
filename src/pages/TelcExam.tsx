@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +24,12 @@ import {
   Sparkles,
   Loader2,
   Volume2,
-  Award
+  Award,
+  History,
+  Play,
+  Pause,
+  RotateCcw,
+  Calendar
 } from "lucide-react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -66,6 +71,22 @@ interface ExamState {
   speaking: SectionContent | null;
 }
 
+interface ExamAttempt {
+  id: string;
+  exam_type: string;
+  started_at: string;
+  completed_at: string | null;
+  current_section: string | null;
+  current_teil: number;
+  answers: Record<string, Record<number, string>>;
+  writing_answers: Record<string, string>;
+  exam_state: ExamState;
+  results: Record<string, any>;
+  time_spent_seconds: number;
+  total_score: number;
+  status: string;
+}
+
 const TelcExam = () => {
   const { toast } = useToast();
   const [examMode, setExamMode] = useState<'practice' | 'mock' | null>(null);
@@ -86,6 +107,14 @@ const TelcExam = () => {
   const [timeLeft, setTimeLeft] = useState<Record<string, number>>({});
   const [aiHelp, setAiHelp] = useState<Record<string, any>>({});
   const [loadingHelp, setLoadingHelp] = useState(false);
+  
+  // New state for persistence
+  const [currentAttemptId, setCurrentAttemptId] = useState<string | null>(null);
+  const [examHistory, setExamHistory] = useState<ExamAttempt[]>([]);
+  const [inProgressAttempt, setInProgressAttempt] = useState<ExamAttempt | null>(null);
+  const [activeTab, setActiveTab] = useState<'exam' | 'history'>('exam');
+  const [isPaused, setIsPaused] = useState(false);
+  const [totalTimeSpent, setTotalTimeSpent] = useState(0);
 
   const sections = [
     { id: 'reading', icon: BookOpen, title: 'Leseverstehen', duration: 90, color: 'text-blue-500', maxPoints: 75 },
@@ -95,14 +124,201 @@ const TelcExam = () => {
     { id: 'speaking', icon: Mic, title: 'Mündlicher Ausdruck', duration: 15, color: 'text-red-500', maxPoints: 75 }
   ];
 
+  // Load exam history and check for in-progress attempts
   useEffect(() => {
-    if (currentSection && timeLeft[currentSection] > 0 && !showResults) {
+    loadExamData();
+  }, []);
+
+  const loadExamData = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Load exam history
+      const { data: historyData } = await supabase
+        .from('telc_exam_attempts')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('started_at', { ascending: false })
+        .limit(20);
+
+      if (historyData) {
+        const typedHistory = historyData.map(item => ({
+          ...item,
+          answers: (item.answers || {}) as unknown as Record<string, Record<number, string>>,
+          writing_answers: (item.writing_answers || {}) as unknown as Record<string, string>,
+          exam_state: (item.exam_state || {}) as unknown as ExamState,
+          results: (item.results || {}) as unknown as Record<string, any>
+        }));
+        setExamHistory(typedHistory);
+
+        // Check for in-progress attempt
+        const inProgress = typedHistory.find(a => a.status === 'in_progress');
+        if (inProgress) {
+          setInProgressAttempt(inProgress);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading exam data:', error);
+    }
+  };
+
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    if (!currentAttemptId || isPaused) return;
+
+    const autoSaveInterval = setInterval(() => {
+      saveProgress();
+    }, 30000);
+
+    return () => clearInterval(autoSaveInterval);
+  }, [currentAttemptId, answers, writingAnswers, currentSection, currentTeil, isPaused]);
+
+  // Timer effect
+  useEffect(() => {
+    if (currentSection && timeLeft[currentSection] > 0 && !showResults && !isPaused) {
       const timer = setTimeout(() => {
         setTimeLeft(prev => ({ ...prev, [currentSection]: prev[currentSection] - 1 }));
+        setTotalTimeSpent(prev => prev + 1);
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [currentSection, timeLeft, showResults]);
+  }, [currentSection, timeLeft, showResults, isPaused]);
+
+  const saveProgress = useCallback(async () => {
+    if (!currentAttemptId) return;
+
+    try {
+      const { error } = await supabase
+        .from('telc_exam_attempts')
+        .update({
+          answers: answers as any,
+          writing_answers: writingAnswers as any,
+          exam_state: examState as any,
+          results: results as any,
+          current_section: currentSection,
+          current_teil: currentTeil,
+          time_spent_seconds: totalTimeSpent,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentAttemptId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error saving progress:', error);
+    }
+  }, [currentAttemptId, answers, writingAnswers, examState, results, currentSection, currentTeil, totalTimeSpent]);
+
+  const createNewAttempt = async (mode: 'practice' | 'mock') => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: "Please log in", variant: "destructive" });
+        return null;
+      }
+
+      const { data, error } = await supabase
+        .from('telc_exam_attempts')
+        .insert({
+          user_id: session.user.id,
+          exam_type: mode,
+          status: 'in_progress'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data.id;
+    } catch (error: any) {
+      toast({ title: "Error creating exam", description: error.message, variant: "destructive" });
+      return null;
+    }
+  };
+
+  const resumeAttempt = async (attempt: ExamAttempt) => {
+    setExamMode(attempt.exam_type as 'practice' | 'mock');
+    setCurrentAttemptId(attempt.id);
+    setAnswers(attempt.answers || {});
+    setWritingAnswers(attempt.writing_answers || {});
+    const restoredState: ExamState = attempt.exam_state && typeof attempt.exam_state === 'object' 
+      ? attempt.exam_state as ExamState
+      : {
+          reading: null,
+          sprachbausteine: null,
+          listening: null,
+          writing: null,
+          speaking: null
+        };
+    setExamState(restoredState);
+    setResults(attempt.results || {});
+    setCurrentSection(attempt.current_section);
+    setCurrentTeil(attempt.current_teil || 0);
+    setTotalTimeSpent(attempt.time_spent_seconds || 0);
+    setInProgressAttempt(null);
+    
+    // Restore time left for current section
+    if (attempt.current_section && attempt.exam_state) {
+      const sectionContent = attempt.exam_state[attempt.current_section as keyof ExamState];
+      if (sectionContent) {
+        const sectionInfo = sections.find(s => s.id === attempt.current_section);
+        const remainingTime = Math.max(0, (sectionInfo?.duration || 30) * 60 - (attempt.time_spent_seconds || 0));
+        setTimeLeft({ [attempt.current_section]: remainingTime });
+      }
+    }
+
+    toast({ title: "Exam resumed!", description: "Your progress has been restored." });
+  };
+
+  const pauseExam = async () => {
+    setIsPaused(true);
+    await saveProgress();
+    toast({ title: "Exam paused", description: "You can resume anytime from the exam history." });
+  };
+
+  const unpauseExam = () => {
+    setIsPaused(false);
+  };
+
+  const abandonAttempt = async () => {
+    if (!currentAttemptId) return;
+
+    try {
+      await supabase
+        .from('telc_exam_attempts')
+        .update({ 
+          status: 'abandoned',
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', currentAttemptId);
+
+      resetExam();
+      loadExamData();
+      toast({ title: "Exam abandoned" });
+    } catch (error) {
+      console.error('Error abandoning exam:', error);
+    }
+  };
+
+  const resetExam = () => {
+    setExamMode(null);
+    setCurrentSection(null);
+    setCurrentTeil(0);
+    setExamState({
+      reading: null,
+      sprachbausteine: null,
+      listening: null,
+      writing: null,
+      speaking: null
+    });
+    setAnswers({});
+    setWritingAnswers({});
+    setResults({});
+    setShowResults(false);
+    setTimeLeft({});
+    setCurrentAttemptId(null);
+    setIsPaused(false);
+    setTotalTimeSpent(0);
+  };
 
   const generateSection = async (sectionId: string) => {
     try {
@@ -129,6 +345,7 @@ const TelcExam = () => {
     }
     setCurrentSection(sectionId);
     setCurrentTeil(0);
+    await saveProgress();
   };
 
   const handleAnswerSelect = (sectionId: string, questionId: number, answer: string) => {
@@ -194,6 +411,9 @@ const TelcExam = () => {
         }));
       }
 
+      // Update attempt with results
+      await saveProgress();
+
       toast({ title: `${content?.title} submitted!` });
       setCurrentSection(null);
       setShowResults(true);
@@ -204,12 +424,40 @@ const TelcExam = () => {
     }
   };
 
+  const completeExam = async () => {
+    if (!currentAttemptId) return;
+
+    const totalPoints = getTotalPoints();
+    
+    try {
+      await supabase
+        .from('telc_exam_attempts')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          total_score: totalPoints,
+          results: results as any,
+          time_spent_seconds: totalTimeSpent
+        })
+        .eq('id', currentAttemptId);
+
+      toast({ 
+        title: "🎉 Exam Completed!", 
+        description: `Final Score: ${totalPoints}/300 points` 
+      });
+      
+      loadExamData();
+    } catch (error) {
+      console.error('Error completing exam:', error);
+    }
+  };
+
   const getTotalPoints = () => {
     return Object.values(results).reduce((sum, result) => sum + (result.earnedPoints || 0), 0);
   };
 
   const getMaxTotalPoints = () => {
-    return 300; // TELC B2 is always 300 points
+    return 300;
   };
 
   const requestAiHelp = async (
@@ -306,6 +554,17 @@ const TelcExam = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Active section view
   if (currentSection && examState[currentSection as keyof ExamState]) {
     const content = examState[currentSection as keyof ExamState];
     const sectionInfo = sections.find(s => s.id === currentSection);
@@ -316,22 +575,48 @@ const TelcExam = () => {
         <Navbar />
         
         <div className="container max-w-5xl mx-auto p-4 mt-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <Button variant="outline" className="glass" onClick={() => setCurrentSection(null)}>
-              Back to Overview
-            </Button>
+          {/* Header with pause/resume */}
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+            <div className="flex gap-2">
+              <Button variant="outline" className="glass" onClick={() => setCurrentSection(null)}>
+                Back to Overview
+              </Button>
+              {isPaused ? (
+                <Button onClick={unpauseExam} className="gap-2">
+                  <Play className="w-4 h-4" />
+                  Resume
+                </Button>
+              ) : (
+                <Button variant="outline" onClick={pauseExam} className="gap-2">
+                  <Pause className="w-4 h-4" />
+                  Pause Exam
+                </Button>
+              )}
+            </div>
             <div className="flex items-center gap-4">
               <Badge variant="outline" className="text-lg px-4 py-2">
                 <Award className="w-4 h-4 mr-2" />
                 {sectionInfo?.maxPoints} points
               </Badge>
-              <Badge variant="outline" className="text-lg px-4 py-2">
+              <Badge 
+                variant="outline" 
+                className={`text-lg px-4 py-2 ${isPaused ? 'bg-yellow-500/20 text-yellow-500' : ''}`}
+              >
                 <Clock className="w-4 h-4 mr-2" />
-                {formatTime(timeLeft[currentSection] || 0)}
+                {isPaused ? 'PAUSED' : formatTime(timeLeft[currentSection] || 0)}
               </Badge>
             </div>
           </div>
+
+          {isPaused && (
+            <Card className="glass-luxury border-yellow-500/30 mb-6 animate-fade-in">
+              <CardContent className="p-4 text-center">
+                <Pause className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
+                <p className="font-semibold">Exam Paused</p>
+                <p className="text-sm text-muted-foreground">Your progress is saved. Click Resume to continue.</p>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="glass mb-6">
             <CardHeader>
@@ -359,7 +644,7 @@ const TelcExam = () => {
           )}
 
           {/* Teil Content */}
-          {teil && (
+          {teil && !isPaused && (
             <>
                <Card className="glass mb-6">
                 <CardHeader>
@@ -535,42 +820,44 @@ const TelcExam = () => {
           )}
 
           {/* Navigation */}
-          <div className="flex justify-between gap-4">
-            <Button 
-              variant="outline"
-              onClick={() => setCurrentTeil(prev => Math.max(0, prev - 1))}
-              disabled={currentTeil === 0}
-            >
-              Previous Teil
-            </Button>
-            
-            {currentTeil < (content?.teile.length || 1) - 1 ? (
+          {!isPaused && (
+            <div className="flex justify-between gap-4">
               <Button 
-                onClick={() => setCurrentTeil(prev => prev + 1)}
-                className="gradient-primary"
+                variant="outline"
+                onClick={() => setCurrentTeil(prev => Math.max(0, prev - 1))}
+                disabled={currentTeil === 0}
               >
-                Next Teil
+                Previous Teil
               </Button>
-            ) : (
-              <Button 
-                onClick={() => submitSection(currentSection)}
-                disabled={loading}
-                className="gradient-primary"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Evaluating...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-5 h-5 mr-2" />
-                    Submit Section
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
+              
+              {currentTeil < (content?.teile.length || 1) - 1 ? (
+                <Button 
+                  onClick={() => setCurrentTeil(prev => prev + 1)}
+                  className="gradient-primary"
+                >
+                  Next Teil
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => submitSection(currentSection)}
+                  disabled={loading}
+                  className="gradient-primary"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Evaluating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-5 h-5 mr-2" />
+                      Submit Section
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -581,161 +868,338 @@ const TelcExam = () => {
       <Navbar />
       
       <div className="container max-w-6xl mx-auto p-4 mt-6">
-        {/* Mode Selection */}
-        {!examMode && (
-          <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold mb-3 text-gradient">TELC B2 Exam</h1>
-              <p className="text-muted-foreground">Choose your exam mode</p>
-            </div>
+        {/* Tab Navigation */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'exam' | 'history')} className="mb-6">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+            <TabsTrigger value="exam" className="gap-2">
+              <BookOpen className="w-4 h-4" />
+              Exam
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-2">
+              <History className="w-4 h-4" />
+              History ({examHistory.filter(h => h.status === 'completed').length})
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {activeTab === 'history' ? (
+          // Exam History View
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-center mb-6 text-gradient">Your Exam History</h2>
             
-            <div className="grid gap-6">
-              <Card className="glass hover:shadow-xl transition-all cursor-pointer" onClick={() => setExamMode('practice')}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="w-6 h-6 text-primary" />
-                    Practice Mode
-                  </CardTitle>
-                  <CardDescription>
-                    Practice individual sections at your own pace with instant feedback
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      <span>No time pressure</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      <span>Immediate feedback after each section</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      <span>Review explanations for every question</span>
-                    </li>
-                  </ul>
-                </CardContent>
+            {examHistory.length === 0 ? (
+              <Card className="glass p-8 text-center">
+                <History className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground">No exam attempts yet. Start your first exam!</p>
+                <Button onClick={() => setActiveTab('exam')} className="mt-4 gradient-primary">
+                  Start Exam
+                </Button>
               </Card>
-
-              <Card className="glass hover:shadow-xl transition-all cursor-pointer" onClick={() => setExamMode('mock')}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="w-6 h-6 text-accent" />
-                    Mock Exam Mode
-                  </CardTitle>
-                  <CardDescription>
-                    Simulate the real TELC B2 exam with official timing and structure
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-accent" />
-                      <span>Official timing per section</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-accent" />
-                      <span>Complete all sections</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Award className="w-4 h-4 text-accent" />
-                      <span>Official TELC scoring system</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-
-        {/* Section Selection */}
-        {examMode && !currentSection && (
-          <>
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold mb-3 text-gradient">
-                {examMode === 'practice' ? 'Practice Mode' : 'Mock Exam Mode'}
-              </h1>
-              <Button variant="outline" onClick={() => setExamMode(null)}>
-                Change Mode
-              </Button>
-            </div>
-
-            {/* Results Summary */}
-            {showResults && Object.keys(results).length > 0 && (
-              <Card className="glass mb-8 p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-2xl font-bold text-gradient">Your Results</h2>
-                      <p className="text-muted-foreground">Total Score: {getTotalPoints()}/{getMaxTotalPoints()} points</p>
-                    </div>
-                    <Badge variant="outline" className="text-2xl px-6 py-3">
-                      {getGrade(Math.round((getTotalPoints() / getMaxTotalPoints()) * 100))}
-                    </Badge>
-                  </div>
-                  
-                  <Progress value={(getTotalPoints() / getMaxTotalPoints()) * 100} className="h-3" />
-                  
-                  <Button onClick={exportToPDF} variant="outline" className="w-full">
-                    <Download className="w-4 h-4 mr-2" />
-                    Export Results as PDF
-                  </Button>
-                </div>
-              </Card>
-            )}
-
-            <div className="grid md:grid-cols-2 gap-6">
-              {sections.map((section) => {
-                const result = results[section.id];
-                const completed = !!result;
-                
-                return (
-                  <Card key={section.id} className="glass hover:shadow-xl transition-all">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
+            ) : (
+              <div className="grid gap-4">
+                {examHistory.map((attempt) => (
+                  <Card key={attempt.id} className={`glass hover:shadow-lg transition-all ${attempt.status === 'in_progress' ? 'border-primary/50' : ''}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between flex-wrap gap-3">
                         <div className="flex items-center gap-3">
-                          <section.icon className={`w-6 h-6 ${section.color}`} />
+                          <div className={`p-2 rounded-lg ${
+                            attempt.status === 'completed' ? 'bg-green-500/20' : 
+                            attempt.status === 'in_progress' ? 'bg-yellow-500/20' : 'bg-red-500/20'
+                          }`}>
+                            {attempt.status === 'completed' ? (
+                              <CheckCircle className="w-5 h-5 text-green-500" />
+                            ) : attempt.status === 'in_progress' ? (
+                              <Clock className="w-5 h-5 text-yellow-500" />
+                            ) : (
+                              <XCircle className="w-5 h-5 text-red-500" />
+                            )}
+                          </div>
                           <div>
-                            <CardTitle>{section.title}</CardTitle>
-                            <CardDescription>
-                              {section.duration} min · {section.maxPoints} points
-                            </CardDescription>
+                            <p className="font-semibold capitalize">{attempt.exam_type} Mode</p>
+                            <p className="text-sm text-muted-foreground">
+                              <Calendar className="w-3 h-3 inline mr-1" />
+                              {formatDate(attempt.started_at)}
+                            </p>
                           </div>
                         </div>
-                        {completed && (
-                          <CheckCircle className="w-6 h-6 text-accent" />
-                        )}
+                        
+                        <div className="flex items-center gap-4">
+                          {attempt.status === 'completed' && (
+                            <div className="text-right">
+                              <p className="text-2xl font-bold text-primary">{attempt.total_score}/300</p>
+                              <Badge variant={attempt.total_score >= 180 ? 'default' : 'destructive'}>
+                                {getGrade(Math.round((attempt.total_score / 300) * 100))}
+                              </Badge>
+                            </div>
+                          )}
+                          
+                          {attempt.status === 'in_progress' && (
+                            <Button onClick={() => resumeAttempt(attempt)} className="gradient-primary gap-2">
+                              <Play className="w-4 h-4" />
+                              Resume
+                            </Button>
+                          )}
+                          
+                          {attempt.status === 'completed' && (
+                            <Button variant="outline" size="sm">
+                              <FileText className="w-4 h-4 mr-2" />
+                              View Details
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      {completed ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">Score</span>
-                            <Badge variant="outline">
-                              {result.earnedPoints}/{section.maxPoints} points
-                            </Badge>
+                      
+                      {attempt.status === 'completed' && (
+                        <div className="mt-3 pt-3 border-t">
+                          <Progress value={(attempt.total_score / 300) * 100} className="h-2" />
+                          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                            <span>Time: {Math.round(attempt.time_spent_seconds / 60)} min</span>
+                            <span>{Math.round((attempt.total_score / 300) * 100)}%</span>
                           </div>
-                          <Progress value={(result.earnedPoints / section.maxPoints) * 100} />
-                          <p className="text-sm font-medium text-center">
-                            {Math.round((result.earnedPoints / section.maxPoints) * 100)}% - {result.grade}
-                          </p>
                         </div>
-                      ) : (
-                        <Button 
-                          onClick={() => startSection(section.id)}
-                          disabled={loading}
-                          className="w-full gradient-primary"
-                        >
-                          Start Section
-                        </Button>
                       )}
                     </CardContent>
                   </Card>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* Resume Card */}
+            {inProgressAttempt && !examMode && (
+              <Card className="glass-luxury border-primary/30 mb-6 animate-fade-in">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-lg bg-primary/20">
+                        <RotateCcw className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Resume Your Exam</h3>
+                        <p className="text-sm text-muted-foreground">
+                          You have an unfinished {inProgressAttempt.exam_type} exam from {formatDate(inProgressAttempt.started_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={() => {
+                        supabase.from('telc_exam_attempts')
+                          .update({ status: 'abandoned' })
+                          .eq('id', inProgressAttempt.id)
+                          .then(() => {
+                            setInProgressAttempt(null);
+                            loadExamData();
+                          });
+                      }}>
+                        Discard
+                      </Button>
+                      <Button onClick={() => resumeAttempt(inProgressAttempt)} className="gradient-primary gap-2">
+                        <Play className="w-4 h-4" />
+                        Continue Exam
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Mode Selection */}
+            {!examMode && (
+              <div className="max-w-2xl mx-auto">
+                <div className="text-center mb-8">
+                  <h1 className="text-4xl font-bold mb-3 text-gradient">TELC B2 Exam</h1>
+                  <p className="text-muted-foreground">Choose your exam mode</p>
+                </div>
+                
+                <div className="grid gap-6">
+                  <Card 
+                    className="glass hover:shadow-xl transition-all cursor-pointer hover:border-primary/50" 
+                    onClick={async () => {
+                      const attemptId = await createNewAttempt('practice');
+                      if (attemptId) {
+                        setCurrentAttemptId(attemptId);
+                        setExamMode('practice');
+                      }
+                    }}
+                  >
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BookOpen className="w-6 h-6 text-primary" />
+                        Practice Mode
+                      </CardTitle>
+                      <CardDescription>
+                        Practice individual sections at your own pace with instant feedback
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-accent" />
+                          <span>No time pressure</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-accent" />
+                          <span>Immediate feedback after each section</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-accent" />
+                          <span>Review explanations for every question</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-accent" />
+                          <span>Auto-save progress</span>
+                        </li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <Card 
+                    className="glass hover:shadow-xl transition-all cursor-pointer hover:border-accent/50" 
+                    onClick={async () => {
+                      const attemptId = await createNewAttempt('mock');
+                      if (attemptId) {
+                        setCurrentAttemptId(attemptId);
+                        setExamMode('mock');
+                      }
+                    }}
+                  >
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Sparkles className="w-6 h-6 text-accent" />
+                        Mock Exam Mode
+                      </CardTitle>
+                      <CardDescription>
+                        Simulate the real TELC B2 exam with official timing and structure
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-accent" />
+                          <span>Official timing per section</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-accent" />
+                          <span>Complete all sections</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Award className="w-4 h-4 text-accent" />
+                          <span>Official TELC scoring system</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Pause className="w-4 h-4 text-accent" />
+                          <span>Pause & resume anytime</span>
+                        </li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )}
+
+            {/* Section Selection */}
+            {examMode && !currentSection && (
+              <>
+                <div className="text-center mb-8">
+                  <h1 className="text-4xl font-bold mb-3 text-gradient">
+                    {examMode === 'practice' ? 'Practice Mode' : 'Mock Exam Mode'}
+                  </h1>
+                  <div className="flex gap-2 justify-center">
+                    <Button variant="outline" onClick={resetExam}>
+                      Change Mode
+                    </Button>
+                    <Button variant="outline" onClick={abandonAttempt} className="text-destructive">
+                      Abandon Exam
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Results Summary */}
+                {showResults && Object.keys(results).length > 0 && (
+                  <Card className="glass mb-8 p-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h2 className="text-2xl font-bold text-gradient">Your Results</h2>
+                          <p className="text-muted-foreground">Total Score: {getTotalPoints()}/{getMaxTotalPoints()} points</p>
+                        </div>
+                        <Badge variant="outline" className="text-2xl px-6 py-3">
+                          {getGrade(Math.round((getTotalPoints() / getMaxTotalPoints()) * 100))}
+                        </Badge>
+                      </div>
+                      
+                      <Progress value={(getTotalPoints() / getMaxTotalPoints()) * 100} className="h-3" />
+                      
+                      <div className="flex gap-2">
+                        <Button onClick={exportToPDF} variant="outline" className="flex-1">
+                          <Download className="w-4 h-4 mr-2" />
+                          Export Results as PDF
+                        </Button>
+                        {Object.keys(results).length === sections.length && (
+                          <Button onClick={completeExam} className="gradient-primary flex-1">
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Complete Exam
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                )}
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  {sections.map((section) => {
+                    const result = results[section.id];
+                    const completed = !!result;
+                    
+                    return (
+                      <Card key={section.id} className="glass hover:shadow-xl transition-all">
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                              <section.icon className={`w-6 h-6 ${section.color}`} />
+                              <div>
+                                <CardTitle>{section.title}</CardTitle>
+                                <CardDescription>
+                                  {section.duration} min · {section.maxPoints} points
+                                </CardDescription>
+                              </div>
+                            </div>
+                            {completed && (
+                              <CheckCircle className="w-6 h-6 text-accent" />
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          {completed ? (
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-muted-foreground">Score</span>
+                                <Badge variant="outline">
+                                  {result.earnedPoints}/{section.maxPoints} points
+                                </Badge>
+                              </div>
+                              <Progress value={(result.earnedPoints / section.maxPoints) * 100} />
+                              <p className="text-sm font-medium text-center">
+                                {Math.round((result.earnedPoints / section.maxPoints) * 100)}% - {result.grade}
+                              </p>
+                            </div>
+                          ) : (
+                            <Button 
+                              onClick={() => startSection(section.id)}
+                              disabled={loading}
+                              className="w-full gradient-primary"
+                            >
+                              Start Section
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </>
         )}
       </div>

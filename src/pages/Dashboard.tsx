@@ -5,9 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { BookOpen, MessageSquare, Target, Brain, TrendingUp, AlertCircle, CheckCircle2, Activity, Sparkles, Loader2, Calendar } from "lucide-react";
+import { BookOpen, MessageSquare, Target, Brain, TrendingUp, AlertCircle, CheckCircle2, Activity, Sparkles, Loader2, Calendar, Zap, GraduationCap, RotateCcw, Trophy, Flame, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -234,12 +234,62 @@ const Dashboard = () => {
                 </>
               )}
             </Button>
-            {aiAnalysis?.overallAssessment && (
-              <Card className="glass px-3 py-2 max-w-md">
-                <p className="text-xs sm:text-sm text-muted-foreground">{aiAnalysis.overallAssessment}</p>
-              </Card>
-            )}
           </div>
+        </div>
+
+        {/* Celebration Banner for Milestones */}
+        {(progress?.streak_days === 7 || progress?.streak_days === 30 || progress?.words_learned >= 100) && (
+          <Card className="glass-luxury border-primary/30 animate-fade-in">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-full bg-primary/20 animate-pulse">
+                <Trophy className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-primary">🎉 Congratulations!</p>
+                <p className="text-sm text-muted-foreground">
+                  {progress?.streak_days === 7 && "You've maintained a 7-day streak! Keep it up!"}
+                  {progress?.streak_days === 30 && "Amazing! 30-day streak achieved! You're unstoppable!"}
+                  {progress?.words_learned >= 100 && progress?.streak_days !== 7 && progress?.streak_days !== 30 && "You've learned 100+ words! Great progress!"}
+                </p>
+              </div>
+              <Star className="w-8 h-8 text-yellow-500 animate-bounce" />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Button
+            onClick={() => navigate('/ai-companion')}
+            className="h-auto p-4 flex flex-col items-center gap-2 gradient-primary hover:scale-105 transition-transform"
+          >
+            <Brain className="w-6 h-6" />
+            <span className="text-sm font-medium">AI Session</span>
+          </Button>
+          <Button
+            onClick={() => navigate('/exercises')}
+            variant="outline"
+            className="h-auto p-4 flex flex-col items-center gap-2 glass hover:border-primary/50"
+          >
+            <Target className="w-6 h-6 text-primary" />
+            <span className="text-sm font-medium">Practice</span>
+          </Button>
+          <Button
+            onClick={() => navigate('/review')}
+            variant="outline"
+            className="h-auto p-4 flex flex-col items-center gap-2 glass hover:border-primary/50"
+          >
+            <RotateCcw className="w-6 h-6 text-accent" />
+            <span className="text-sm font-medium">Review</span>
+          </Button>
+          <Button
+            onClick={() => navigate('/telc-exam')}
+            variant="outline"
+            className="h-auto p-4 flex flex-col items-center gap-2 glass hover:border-primary/50"
+          >
+            <GraduationCap className="w-6 h-6 text-green-500" />
+            <span className="text-sm font-medium">TELC Exam</span>
+          </Button>
         </div>
 
         {/* Key Metrics */}

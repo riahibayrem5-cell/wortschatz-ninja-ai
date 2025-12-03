@@ -484,6 +484,66 @@ export type Database = {
         }
         Relationships: []
       }
+      telc_exam_attempts: {
+        Row: {
+          answers: Json | null
+          completed_at: string | null
+          created_at: string | null
+          current_section: string | null
+          current_teil: number | null
+          exam_state: Json | null
+          exam_type: string
+          id: string
+          max_score: number | null
+          results: Json | null
+          started_at: string | null
+          status: string | null
+          time_spent_seconds: number | null
+          total_score: number | null
+          updated_at: string | null
+          user_id: string
+          writing_answers: Json | null
+        }
+        Insert: {
+          answers?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_section?: string | null
+          current_teil?: number | null
+          exam_state?: Json | null
+          exam_type?: string
+          id?: string
+          max_score?: number | null
+          results?: Json | null
+          started_at?: string | null
+          status?: string | null
+          time_spent_seconds?: number | null
+          total_score?: number | null
+          updated_at?: string | null
+          user_id: string
+          writing_answers?: Json | null
+        }
+        Update: {
+          answers?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          current_section?: string | null
+          current_teil?: number | null
+          exam_state?: Json | null
+          exam_type?: string
+          id?: string
+          max_score?: number | null
+          results?: Json | null
+          started_at?: string | null
+          status?: string | null
+          time_spent_seconds?: number | null
+          total_score?: number | null
+          updated_at?: string | null
+          user_id?: string
+          writing_answers?: Json | null
+        }
+        Relationships: []
+      }
       user_progress: {
         Row: {
           created_at: string
