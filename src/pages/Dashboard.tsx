@@ -292,6 +292,41 @@ const Dashboard = () => {
           </Button>
         </div>
 
+        {/* Learning Path & Achievements Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card 
+            className="glass-luxury border-primary/20 cursor-pointer hover:border-primary/40 transition-all"
+            onClick={() => navigate('/learning-path')}
+          >
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-primary/20">
+                <TrendingUp className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold">Learning Path</p>
+                <p className="text-sm text-muted-foreground">AI-powered daily lessons</p>
+              </div>
+              <Button size="sm" className="gradient-primary">Start</Button>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="glass cursor-pointer hover:border-primary/40 transition-all"
+            onClick={() => navigate('/achievements')}
+          >
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-yellow-500/20">
+                <Trophy className="w-6 h-6 text-yellow-500" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold">Achievements</p>
+                <p className="text-sm text-muted-foreground">Unlock badges & earn XP</p>
+              </div>
+              <Button size="sm" variant="outline">View</Button>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Key Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card className="glass">
