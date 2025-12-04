@@ -112,6 +112,8 @@ const Navbar = () => {
         { name: t('nav.activityLog'), path: "/activity-log" },
         { name: "Learning Path", path: "/learning-path" },
         { name: "Achievements", path: "/achievements" },
+        { name: "Mastery Course", path: "/mastery-course" },
+        { name: "Certificates", path: "/certificates" },
       ],
     },
   ];
