@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          badge_color: string | null
+          category: string
+          created_at: string | null
+          description: string
+          icon: string
+          id: string
+          name: string
+          points: number
+          requirement: number
+        }
+        Insert: {
+          badge_color?: string | null
+          category: string
+          created_at?: string | null
+          description: string
+          icon: string
+          id: string
+          name: string
+          points?: number
+          requirement: number
+        }
+        Update: {
+          badge_color?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          points?: number
+          requirement?: number
+        }
+        Relationships: []
+      }
       content_cache: {
         Row: {
           access_count: number | null
@@ -135,6 +171,53 @@ export type Database = {
           writing_submissions_count?: number | null
         }
         Relationships: []
+      }
+      daily_lessons: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          learning_path_id: string | null
+          lesson_data: Json
+          lesson_date: string | null
+          score: number | null
+          time_spent_minutes: number | null
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          learning_path_id?: string | null
+          lesson_data: Json
+          lesson_date?: string | null
+          score?: number | null
+          time_spent_minutes?: number | null
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          learning_path_id?: string | null
+          lesson_data?: Json
+          lesson_date?: string | null
+          score?: number | null
+          time_spent_minutes?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_lessons_learning_path_id_fkey"
+            columns: ["learning_path_id"]
+            isOneToOne: false
+            referencedRelation: "user_learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       exercises: {
         Row: {
@@ -541,6 +624,98 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           writing_answers?: Json | null
+        }
+        Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string | null
+          completed: boolean | null
+          id: string
+          notified: boolean | null
+          progress: number | null
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id?: string | null
+          completed?: boolean | null
+          id?: string
+          notified?: boolean | null
+          progress?: number | null
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string | null
+          completed?: boolean | null
+          id?: string
+          notified?: boolean | null
+          progress?: number | null
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_learning_paths: {
+        Row: {
+          completed_modules: string[] | null
+          created_at: string | null
+          current_week: number | null
+          daily_goal_minutes: number | null
+          id: string
+          last_lesson_completed_at: string | null
+          preferred_focus: string | null
+          recommended_next_action: string | null
+          strong_areas: Json | null
+          target_date: string | null
+          target_level: string | null
+          total_weeks: number | null
+          updated_at: string | null
+          user_id: string
+          weak_areas: Json | null
+        }
+        Insert: {
+          completed_modules?: string[] | null
+          created_at?: string | null
+          current_week?: number | null
+          daily_goal_minutes?: number | null
+          id?: string
+          last_lesson_completed_at?: string | null
+          preferred_focus?: string | null
+          recommended_next_action?: string | null
+          strong_areas?: Json | null
+          target_date?: string | null
+          target_level?: string | null
+          total_weeks?: number | null
+          updated_at?: string | null
+          user_id: string
+          weak_areas?: Json | null
+        }
+        Update: {
+          completed_modules?: string[] | null
+          created_at?: string | null
+          current_week?: number | null
+          daily_goal_minutes?: number | null
+          id?: string
+          last_lesson_completed_at?: string | null
+          preferred_focus?: string | null
+          recommended_next_action?: string | null
+          strong_areas?: Json | null
+          target_date?: string | null
+          target_level?: string | null
+          total_weeks?: number | null
+          updated_at?: string | null
+          user_id?: string
+          weak_areas?: Json | null
         }
         Relationships: []
       }

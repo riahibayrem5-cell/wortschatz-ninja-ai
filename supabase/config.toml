@@ -77,3 +77,9 @@ verify_jwt = true
 
 [functions.analyze-word]
 verify_jwt = true
+
+[functions.generate-daily-lesson]
+verify_jwt = true
+
+[functions.check-achievements]
+verify_jwt = true

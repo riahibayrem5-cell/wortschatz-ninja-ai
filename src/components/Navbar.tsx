@@ -110,6 +110,8 @@ const Navbar = () => {
         { name: t('nav.review'), path: "/review" },
         { name: t('nav.diary'), path: "/diary" },
         { name: t('nav.activityLog'), path: "/activity-log" },
+        { name: "Learning Path", path: "/learning-path" },
+        { name: "Achievements", path: "/achievements" },
       ],
     },
   ];
