@@ -27,6 +27,11 @@ import ActivityLog from "./pages/ActivityLog";
 import Subscriptions from "./pages/Subscriptions";
 import LearningPath from "./pages/LearningPath";
 import Achievements from "./pages/Achievements";
+import MasteryCourse from "./pages/MasteryCourse";
+import ModuleDetail from "./pages/ModuleDetail";
+import LessonPage from "./pages/LessonPage";
+import CourseTutor from "./pages/CourseTutor";
+import Certificates from "./pages/Certificates";
 import AuthPage from "./components/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -64,6 +69,11 @@ const App = () => (
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/learning-path" element={<LearningPath />} />
             <Route path="/achievements" element={<Achievements />} />
+            <Route path="/mastery-course" element={<MasteryCourse />} />
+            <Route path="/mastery-course/:moduleId" element={<ModuleDetail />} />
+            <Route path="/mastery-course/:moduleId/lesson/:lessonId" element={<LessonPage />} />
+            <Route path="/mastery-course/:moduleId/tutor" element={<CourseTutor />} />
+            <Route path="/certificates" element={<Certificates />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
