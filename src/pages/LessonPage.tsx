@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +12,7 @@ import {
   ArrowLeft, ArrowRight, CheckCircle2, Clock, 
   MessageCircle, BookOpen, Target, Lightbulb
 } from "lucide-react";
+import PracticeContainer from "@/components/exercises/PracticeContainer";
 
 interface CourseLesson {
   id: string;
@@ -42,9 +42,9 @@ const LessonPage = () => {
   const [completing, setCompleting] = useState(false);
   const [notes, setNotes] = useState("");
   const [startTime] = useState(Date.now());
+  const [practiceScore, setPracticeScore] = useState<{score: number; total: number} | null>(null);
 
   // AI Tutor chat state
-  const [showTutor, setShowTutor] = useState(false);
   const [tutorMessages, setTutorMessages] = useState<{role: string; content: string}[]>([]);
   const [tutorInput, setTutorInput] = useState("");
   const [tutorLoading, setTutorLoading] = useState(false);
@@ -107,14 +107,18 @@ const LessonPage = () => {
     setAllLessons(data || []);
   };
 
+  const handlePracticeComplete = (score: number, total: number) => {
+    setPracticeScore({ score, total });
+  };
+
   const completeLesson = async (score: number = 100) => {
     if (!user || !lessonId || !moduleId) return;
     setCompleting(true);
 
     const timeSpent = Math.round((Date.now() - startTime) / 60000);
+    const finalScore = practiceScore ? Math.round((practiceScore.score / practiceScore.total) * 100) : score;
 
     try {
-      // Update or insert lesson progress
       const { error } = await supabase
         .from('user_course_progress')
         .upsert({
@@ -122,7 +126,7 @@ const LessonPage = () => {
           module_id: moduleId,
           lesson_id: lessonId,
           status: 'completed',
-          score,
+          score: finalScore,
           time_spent_minutes: timeSpent,
           completed_at: new Date().toISOString(),
           notes: notes || null,
@@ -132,7 +136,6 @@ const LessonPage = () => {
 
       if (error) throw error;
 
-      // Check if all lessons in module are completed
       const { data: lessonProgress } = await supabase
         .from('user_course_progress')
         .select('lesson_id, status')
@@ -143,7 +146,6 @@ const LessonPage = () => {
       const completedLessons = lessonProgress?.filter(p => p.status === 'completed') || [];
       
       if (completedLessons.length === allLessons.length) {
-        // Mark module as completed
         await supabase
           .from('user_course_progress')
           .upsert({
@@ -161,7 +163,6 @@ const LessonPage = () => {
         toast.success("Lesson completed!");
       }
 
-      // Navigate to next lesson or back to module
       const currentIndex = allLessons.findIndex(l => l.id === lessonId);
       if (currentIndex < allLessons.length - 1) {
         const nextLesson = allLessons[currentIndex + 1];
@@ -205,7 +206,6 @@ const LessonPage = () => {
         throw new Error("Failed to get tutor response");
       }
 
-      // Handle streaming response
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantContent = "";
@@ -300,7 +300,7 @@ const LessonPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Navigation */}
         <div className="flex items-center justify-between mb-6">
           <Button 
@@ -336,10 +336,10 @@ const LessonPage = () => {
         </div>
 
         {/* Lesson Header */}
-        <Card className="mb-6">
+        <Card className="mb-6 glass-luxury border-primary/20">
           <CardHeader>
             <div className="flex items-center gap-2 mb-2">
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="bg-primary/20 text-primary">
                 Week {module?.week_number} • Lesson {lesson.lesson_number}
               </Badge>
               <Badge variant="outline">
@@ -355,18 +355,28 @@ const LessonPage = () => {
           </CardHeader>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            <Tabs defaultValue="content" className="w-full">
-              <TabsList className="w-full">
-                <TabsTrigger value="content" className="flex-1">Lesson Content</TabsTrigger>
-                <TabsTrigger value="practice" className="flex-1">Practice</TabsTrigger>
-                <TabsTrigger value="notes" className="flex-1">My Notes</TabsTrigger>
-              </TabsList>
+        {/* Main Content - Full Width Tabs */}
+        <Tabs defaultValue="content" className="w-full">
+          <TabsList className="w-full grid grid-cols-3 mb-6">
+            <TabsTrigger value="content" className="text-sm sm:text-base">
+              <BookOpen className="h-4 w-4 mr-2 hidden sm:inline" />
+              Lesson Content
+            </TabsTrigger>
+            <TabsTrigger value="practice" className="text-sm sm:text-base">
+              <Target className="h-4 w-4 mr-2 hidden sm:inline" />
+              Interactive Practice
+            </TabsTrigger>
+            <TabsTrigger value="tutor" className="text-sm sm:text-base">
+              <MessageCircle className="h-4 w-4 mr-2 hidden sm:inline" />
+              AI Tutor
+            </TabsTrigger>
+          </TabsList>
 
-              <TabsContent value="content">
-                <Card>
+          <TabsContent value="content">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Lesson Content */}
+              <div className="lg:col-span-2">
+                <Card className="glass">
                   <CardContent className="pt-6">
                     {/* Learning Objectives */}
                     <div className="mb-6">
@@ -394,10 +404,10 @@ const LessonPage = () => {
                       <div className="prose prose-sm max-w-none">
                         {lesson.lesson_type === 'vocabulary' && (
                           <div className="space-y-4">
-                            <p>In this vocabulary lesson, you'll learn words related to: <strong>{(lesson.content as any)?.topics?.join(', ') || 'various topics'}</strong></p>
-                            <div className="bg-secondary/30 p-4 rounded-lg">
-                              <p className="text-sm text-muted-foreground">
-                                Use the AI Tutor on the right to practice these words in context, get example sentences, and test your knowledge!
+                            <p>In this vocabulary lesson, you will learn words related to: <strong>{(lesson.content as any)?.topics?.join(', ') || 'various topics'}</strong></p>
+                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                              <p className="text-sm">
+                                Head to the <strong>Interactive Practice</strong> tab to test your vocabulary with fill-in-the-blank exercises, matching games, and translation challenges!
                               </p>
                             </div>
                           </div>
@@ -406,9 +416,9 @@ const LessonPage = () => {
                         {lesson.lesson_type === 'grammar' && (
                           <div className="space-y-4">
                             <p>This grammar lesson covers: <strong>{(lesson.content as any)?.topics?.join(', ') || 'key grammar concepts'}</strong></p>
-                            <div className="bg-secondary/30 p-4 rounded-lg">
-                              <p className="text-sm text-muted-foreground">
-                                Ask the AI Tutor to explain any grammar rule, provide examples, or give you practice exercises!
+                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                              <p className="text-sm">
+                                Practice grammar structures in the <strong>Interactive Practice</strong> tab with targeted exercises!
                               </p>
                             </div>
                           </div>
@@ -418,9 +428,9 @@ const LessonPage = () => {
                           <div className="space-y-4">
                             <p>Focus: <strong>{(lesson.content as any)?.skill || 'Reading comprehension'}</strong></p>
                             <p>Text types: {(lesson.content as any)?.text_types?.join(', ') || 'Various texts'}</p>
-                            <div className="bg-secondary/30 p-4 rounded-lg">
-                              <p className="text-sm text-muted-foreground">
-                                The AI Tutor can provide practice texts and guide you through comprehension strategies!
+                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                              <p className="text-sm">
+                                Test your reading comprehension with multiple-choice questions in the <strong>Interactive Practice</strong> tab!
                               </p>
                             </div>
                           </div>
@@ -429,9 +439,9 @@ const LessonPage = () => {
                         {lesson.lesson_type === 'listening' && (
                           <div className="space-y-4">
                             <p>Audio type: <strong>{(lesson.content as any)?.audio_type || 'Various audio materials'}</strong></p>
-                            <div className="bg-secondary/30 p-4 rounded-lg">
-                              <p className="text-sm text-muted-foreground">
-                                Use the AI Tutor to get tips on listening strategies and note-taking techniques!
+                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                              <p className="text-sm">
+                                Practice listening comprehension with structured exercises in the <strong>Interactive Practice</strong> tab!
                               </p>
                             </div>
                           </div>
@@ -440,9 +450,9 @@ const LessonPage = () => {
                         {lesson.lesson_type === 'writing' && (
                           <div className="space-y-4">
                             <p>Format: <strong>{(lesson.content as any)?.format || 'Written communication'}</strong></p>
-                            <div className="bg-secondary/30 p-4 rounded-lg">
-                              <p className="text-sm text-muted-foreground">
-                                Ask the AI Tutor to review your writing, provide templates, or explain formal conventions!
+                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                              <p className="text-sm">
+                                Practice sentence construction and translation in the <strong>Interactive Practice</strong> tab!
                               </p>
                             </div>
                           </div>
@@ -451,9 +461,9 @@ const LessonPage = () => {
                         {lesson.lesson_type === 'speaking' && (
                           <div className="space-y-4">
                             <p>Topics: <strong>{(lesson.content as any)?.topics?.join(', ') || 'Various speaking scenarios'}</strong></p>
-                            <div className="bg-secondary/30 p-4 rounded-lg">
-                              <p className="text-sm text-muted-foreground">
-                                Practice speaking scenarios with the AI Tutor and get feedback on your responses!
+                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                              <p className="text-sm">
+                                Use the <strong>AI Tutor</strong> tab to practice conversational responses and get feedback!
                               </p>
                             </div>
                           </div>
@@ -462,9 +472,9 @@ const LessonPage = () => {
                         {lesson.lesson_type === 'exam_practice' && (
                           <div className="space-y-4">
                             <p>Section: <strong>{(lesson.content as any)?.section || 'TELC B2 Exam Practice'}</strong></p>
-                            <div className="bg-secondary/30 p-4 rounded-lg">
-                              <p className="text-sm text-muted-foreground">
-                                Get exam-style questions and strategies from the AI Tutor!
+                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                              <p className="text-sm">
+                                Get exam-style practice in the <strong>Interactive Practice</strong> tab!
                               </p>
                             </div>
                           </div>
@@ -480,37 +490,22 @@ const LessonPage = () => {
                       </h3>
                       <ul className="text-sm text-muted-foreground space-y-2">
                         <li>• Take your time to understand each concept before moving on</li>
-                        <li>• Use the AI Tutor whenever you have questions</li>
+                        <li>• Complete the interactive exercises to reinforce learning</li>
+                        <li>• Use the AI Tutor for personalized help with difficult topics</li>
                         <li>• Write notes to help remember key points</li>
-                        <li>• Practice makes perfect - don't rush!</li>
                       </ul>
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
+              </div>
 
-              <TabsContent value="practice">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-center py-8">
-                      <Target className="h-12 w-12 mx-auto text-primary mb-4" />
-                      <h3 className="font-semibold text-lg mb-2">Interactive Practice</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Use the AI Tutor to get personalized practice exercises for this lesson.
-                      </p>
-                      <Button onClick={() => setShowTutor(true)}>
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Start Practice with AI Tutor
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="notes">
-                <Card>
-                  <CardContent className="pt-6">
-                    <h3 className="font-semibold mb-3">Your Notes</h3>
+              {/* Notes Sidebar */}
+              <div className="lg:col-span-1">
+                <Card className="glass sticky top-4">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Your Notes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <Textarea
                       placeholder="Write your notes here... These will be saved when you complete the lesson."
                       value={notes}
@@ -519,60 +514,47 @@ const LessonPage = () => {
                     />
                   </CardContent>
                 </Card>
-              </TabsContent>
-            </Tabs>
+              </div>
+            </div>
+          </TabsContent>
 
-            {/* Complete Lesson Button */}
-            <Card>
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Ready to continue?</p>
-                    <p className="text-sm text-muted-foreground">
-                      Mark this lesson as complete to unlock the next one
-                    </p>
-                  </div>
-                  <Button 
-                    onClick={() => completeLesson(100)}
-                    disabled={completing}
-                    size="lg"
-                  >
-                    {completing ? (
-                      "Saving..."
-                    ) : (
-                      <>
-                        <CheckCircle2 className="h-5 w-5 mr-2" />
-                        Complete Lesson
-                      </>
-                    )}
-                  </Button>
-                </div>
+          <TabsContent value="practice">
+            <Card className="glass">
+              <CardContent className="pt-6">
+                <PracticeContainer
+                  lessonId={lesson.id}
+                  lessonType={lesson.lesson_type}
+                  lessonTitle={lesson.title}
+                  lessonContent={lesson.content}
+                  onExerciseComplete={handlePracticeComplete}
+                />
               </CardContent>
             </Card>
-          </div>
+          </TabsContent>
 
-          {/* AI Tutor Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
+          <TabsContent value="tutor">
+            <Card className="glass">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
                   <MessageCircle className="h-5 w-5 text-primary" />
-                  AI Tutor
+                  AI Tutor - Personal Learning Assistant
                 </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Ask questions about this lesson, get explanations, or request additional practice
+                </p>
               </CardHeader>
               <CardContent>
-                <div className="h-[400px] flex flex-col">
+                <div className="h-[500px] flex flex-col">
                   {/* Messages */}
-                  <div className="flex-1 overflow-y-auto space-y-3 mb-3">
+                  <div className="flex-1 overflow-y-auto space-y-4 mb-4 p-4 bg-secondary/20 rounded-lg">
                     {tutorMessages.length === 0 ? (
-                      <div className="text-center text-sm text-muted-foreground py-8">
-                        <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p>Ask me anything about this lesson!</p>
-                        <div className="mt-4 space-y-2">
+                      <div className="text-center py-8">
+                        <MessageCircle className="h-12 w-12 mx-auto mb-4 text-primary/50" />
+                        <p className="text-muted-foreground mb-4">Ask me anything about this lesson!</p>
+                        <div className="flex flex-wrap gap-2 justify-center">
                           <Button 
                             variant="outline" 
-                            size="sm" 
-                            className="w-full text-xs"
+                            size="sm"
                             onClick={() => {
                               setTutorInput("Can you explain the main concepts of this lesson?");
                             }}
@@ -581,13 +563,21 @@ const LessonPage = () => {
                           </Button>
                           <Button 
                             variant="outline" 
-                            size="sm" 
-                            className="w-full text-xs"
+                            size="sm"
                             onClick={() => {
-                              setTutorInput("Give me a practice exercise for this topic");
+                              setTutorInput("Give me additional practice exercises");
                             }}
                           >
-                            Give me an exercise
+                            More exercises
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setTutorInput("What are common mistakes to avoid in this topic?");
+                            }}
+                          >
+                            Common mistakes
                           </Button>
                         </div>
                       </div>
@@ -595,10 +585,10 @@ const LessonPage = () => {
                       tutorMessages.map((msg, idx) => (
                         <div
                           key={idx}
-                          className={`p-3 rounded-lg text-sm ${
+                          className={`p-4 rounded-lg max-w-[80%] ${
                             msg.role === 'user'
-                              ? 'bg-primary text-primary-foreground ml-4'
-                              : 'bg-secondary mr-4'
+                              ? 'bg-primary text-primary-foreground ml-auto'
+                              : 'bg-secondary mr-auto'
                           }`}
                         >
                           <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -606,7 +596,7 @@ const LessonPage = () => {
                       ))
                     )}
                     {tutorLoading && (
-                      <div className="bg-secondary p-3 rounded-lg mr-4">
+                      <div className="bg-secondary p-4 rounded-lg max-w-[80%]">
                         <div className="flex gap-1">
                           <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
                           <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
@@ -619,7 +609,7 @@ const LessonPage = () => {
                   {/* Input */}
                   <div className="flex gap-2">
                     <Textarea
-                      placeholder="Ask a question..."
+                      placeholder="Ask a question about this lesson..."
                       value={tutorInput}
                       onChange={(e) => setTutorInput(e.target.value)}
                       onKeyDown={(e) => {
@@ -628,21 +618,53 @@ const LessonPage = () => {
                           askTutor();
                         }
                       }}
-                      className="min-h-[60px] resize-none"
+                      className="min-h-[60px] resize-none flex-1"
                     />
+                    <Button 
+                      onClick={askTutor}
+                      disabled={tutorLoading || !tutorInput.trim()}
+                      className="gradient-primary self-end"
+                    >
+                      Send
+                    </Button>
                   </div>
-                  <Button 
-                    className="w-full mt-2" 
-                    onClick={askTutor}
-                    disabled={tutorLoading || !tutorInput.trim()}
-                  >
-                    Send
-                  </Button>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Complete Lesson Button */}
+        <Card className="mt-6 glass">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Ready to continue?</p>
+                <p className="text-sm text-muted-foreground">
+                  {practiceScore 
+                    ? `Practice Score: ${Math.round((practiceScore.score / practiceScore.total) * 100)}%`
+                    : 'Complete some exercises to track your score'
+                  }
+                </p>
+              </div>
+              <Button 
+                onClick={() => completeLesson(100)}
+                disabled={completing}
+                size="lg"
+                className="gradient-primary"
+              >
+                {completing ? (
+                  "Saving..."
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-5 w-5 mr-2" />
+                    Complete Lesson
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
