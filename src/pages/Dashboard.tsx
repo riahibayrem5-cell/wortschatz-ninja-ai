@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/contexts/LanguageContext";
+import CourseProgressWidget from "@/components/CourseProgressWidget";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -545,34 +546,38 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Right Column - Recommendations & Mistakes */}
+          {/* Right Column - Course Progress & Recommendations */}
           <div className="space-y-4 sm:space-y-6">
+            {/* Course Progress Widget */}
+            <CourseProgressWidget />
+
             {/* Activity Log Quick Access */}
-            <Card className="glass-luxury border-primary/20">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                  Your Monthly Progress
+            <Card className="glass border-accent/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Activity className="w-4 h-4 text-accent" />
+                  Weekly Activity
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="glass p-3 rounded-lg">
-                    <p className="text-muted-foreground text-xs">Streak</p>
-                    <p className="text-2xl font-bold text-primary">{progress?.streak_days || 0} 🔥</p>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="glass p-2.5 rounded-lg text-center">
+                    <p className="text-2xl font-bold text-primary">{progress?.streak_days || 0}</p>
+                    <p className="text-muted-foreground text-xs">Day Streak 🔥</p>
                   </div>
-                  <div className="glass p-3 rounded-lg">
-                    <p className="text-muted-foreground text-xs">Active Days</p>
+                  <div className="glass p-2.5 rounded-lg text-center">
                     <p className="text-2xl font-bold">{weeklyActivity.filter(d => d.exercises > 0 || d.words > 0).length}/7</p>
+                    <p className="text-muted-foreground text-xs">Active Days</p>
                   </div>
                 </div>
                 <Button 
                   variant="outline" 
-                  className="w-full gradient-accent text-white border-0"
+                  size="sm"
+                  className="w-full"
                   onClick={() => navigate("/activity-log")}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
-                  View Activity Log
+                  View Full Activity Log
                 </Button>
               </CardContent>
             </Card>
