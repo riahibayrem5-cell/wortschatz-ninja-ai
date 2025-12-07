@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { 
-  BookOpen, Clock, Trophy, Lock, CheckCircle2, Play, 
+  BookOpen, Clock, Trophy, CheckCircle2, Play, 
   GraduationCap, Target, Award, ChevronRight, Star
 } from "lucide-react";
 
@@ -96,20 +96,12 @@ const MasteryCourse = () => {
     if (moduleProgress?.status === 'completed') return 'completed';
     if (moduleProgress?.status === 'in_progress') return 'in_progress';
     
-    // Check if previous module is completed (for unlocking)
-    if (weekNumber === 1) return 'unlocked';
-    const prevModule = modules.find(m => m.week_number === weekNumber - 1);
-    if (prevModule && progress[prevModule.id]?.status === 'completed') return 'unlocked';
-    
-    return 'locked';
+    // All modules are unlocked for personalized learning
+    return 'unlocked';
   };
 
   const handleModuleClick = (module: CourseModule) => {
-    const status = getModuleStatus(module.id, module.week_number);
-    if (status === 'locked') {
-      toast.error("Complete previous modules to unlock this one");
-      return;
-    }
+    // All modules are now accessible for personalized learning
     navigate(`/mastery-course/${module.id}`);
   };
 
@@ -243,9 +235,9 @@ const MasteryCourse = () => {
                 return (
                   <Card 
                     key={module.id}
-                    className={`cursor-pointer transition-all hover:shadow-lg ${
-                      status === 'locked' ? 'opacity-60' : ''
-                    } ${status === 'completed' ? 'border-primary/50 bg-primary/5' : ''}`}
+                    className={`cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 ${
+                      status === 'completed' ? 'border-primary/50 bg-primary/5' : ''
+                    }`}
                     onClick={() => handleModuleClick(module)}
                   >
                     <CardHeader className="pb-3">
@@ -259,8 +251,8 @@ const MasteryCourse = () => {
                         {status === 'in_progress' && (
                           <Play className="h-5 w-5 text-yellow-500" />
                         )}
-                        {status === 'locked' && (
-                          <Lock className="h-5 w-5 text-muted-foreground" />
+                        {status === 'unlocked' && (
+                          <BookOpen className="h-5 w-5 text-muted-foreground" />
                         )}
                       </div>
                       <CardTitle className="text-lg">{module.title}</CardTitle>
