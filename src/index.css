@@ -189,4 +189,153 @@ All colors MUST be HSL.
     z-index: 1000;
     pointer-events: none;
   }
+
+  /* Exercise animations */
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+
+  @keyframes correct-pulse {
+    0% { box-shadow: 0 0 0 0 hsl(142 76% 36% / 0.5); }
+    70% { box-shadow: 0 0 0 15px hsl(142 76% 36% / 0); }
+    100% { box-shadow: 0 0 0 0 hsl(142 76% 36% / 0); }
+  }
+
+  @keyframes wrong-shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+  }
+
+  @keyframes pop-in {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes progress-fill {
+    from { width: 0%; }
+  }
+
+  @keyframes sparkle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.4s ease-out forwards;
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  .animate-correct-pulse {
+    animation: correct-pulse 0.6s ease-out;
+  }
+
+  .animate-wrong-shake {
+    animation: wrong-shake 0.4s ease-out;
+  }
+
+  .animate-pop-in {
+    animation: pop-in 0.3s ease-out forwards;
+  }
+
+  .animate-progress-fill {
+    animation: progress-fill 0.8s ease-out forwards;
+  }
+
+  .animate-sparkle {
+    animation: sparkle 1.5s ease-in-out infinite;
+  }
+
+  /* Exercise card states */
+  .exercise-option {
+    @apply transition-all duration-200 cursor-pointer;
+  }
+
+  .exercise-option:hover {
+    @apply scale-[1.02] shadow-lg;
+  }
+
+  .exercise-option.correct {
+    @apply border-green-500 bg-green-500/10;
+    animation: correct-pulse 0.6s ease-out;
+  }
+
+  .exercise-option.incorrect {
+    @apply border-destructive bg-destructive/10;
+    animation: wrong-shake 0.4s ease-out;
+  }
+
+  .exercise-option.selected {
+    @apply border-primary ring-2 ring-primary/30;
+  }
+
+  /* Matching exercise */
+  .match-item {
+    @apply transition-all duration-200;
+  }
+
+  .match-item.matched {
+    @apply opacity-50 pointer-events-none;
+  }
+
+  .match-item.active {
+    @apply ring-2 ring-primary shadow-lg scale-105;
+  }
+
+  /* Fill in blank */
+  .blank-input {
+    @apply transition-all duration-200 border-b-2 border-dashed border-primary/50;
+  }
+
+  .blank-input:focus {
+    @apply border-solid border-primary;
+  }
+
+  .blank-input.correct {
+    @apply border-green-500 text-green-600;
+  }
+
+  .blank-input.incorrect {
+    @apply border-destructive text-destructive;
+  }
+
+  /* Results animations */
+  @keyframes score-count {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .animate-score {
+    animation: score-count 0.5s ease-out forwards;
+  }
+
+  /* Stagger children animations */
+  .stagger-children > * {
+    opacity: 0;
+    animation: slide-up 0.4s ease-out forwards;
+  }
+
+  .stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+  .stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+  .stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+  .stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+  .stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+  .stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
 }

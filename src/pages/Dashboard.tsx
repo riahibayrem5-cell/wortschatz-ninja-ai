@@ -257,6 +257,59 @@ const Dashboard = () => {
           </Card>
         )}
 
+        {/* Featured: TELC B2 Mastery Course */}
+        <Card 
+          className="glass-luxury border-primary/30 overflow-hidden cursor-pointer hover:luxury-glow transition-all duration-300"
+          onClick={() => navigate('/mastery-course')}
+        >
+          <div className="relative">
+            <div className="absolute inset-0 gradient-luxury opacity-10" />
+            <CardContent className="p-6 relative">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                <div className="p-4 rounded-2xl bg-primary/20 animate-sparkle">
+                  <GraduationCap className="w-10 h-10 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge className="gradient-primary text-primary-foreground">Featured</Badge>
+                    <Badge variant="outline" className="border-primary/50">12 Weeks</Badge>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gradient-luxury mb-1">
+                    TELC B2 Mastery Course
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Complete 12-week curriculum with 60+ lessons, interactive exercises, AI tutoring, and official certificate upon completion.
+                  </p>
+                </div>
+                <Button size="lg" className="gradient-primary hover:scale-105 transition-transform shrink-0">
+                  <Flame className="w-5 h-5 mr-2" />
+                  Start Learning
+                </Button>
+              </div>
+              
+              {/* Course highlights */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-border/50">
+                <div className="flex items-center gap-2 text-sm">
+                  <BookOpen className="w-4 h-4 text-primary" />
+                  <span>60+ Lessons</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Brain className="w-4 h-4 text-accent" />
+                  <span>AI Tutor</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Target className="w-4 h-4 text-green-500" />
+                  <span>Exercises</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Trophy className="w-4 h-4 text-yellow-500" />
+                  <span>Certificate</span>
+                </div>
+              </div>
+            </CardContent>
+          </div>
+        </Card>
+
         {/* Quick Actions */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Button
