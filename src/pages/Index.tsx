@@ -17,8 +17,12 @@ const Index = () => {
               <div className="absolute inset-0 blur-3xl opacity-30 bg-gradient-luxury"></div>
               <img 
                 src="/fluentpass-logo.png" 
-                alt="FluentPass" 
-                className="relative w-32 h-32 md:w-40 md:h-40 luxury-glow hover:scale-105 transition-transform duration-300" 
+                alt="FluentPass - German Language Learning Platform" 
+                className="relative w-32 h-32 md:w-40 md:h-40 luxury-glow hover:scale-105 transition-transform duration-300 object-contain" 
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
               />
             </div>
             <h1 className="text-6xl md:text-8xl font-bold text-gradient-luxury mb-2">FluentPass</h1>

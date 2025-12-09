@@ -1,3 +1,13 @@
+# FluentPass - German Language Learning Platform
+# https://fluentpass.app
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://fluentpass.app/sitemap.xml
+
+# Allow all major crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +20,10 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
+User-agent: LinkedInBot
 Allow: /
+
+# Disallow auth-protected areas for crawlers
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /auth
