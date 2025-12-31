@@ -5,12 +5,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { BookOpen, MessageSquare, Target, Brain, TrendingUp, AlertCircle, CheckCircle2, Activity, Sparkles, Loader2, Calendar, Zap, GraduationCap, RotateCcw, Trophy, Flame, Star } from "lucide-react";
+import { 
+  BookOpen, MessageSquare, Target, Brain, TrendingUp, 
+  AlertCircle, CheckCircle2, Activity, Sparkles, Loader2, 
+  Calendar, Zap, GraduationCap, RotateCcw, Trophy, Flame, 
+  Star, ArrowRight, Play
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import CourseProgressWidget from "@/components/CourseProgressWidget";
+import HeroBanner from "@/components/HeroBanner";
+import StatCard from "@/components/StatCard";
+import ConfettiCelebration from "@/components/ConfettiCelebration";
+import dashboardBanner from "@/assets/dashboard-banner.jpg";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -23,6 +32,7 @@ const Dashboard = () => {
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [analyzingProgress, setAnalyzingProgress] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const analyzeProgressWithAI = async () => {
     if (mistakes.length === 0) {
@@ -74,6 +84,11 @@ const Dashboard = () => {
         .single();
       
       setProgress(progressData);
+
+      // Check for milestones
+      if (progressData?.streak_days === 7 || progressData?.streak_days === 30 || progressData?.words_learned >= 100) {
+        setTimeout(() => setShowCelebration(true), 500);
+      }
 
       // Fetch mistakes for weak spots analysis
       const { data: mistakesData } = await supabase
@@ -148,39 +163,32 @@ const Dashboard = () => {
     const recs = [];
     const totalActivity = weeklyActivity.reduce((sum, day) => sum + day.exercises + day.words, 0);
     
-    // Priority 1: Critical mistakes need review
     if (mistakes.length > 10) {
-      recs.push({ icon: AlertCircle, text: "⚠️ Review Mistake Diary - You have many logged errors", path: "/diary" });
+      recs.push({ icon: AlertCircle, text: "Review Mistake Diary - You have many logged errors", path: "/diary" });
     }
     
-    // Priority 2: Weak spots identified by AI
     if (weakSpots.length > 0 && weakSpots[0].severity >= 5) {
-      recs.push({ icon: Target, text: `🎯 Focus on ${weakSpots[0].name} - Your weakest area`, path: "/writing" });
+      recs.push({ icon: Target, text: `Focus on ${weakSpots[0].name} - Your weakest area`, path: "/writing" });
     }
     
-    // Priority 3: Low activity warning
     if (totalActivity < 20) {
-      recs.push({ icon: TrendingUp, text: "📈 You've been less active - Practice daily for better results", path: "/exercises" });
+      recs.push({ icon: TrendingUp, text: "Practice daily for better results", path: "/exercises" });
     }
     
-    // Priority 4: Vocabulary building (always important)
     if ((progress?.words_learned || 0) < 100) {
-      recs.push({ icon: BookOpen, text: `📚 Learn more vocabulary - Target: ${1000 - (progress?.words_learned || 0)} words to go`, path: "/vocabulary" });
+      recs.push({ icon: BookOpen, text: `Learn more vocabulary`, path: "/vocabulary" });
     }
     
-    // Priority 5: Try new features
     if ((progress?.exercises_completed || 0) < 5) {
-      recs.push({ icon: Brain, text: "🧠 Try AI Companion - Interactive learning with real-time feedback", path: "/ai-companion" });
+      recs.push({ icon: Brain, text: "Try AI Companion for interactive learning", path: "/ai-companion" });
     }
     
-    // Priority 6: Consistency building
     if ((progress?.streak_days || 0) < 7) {
-      recs.push({ icon: MessageSquare, text: `🔥 Build your streak - Practice ${7 - (progress?.streak_days || 0)} more days for a week streak`, path: "/memorizer" });
+      recs.push({ icon: MessageSquare, text: `Build your streak to 7 days`, path: "/memorizer" });
     }
     
-    // Priority 7: TELC exam prep
     if ((progress?.exercises_completed || 0) >= 20 && mistakes.length < 5) {
-      recs.push({ icon: CheckCircle2, text: "🎓 Ready for TELC B2 Mock Exam - Test your skills", path: "/telc-exam" });
+      recs.push({ icon: CheckCircle2, text: "Ready for TELC B2 Mock Exam", path: "/telc-exam" });
     }
     
     return recs.slice(0, 4);
@@ -202,7 +210,13 @@ const Dashboard = () => {
       <div className="min-h-screen gradient-hero">
         <Navbar />
         <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-          <Activity className="w-8 h-8 animate-spin text-primary" />
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+              <Sparkles className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            </div>
+            <p className="text-muted-foreground">Loading your dashboard...</p>
+          </div>
         </div>
       </div>
     );
@@ -211,38 +225,47 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen gradient-hero">
       <Navbar />
+      <ConfettiCelebration trigger={showCelebration} />
       
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 sm:pt-4">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gradient-luxury">{t('dashboard.title')}</h1>
-          <div className="flex gap-2 items-center w-full sm:w-auto">
-            <Button
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
+        {/* Hero Banner */}
+        <HeroBanner
+          image={dashboardBanner}
+          title={`Welcome back${user?.email ? `, ${user.email.split('@')[0]}` : ''}!`}
+          subtitle="Continue your German learning journey. Track your progress and unlock new achievements."
+          badge={`🔥 ${progress?.streak_days || 0} Day Streak`}
+          height="md"
+        >
+          <div className="flex gap-3 mt-2">
+            <Button 
+              onClick={() => navigate('/mastery-course')} 
+              className="gradient-primary hover:scale-105 transition-transform"
+            >
+              <Play className="w-4 h-4 mr-2" />
+              Continue Learning
+            </Button>
+            <Button 
+              variant="outline" 
               onClick={analyzeProgressWithAI}
               disabled={analyzingProgress || mistakes.length === 0}
-              variant="outline"
-              className="glass hover:glow flex-1 sm:flex-none"
+              className="glass hover:glow"
             >
               {analyzingProgress ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analyzing...
-                </>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Get AI Insights
-                </>
+                <Sparkles className="w-4 h-4 mr-2" />
               )}
+              AI Insights
             </Button>
           </div>
-        </div>
+        </HeroBanner>
 
         {/* Celebration Banner for Milestones */}
         {(progress?.streak_days === 7 || progress?.streak_days === 30 || progress?.words_learned >= 100) && (
-          <Card className="glass-luxury border-primary/30 animate-fade-in">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-full bg-primary/20 animate-pulse">
+          <Card className="glass-luxury border-primary/30 animate-bounce-in overflow-hidden">
+            <div className="absolute inset-0 animate-shimmer" />
+            <CardContent className="p-4 flex items-center gap-4 relative">
+              <div className="p-3 rounded-full bg-primary/20 animate-glow-pulse">
                 <Trophy className="w-6 h-6 text-primary" />
               </div>
               <div className="flex-1">
@@ -253,21 +276,87 @@ const Dashboard = () => {
                   {progress?.words_learned >= 100 && progress?.streak_days !== 7 && progress?.streak_days !== 30 && "You've learned 100+ words! Great progress!"}
                 </p>
               </div>
-              <Star className="w-8 h-8 text-yellow-500 animate-bounce" />
+              <Star className="w-8 h-8 text-yellow-500 animate-float" />
             </CardContent>
           </Card>
         )}
 
+        {/* Key Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
+          <StatCard
+            icon={<Target className="w-6 h-6" />}
+            value={progress?.words_learned || 0}
+            label={t('dashboard.wordsLearned')}
+            variant="primary"
+            onClick={() => navigate('/vocabulary')}
+          />
+          <StatCard
+            icon={<BookOpen className="w-6 h-6" />}
+            value={progress?.exercises_completed || 0}
+            label={t('dashboard.exercisesDone')}
+            variant="accent"
+            onClick={() => navigate('/exercises')}
+          />
+          <StatCard
+            icon={<Flame className="w-6 h-6" />}
+            value={progress?.streak_days || 0}
+            label={t('dashboard.currentStreak')}
+            variant="warning"
+          />
+          <StatCard
+            icon={<AlertCircle className="w-6 h-6" />}
+            value={mistakes.length}
+            label={t('dashboard.totalMistakes')}
+            variant="default"
+            onClick={() => navigate('/diary')}
+          />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Button
+            onClick={() => navigate('/ai-companion')}
+            className="h-auto p-4 flex flex-col items-center gap-2 gradient-primary hover:scale-105 transition-transform group"
+          >
+            <Brain className="w-6 h-6 group-hover:animate-bounce" />
+            <span className="text-sm font-medium">AI Session</span>
+          </Button>
+          <Button
+            onClick={() => navigate('/exercises')}
+            variant="outline"
+            className="h-auto p-4 flex flex-col items-center gap-2 glass hover:border-primary/50 group"
+          >
+            <Target className="w-6 h-6 text-primary group-hover:animate-bounce" />
+            <span className="text-sm font-medium">Practice</span>
+          </Button>
+          <Button
+            onClick={() => navigate('/review')}
+            variant="outline"
+            className="h-auto p-4 flex flex-col items-center gap-2 glass hover:border-primary/50 group"
+          >
+            <RotateCcw className="w-6 h-6 text-accent group-hover:animate-spin" />
+            <span className="text-sm font-medium">Review</span>
+          </Button>
+          <Button
+            onClick={() => navigate('/telc-exam')}
+            variant="outline"
+            className="h-auto p-4 flex flex-col items-center gap-2 glass hover:border-primary/50 group"
+          >
+            <GraduationCap className="w-6 h-6 text-green-500 group-hover:animate-bounce" />
+            <span className="text-sm font-medium">TELC Exam</span>
+          </Button>
+        </div>
+
         {/* Featured: TELC B2 Mastery Course */}
         <Card 
-          className="glass-luxury border-primary/30 overflow-hidden cursor-pointer hover:luxury-glow transition-all duration-300"
+          className="glass-luxury border-primary/30 overflow-hidden cursor-pointer hover:luxury-glow transition-all duration-300 group"
           onClick={() => navigate('/mastery-course')}
         >
           <div className="relative">
-            <div className="absolute inset-0 gradient-luxury opacity-10" />
+            <div className="absolute inset-0 gradient-luxury opacity-10 group-hover:opacity-20 transition-opacity" />
             <CardContent className="p-6 relative">
               <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                <div className="p-4 rounded-2xl bg-primary/20 animate-sparkle">
+                <div className="p-4 rounded-2xl bg-primary/20 animate-sparkle group-hover:animate-glow-pulse">
                   <GraduationCap className="w-10 h-10 text-primary" />
                 </div>
                 <div className="flex-1">
@@ -282,9 +371,10 @@ const Dashboard = () => {
                     Complete 12-week curriculum with 60+ lessons, interactive exercises, AI tutoring, and official certificate upon completion.
                   </p>
                 </div>
-                <Button size="lg" className="gradient-primary hover:scale-105 transition-transform shrink-0">
+                <Button size="lg" className="gradient-primary hover:scale-105 transition-transform shrink-0 group-hover:shadow-lg">
                   <Flame className="w-5 h-5 mr-2" />
                   Start Learning
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </div>
               
@@ -311,141 +401,55 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <Button
-            onClick={() => navigate('/ai-companion')}
-            className="h-auto p-4 flex flex-col items-center gap-2 gradient-primary hover:scale-105 transition-transform"
-          >
-            <Brain className="w-6 h-6" />
-            <span className="text-sm font-medium">AI Session</span>
-          </Button>
-          <Button
-            onClick={() => navigate('/exercises')}
-            variant="outline"
-            className="h-auto p-4 flex flex-col items-center gap-2 glass hover:border-primary/50"
-          >
-            <Target className="w-6 h-6 text-primary" />
-            <span className="text-sm font-medium">Practice</span>
-          </Button>
-          <Button
-            onClick={() => navigate('/review')}
-            variant="outline"
-            className="h-auto p-4 flex flex-col items-center gap-2 glass hover:border-primary/50"
-          >
-            <RotateCcw className="w-6 h-6 text-accent" />
-            <span className="text-sm font-medium">Review</span>
-          </Button>
-          <Button
-            onClick={() => navigate('/telc-exam')}
-            variant="outline"
-            className="h-auto p-4 flex flex-col items-center gap-2 glass hover:border-primary/50"
-          >
-            <GraduationCap className="w-6 h-6 text-green-500" />
-            <span className="text-sm font-medium">TELC Exam</span>
-          </Button>
-        </div>
-
         {/* Learning Path & Achievements Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card 
-            className="glass-luxury border-primary/20 cursor-pointer hover:border-primary/40 transition-all"
+            className="glass-luxury border-primary/20 cursor-pointer hover:border-primary/40 hover:shadow-lg transition-all group"
             onClick={() => navigate('/learning-path')}
           >
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-primary/20">
+              <div className="p-3 rounded-lg bg-primary/20 group-hover:animate-glow-pulse">
                 <TrendingUp className="w-6 h-6 text-primary" />
               </div>
               <div className="flex-1">
                 <p className="font-semibold">Learning Path</p>
                 <p className="text-sm text-muted-foreground">AI-powered daily lessons</p>
               </div>
-              <Button size="sm" className="gradient-primary">Start</Button>
+              <Button size="sm" className="gradient-primary group-hover:scale-105 transition-transform">
+                Start
+                <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
             </CardContent>
           </Card>
 
           <Card 
-            className="glass cursor-pointer hover:border-primary/40 transition-all"
+            className="glass cursor-pointer hover:border-primary/40 hover:shadow-lg transition-all group"
             onClick={() => navigate('/achievements')}
           >
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-yellow-500/20">
+              <div className="p-3 rounded-lg bg-yellow-500/20 group-hover:animate-float">
                 <Trophy className="w-6 h-6 text-yellow-500" />
               </div>
               <div className="flex-1">
                 <p className="font-semibold">Achievements</p>
                 <p className="text-sm text-muted-foreground">Unlock badges & earn XP</p>
               </div>
-              <Button size="sm" variant="outline">View</Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <Card className="glass">
-            <CardHeader className="pb-2 sm:pb-3">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('dashboard.wordsLearned')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-2xl sm:text-3xl font-bold text-primary">{progress?.words_learned || 0}</div>
-                <Target className="w-6 h-6 sm:w-8 sm:h-8 text-primary opacity-50" />
-              </div>
-              <Progress value={(progress?.words_learned || 0) / 10} className="mt-2 sm:mt-3" />
-              <p className="text-xs text-muted-foreground mt-1 sm:mt-2">{t('dashboard.goal')}: 1000 {t('dashboard.words')}</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="glass">
-            <CardHeader className="pb-2 sm:pb-3">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('dashboard.exercisesDone')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-2xl sm:text-3xl font-bold text-accent">{progress?.exercises_completed || 0}</div>
-                <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-accent opacity-50" />
-              </div>
-              <Progress value={(progress?.exercises_completed || 0) / 5} className="mt-2 sm:mt-3" />
-              <p className="text-xs text-muted-foreground mt-1 sm:mt-2">{t('dashboard.goal')}: 500 {t('dashboard.exercises')}</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="glass">
-            <CardHeader className="pb-2 sm:pb-3">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('dashboard.currentStreak')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-2xl sm:text-3xl font-bold text-primary">{progress?.streak_days || 0}</div>
-                <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-primary opacity-50" />
-              </div>
-              <p className="text-xs text-muted-foreground mt-3 sm:mt-5">{t('dashboard.keepGoing')}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass">
-            <CardHeader className="pb-2 sm:pb-3">
-              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{t('dashboard.totalMistakes')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-2xl sm:text-3xl font-bold text-destructive">{mistakes.length}</div>
-                <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 text-destructive opacity-50" />
-              </div>
-              <p className="text-xs text-muted-foreground mt-3 sm:mt-5">{t('dashboard.learningOpportunities')}</p>
+              <Button size="sm" variant="outline" className="group-hover:border-primary/50">
+                View
+                <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Activity & Progress */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          <div className="lg:col-span-2 space-y-6">
             {/* Weekly Activity Chart */}
             <Card className="glass">
               <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
                   <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   {t('dashboard.weeklyActivity')}
                 </CardTitle>
@@ -465,8 +469,8 @@ const Dashboard = () => {
                       }} 
                     />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
-                    <Line type="monotone" dataKey="exercises" stroke="hsl(var(--primary))" strokeWidth={2} />
-                    <Line type="monotone" dataKey="words" stroke="hsl(var(--accent))" strokeWidth={2} />
+                    <Line type="monotone" dataKey="exercises" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))' }} />
+                    <Line type="monotone" dataKey="words" stroke="hsl(var(--accent))" strokeWidth={2} dot={{ fill: 'hsl(var(--accent))' }} />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -481,21 +485,21 @@ const Dashboard = () => {
                     Areas Needing Focus
                   </CardTitle>
                   {aiAnalysis && (
-                    <Badge variant="secondary" className="text-xs">AI Analyzed</Badge>
+                    <Badge variant="secondary" className="text-xs animate-pulse">AI Analyzed</Badge>
                   )}
                 </div>
               </CardHeader>
               <CardContent>
                 {weakSpots.length === 0 ? (
-                  <div className="text-center py-6 sm:py-8 text-muted-foreground">
-                    <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 text-green-500" />
-                    <p className="text-sm">Great job! No major weak areas detected.</p>
+                  <div className="text-center py-8 text-muted-foreground">
+                    <CheckCircle2 className="w-12 h-12 mx-auto mb-3 text-green-500 animate-bounce-in" />
+                    <p className="text-sm font-medium">Great job! No major weak areas detected.</p>
                     <p className="text-xs mt-2">Complete more exercises for detailed analysis</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 stagger-children">
                     {weakSpots.map((spot: any, idx: number) => (
-                      <div key={idx} className="p-3 rounded-lg bg-destructive/5 border border-destructive/10">
+                      <div key={idx} className="p-3 rounded-lg bg-destructive/5 border border-destructive/10 hover:border-destructive/20 transition-colors">
                         <div className="flex items-start justify-between gap-3 mb-2">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
@@ -525,7 +529,7 @@ const Dashboard = () => {
 
             {/* AI Strengths */}
             {aiAnalysis?.strengths && aiAnalysis.strengths.length > 0 && (
-              <Card className="glass">
+              <Card className="glass animate-fade-in">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-green-500 text-sm sm:text-base">
                     <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -535,9 +539,9 @@ const Dashboard = () => {
                 <CardContent>
                   <ul className="space-y-2">
                     {aiAnalysis.strengths.map((strength: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500 mt-0.5 shrink-0" />
-                        <span className="text-xs sm:text-sm">{strength}</span>
+                      <li key={idx} className="flex items-start gap-2 animate-slide-in-left" style={{ animationDelay: `${idx * 0.1}s` }}>
+                        <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                        <span className="text-sm">{strength}</span>
                       </li>
                     ))}
                   </ul>
@@ -547,7 +551,7 @@ const Dashboard = () => {
           </div>
 
           {/* Right Column - Course Progress & Recommendations */}
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-6">
             {/* Course Progress Widget */}
             <CourseProgressWidget />
 
@@ -561,11 +565,11 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="glass p-2.5 rounded-lg text-center">
+                  <div className="glass p-2.5 rounded-lg text-center hover:scale-105 transition-transform">
                     <p className="text-2xl font-bold text-primary">{progress?.streak_days || 0}</p>
                     <p className="text-muted-foreground text-xs">Day Streak 🔥</p>
                   </div>
-                  <div className="glass p-2.5 rounded-lg text-center">
+                  <div className="glass p-2.5 rounded-lg text-center hover:scale-105 transition-transform">
                     <p className="text-2xl font-bold">{weeklyActivity.filter(d => d.exercises > 0 || d.words > 0).length}/7</p>
                     <p className="text-muted-foreground text-xs">Active Days</p>
                   </div>
@@ -573,11 +577,12 @@ const Dashboard = () => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className="w-full"
+                  className="w-full group"
                   onClick={() => navigate("/activity-log")}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
                   View Full Activity Log
+                  <ArrowRight className="w-3 h-3 ml-auto group-hover:translate-x-1 transition-transform" />
                 </Button>
               </CardContent>
             </Card>
@@ -587,7 +592,7 @@ const Dashboard = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary animate-sparkle" />
                     Recommended Next Steps
                   </CardTitle>
                   {aiAnalysis && (
@@ -602,10 +607,10 @@ const Dashboard = () => {
                     <button
                       key={idx}
                       onClick={() => rec.path && navigate(rec.path)}
-                      className="w-full p-3 rounded-lg bg-primary/5 hover:bg-primary/10 border border-primary/10 hover:border-primary/30 transition-all text-left group"
+                      className="w-full p-3 rounded-lg bg-primary/5 hover:bg-primary/10 border border-primary/10 hover:border-primary/30 transition-all text-left group hover:scale-[1.02]"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="mt-0.5 text-primary">
+                        <div className="mt-0.5 text-primary group-hover:animate-bounce">
                           <Icon className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -617,7 +622,7 @@ const Dashboard = () => {
                           )}
                         </div>
                         <div className="text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                          →
+                          <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
                     </button>
@@ -630,10 +635,10 @@ const Dashboard = () => {
             {mistakeDistribution.length > 0 && (
               <Card className="glass">
                 <CardHeader>
-                  <CardTitle className="text-xs sm:text-sm">{t('dashboard.mistakeDistribution')}</CardTitle>
+                  <CardTitle className="text-sm">{t('dashboard.mistakeDistribution')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={180} className="sm:h-[200px]">
+                  <ResponsiveContainer width="100%" height={180}>
                     <PieChart>
                       <Pie
                         data={mistakeDistribution}
