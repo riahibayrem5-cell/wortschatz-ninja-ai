@@ -21,6 +21,7 @@ import TextHighlighter from "./pages/TextHighlighter";
 import MistakeDiary from "./pages/MistakeDiary";
 import Settings from "./pages/Settings";
 import TelcExam from "./pages/TelcExam";
+import TelcVorbereitung from "./pages/TelcVorbereitung";
 import AICompanion from "./pages/AICompanion";
 import History from "./pages/History";
 import ActivityLog from "./pages/ActivityLog";
@@ -63,6 +64,7 @@ const App = () => (
             <Route path="/diary" element={<MistakeDiary />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/telc-exam" element={<TelcExam />} />
+            <Route path="/telc-vorbereitung" element={<TelcVorbereitung />} />
             <Route path="/ai-companion" element={<AICompanion />} />
             <Route path="/history" element={<History />} />
             <Route path="/activity-log" element={<ActivityLog />} />
