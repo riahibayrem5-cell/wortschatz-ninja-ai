@@ -119,6 +119,7 @@ const Navbar = () => {
   ];
 
   const singlePageLinks = [
+    { name: "TELC Vorbereitung", path: "/telc-vorbereitung" },
     { name: t('nav.telcExam'), path: "/telc-exam" },
     { name: t('nav.history'), path: "/history" },
   ];
