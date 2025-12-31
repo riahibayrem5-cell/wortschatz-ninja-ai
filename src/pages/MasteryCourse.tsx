@@ -16,7 +16,7 @@ import {
 import HeroBanner from "@/components/HeroBanner";
 import ModuleCard from "@/components/ModuleCard";
 import ConfettiCelebration from "@/components/ConfettiCelebration";
-import TelcVorbereitungSection from "@/components/telc/TelcVorbereitungSection";
+
 import courseBanner from "@/assets/course-banner.jpg";
 
 interface CourseModule {
@@ -241,12 +241,8 @@ const MasteryCourse = () => {
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="vorbereitung" className="w-full">
-          <TabsList className="mb-6 w-full sm:w-auto grid grid-cols-3 sm:flex">
-            <TabsTrigger value="vorbereitung" className="flex items-center gap-2">
-              <Award className="w-4 h-4" />
-              <span className="hidden sm:inline">TELC</span> Vorbereitung
-            </TabsTrigger>
+        <Tabs defaultValue="modules" className="w-full">
+          <TabsList className="mb-6 w-full sm:w-auto grid grid-cols-2 sm:flex">
             <TabsTrigger value="modules" className="flex items-center gap-2">
               <BookOpen className="w-4 h-4" />
               <span className="hidden sm:inline">Course</span> Modules
@@ -256,10 +252,6 @@ const MasteryCourse = () => {
               <span className="hidden sm:inline">Course</span> Overview
             </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="vorbereitung">
-            <TelcVorbereitungSection />
-          </TabsContent>
 
           <TabsContent value="modules">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
