@@ -14,9 +14,9 @@ serve(async (req) => {
   try {
     const { section, difficulty = 'b2' } = await req.json();
     
-    const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
-    if (!GOOGLE_GEMINI_API_KEY) {
-      throw new Error('GOOGLE_GEMINI_API_KEY is not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     const prompts: Record<string, string> = {
@@ -61,6 +61,14 @@ Return JSON:
       "questions": [5 selective reading questions matching information to texts]
     }
   ]
+}
+
+Each question in the questions array should have this structure:
+{
+  "id": 1,
+  "question": "the question text in German",
+  "options": ["option a", "option b", "option c", "option d"],
+  "correctAnswer": 0
 }`,
 
       sprachbausteine: `Create authentic TELC B2 Sprachbausteine testing German grammar and vocabulary at B2 level.
@@ -95,6 +103,14 @@ Return JSON:
       "questions": [10 more grammar/vocabulary questions]
     }
   ]
+}
+
+Each question in the questions array should have this structure:
+{
+  "id": 1,
+  "question": "Fill in gap [1]",
+  "options": ["option a", "option b", "option c"],
+  "correctAnswer": 0
 }`,
 
       listening: `Create authentic TELC B2 Hörverstehen with realistic German audio transcripts.
@@ -138,6 +154,14 @@ Return JSON:
       "questions": [5 matching questions]
     }
   ]
+}
+
+Each question in the questions array should have this structure:
+{
+  "id": 1,
+  "question": "the question text in German",
+  "options": ["option a", "option b", "option c", "option d"],
+  "correctAnswer": 0
 }`,
 
       writing: `Create TELC B2 Schriftlicher Ausdruck with realistic formal writing task.
@@ -194,7 +218,7 @@ Return JSON:
       "wordCount": 0
     }
   ]
-}`,
+}`
     };
 
     const prompt = prompts[section];
@@ -202,33 +226,52 @@ Return JSON:
       throw new Error('Invalid section');
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: prompt }]
-          }],
-          generationConfig: {
-            response_mime_type: "application/json"
-          }
-        }),
-      }
-    );
+    console.log(`Generating TELC exam for section: ${section}`);
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are an expert TELC B2 German exam creator. Generate authentic exam content following official TELC standards. Always respond with valid JSON only, no additional text or markdown.' 
+          },
+          { role: 'user', content: prompt }
+        ],
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      throw new Error(`Gemini API error: ${response.status}`);
+      console.error('AI API error:', response.status, errorText);
+      throw new Error(`AI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const contentText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    const content = JSON.parse(contentText);
+    const contentText = data.choices?.[0]?.message?.content;
+    
+    if (!contentText) {
+      throw new Error('No content received from AI');
+    }
+
+    // Parse JSON from the response, handling potential markdown code blocks
+    let content;
+    try {
+      const jsonMatch = contentText.match(/```json\n?([\s\S]*?)\n?```/) || 
+                        contentText.match(/```\n?([\s\S]*?)\n?```/) ||
+                        [null, contentText];
+      content = JSON.parse(jsonMatch[1] || contentText);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError, 'Content:', contentText);
+      throw new Error('Failed to parse AI response as JSON');
+    }
+
+    console.log(`Successfully generated ${section} exam content`);
 
     return new Response(JSON.stringify(content), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
