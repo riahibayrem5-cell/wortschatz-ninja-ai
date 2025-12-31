@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,10 +11,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
 import { Sparkles, Menu, LogOut, Settings, Home, Sun, Moon, Languages, CheckCircle2, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import fluentpassLogo from "@/assets/fluentpass-logo.png";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -35,25 +35,21 @@ const Navbar = () => {
 
   useEffect(() => {
     checkServerHealth();
-    const interval = setInterval(checkServerHealth, 30000); // Check every 30s
+    const interval = setInterval(checkServerHealth, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const checkServerHealth = async () => {
     try {
       const checks = await Promise.all([
-        // Database check
         supabase.from("user_progress").select("count").limit(1),
-        // Auth check
         supabase.auth.getSession(),
-        // Measure latency
         Promise.resolve(Date.now())
       ]);
 
       const latency = Date.now() - (checks[2] as number);
       const dbError = checks[0].error;
       
-      // Log metrics to database for monitoring
       if (!dbError) {
         supabase.from("server_metrics").insert({
           metric_type: 'api_latency',
@@ -126,44 +122,52 @@ const Navbar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Handle click for navigation (prevents default for left click, allows middle click)
+  const handleNavClick = (e: React.MouseEvent, path: string) => {
+    // Only prevent default for left click (button === 0)
+    if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      navigate(path);
+    }
+    // Middle click (button === 1) or Ctrl/Cmd+click will naturally open in new tab
+  };
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
-        {/* Logo */}
-        <button
-          onClick={() => navigate("/dashboard")}
+        {/* Logo - Using Link for proper middle-click support */}
+        <Link
+          to="/dashboard"
           className="flex items-center gap-1.5 sm:gap-2 font-bold text-base sm:text-xl hover:scale-105 transition-all group"
         >
           <img 
-            src="/fluentpass-logo.png" 
+            src={fluentpassLogo} 
             alt="FluentPass" 
-            className="w-7 h-7 sm:w-9 sm:h-9 group-hover:rotate-6 transition-transform duration-300" 
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-lg group-hover:rotate-6 transition-transform duration-300" 
           />
           <span className="text-gradient-luxury hidden xs:inline">FluentPass</span>
           <span className="text-gradient-luxury xs:hidden">FP</span>
-        </button>
+        </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center gap-2 xl:gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/dashboard")}
-            className={isActive("/dashboard") ? "text-primary" : ""}
+          <Link
+            to="/dashboard"
+            onClick={(e) => handleNavClick(e, "/dashboard")}
+            className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3 ${isActive("/dashboard") ? "text-primary" : ""}`}
           >
-            <Home className="w-4 h-4 mr-1.5" />
+            <Home className="w-4 h-4" />
             <span className="hidden xl:inline">{t('nav.dashboard')}</span>
-          </Button>
+          </Link>
 
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => navigate("/ai-companion")}
-            className={`gradient-primary hover:opacity-90 ${isActive("/ai-companion") ? "ring-2 ring-primary" : ""}`}
+          <Link
+            to="/ai-companion"
+            onClick={(e) => handleNavClick(e, "/ai-companion")}
+            className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-9 px-4 gradient-primary hover:opacity-90 text-primary-foreground ${isActive("/ai-companion") ? "ring-2 ring-primary" : ""}`}
           >
-            <Sparkles className="w-4 h-4 mr-1.5" />
-            <span className="font-bold">{t('nav.aiCompanion')}</span>
-          </Button>
+            <Sparkles className="w-4 h-4" />
+            <span>{t('nav.aiCompanion')}</span>
+          </Link>
 
           {menuSections.map((section) => (
             <DropdownMenu key={section.label}>
@@ -172,16 +176,22 @@ const Navbar = () => {
                   {section.label}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48 xl:w-56 glass border-border/50">
+              <DropdownMenuContent className="w-48 xl:w-56 bg-popover border-border shadow-lg">
                 <DropdownMenuLabel className="text-xs xl:text-sm">{section.label}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {section.items.map((item) => (
                   <DropdownMenuItem
                     key={item.path}
-                    onClick={() => navigate(item.path)}
-                    className={`text-xs xl:text-sm ${isActive(item.path) ? "bg-primary/10" : ""}`}
+                    asChild
+                    className={`text-xs xl:text-sm cursor-pointer ${isActive(item.path) ? "bg-primary/10" : ""}`}
                   >
-                    {item.name}
+                    <Link 
+                      to={item.path}
+                      onClick={(e) => handleNavClick(e, item.path)}
+                      className="w-full"
+                    >
+                      {item.name}
+                    </Link>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -189,15 +199,14 @@ const Navbar = () => {
           ))}
 
           {singlePageLinks.map((link) => (
-            <Button
+            <Link
               key={link.path}
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(link.path)}
-              className={`text-xs xl:text-sm ${isActive(link.path) ? "text-primary" : ""}`}
+              to={link.path}
+              onClick={(e) => handleNavClick(e, link.path)}
+              className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs xl:text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-accent hover:text-accent-foreground h-9 px-3 ${isActive(link.path) ? "text-primary" : ""}`}
             >
               {link.name}
-            </Button>
+            </Link>
           ))}
 
           {/* Server Status */}
@@ -209,7 +218,7 @@ const Navbar = () => {
                 {serverHealth === 'down' && <AlertCircle className="w-4 h-4 text-destructive" />}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 text-xs">
+            <DropdownMenuContent align="end" className="w-64 text-xs bg-popover border-border shadow-lg">
               <div className="p-3 space-y-2">
                 <div className="font-semibold text-sm">
                   {serverHealth === 'healthy' && `🟢 ${t('nav.allSystemsOperational')}`}
@@ -248,7 +257,7 @@ const Navbar = () => {
                 <Languages className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="text-xs xl:text-sm">
+            <DropdownMenuContent align="end" className="text-xs xl:text-sm bg-popover border-border shadow-lg">
               <DropdownMenuItem onClick={() => setLanguage('en')}>
                 English {language === 'en' && '✓'}
               </DropdownMenuItem>
@@ -271,14 +280,12 @@ const Navbar = () => {
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => navigate("/settings")}
+          <Link
+            to="/settings"
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-accent hover:text-accent-foreground h-8 w-8"
           >
             <Settings className="w-4 h-4" />
-          </Button>
+          </Link>
 
           <Button
             variant="outline"
@@ -298,33 +305,25 @@ const Navbar = () => {
               <Menu className="w-5 h-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[85vw] max-w-sm glass overflow-y-auto">
+          <SheetContent side="right" className="w-[85vw] max-w-sm bg-background border-border overflow-y-auto">
             <div className="flex flex-col gap-3 mt-6">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  navigate("/dashboard");
-                  setMobileOpen(false);
-                }}
-                className="justify-start h-9"
+              <Link
+                to="/dashboard"
+                onClick={() => setMobileOpen(false)}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
               >
-                <Home className="w-4 h-4 mr-2" />
+                <Home className="w-4 h-4" />
                 {t('nav.dashboard')}
-              </Button>
+              </Link>
 
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => {
-                  navigate("/ai-companion");
-                  setMobileOpen(false);
-                }}
-                className="justify-start h-9 gradient-primary"
+              <Link
+                to="/ai-companion"
+                onClick={() => setMobileOpen(false)}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-md gradient-primary text-primary-foreground font-medium"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="w-4 h-4" />
                 {t('nav.aiCompanion')}
-              </Button>
+              </Link>
 
               {menuSections.map((section) => (
                 <div key={section.label} className="space-y-1.5">
@@ -332,40 +331,32 @@ const Navbar = () => {
                     {section.label}
                   </h3>
                   {section.items.map((item) => (
-                    <Button
+                    <Link
                       key={item.path}
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        navigate(item.path);
-                        setMobileOpen(false);
-                      }}
-                      className={`w-full justify-start h-9 text-sm ${
+                      to={item.path}
+                      onClick={() => setMobileOpen(false)}
+                      className={`block px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors ${
                         isActive(item.path) ? "bg-primary/10" : ""
                       }`}
                     >
                       {item.name}
-                    </Button>
+                    </Link>
                   ))}
                 </div>
               ))}
 
               <div className="space-y-1.5 pt-2 border-t">
                 {singlePageLinks.map((link) => (
-                  <Button
+                  <Link
                     key={link.path}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      navigate(link.path);
-                      setMobileOpen(false);
-                    }}
-                    className={`w-full justify-start h-9 text-sm ${
+                    to={link.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={`block px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors ${
                       isActive(link.path) ? "bg-primary/10" : ""
                     }`}
                   >
                     {link.name}
-                  </Button>
+                  </Link>
                 ))}
               </div>
 
@@ -386,7 +377,7 @@ const Navbar = () => {
                         <Languages className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="text-sm">
+                    <DropdownMenuContent align="end" className="text-sm bg-popover border-border shadow-lg">
                       <DropdownMenuItem onClick={() => setLanguage('en')}>
                         English {language === 'en' && '✓'}
                       </DropdownMenuItem>
@@ -401,18 +392,14 @@ const Navbar = () => {
                 </div>
               </div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  navigate("/settings");
-                  setMobileOpen(false);
-                }}
-                className="justify-start h-9"
+              <Link
+                to="/settings"
+                onClick={() => setMobileOpen(false)}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
               >
-                <Settings className="w-4 h-4 mr-2" />
+                <Settings className="w-4 h-4" />
                 {t('nav.settings')}
-              </Button>
+              </Link>
 
               <Button
                 variant="outline"
@@ -421,7 +408,7 @@ const Navbar = () => {
                   handleLogout();
                   setMobileOpen(false);
                 }}
-                className="justify-start glass h-9"
+                className="justify-start h-9"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 {t('nav.logout')}
