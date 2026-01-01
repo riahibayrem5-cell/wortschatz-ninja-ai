@@ -1,9 +1,25 @@
 import { supabase } from "@/integrations/supabase/client";
 
 let currentAudio: HTMLAudioElement | null = null;
+let audioQueue: string[] = [];
+let isPlayingQueue = false;
 
-// High-quality text-to-speech with ElevenLabs fallback to browser TTS
-export const speakText = async (text: string, lang: 'de-DE' | 'en-US' = 'de-DE') => {
+export interface SpeakOptions {
+  voice?: 'default' | 'female' | 'male';
+  speed?: number;
+  onStart?: () => void;
+  onEnd?: () => void;
+  onError?: (error: Error) => void;
+}
+
+// High-quality text-to-speech with ElevenLabs premium voices
+export const speakText = async (
+  text: string, 
+  lang: 'de-DE' | 'en-US' = 'de-DE',
+  options: SpeakOptions = {}
+): Promise<void> => {
+  const { voice = 'default', speed = 1.0, onStart, onEnd, onError } = options;
+  
   try {
     // Stop any currently playing audio
     stopSpeaking();
@@ -12,47 +28,107 @@ export const speakText = async (text: string, lang: 'de-DE' | 'en-US' = 'de-DE')
     
     // Try ElevenLabs first
     const { data, error } = await supabase.functions.invoke('text-to-speech', {
-      body: { text, language }
+      body: { text, language, voice, speed }
     });
 
-    // If ElevenLabs fails (402 payment required or other error), fallback to browser TTS
+    // If ElevenLabs fails, fallback to browser TTS
     if (error) {
       console.log('ElevenLabs unavailable, falling back to browser TTS:', error.message);
-      return useBrowserTTS(text, lang);
+      return useBrowserTTS(text, lang, options);
     }
 
     if (!data?.audioContent) {
       console.log('No audio content, falling back to browser TTS');
-      return useBrowserTTS(text, lang);
+      return useBrowserTTS(text, lang, options);
     }
 
-    // Create audio element and play
+    // Create audio element and play with data URI (prevents corruption)
     currentAudio = new Audio(`data:audio/mpeg;base64,${data.audioContent}`);
-    await currentAudio.play();
     
-    // Clean up when finished
-    currentAudio.onended = () => {
-      currentAudio = null;
-    };
+    onStart?.();
+    
+    return new Promise<void>((resolve, reject) => {
+      if (!currentAudio) {
+        reject(new Error('Audio not initialized'));
+        return;
+      }
+      
+      currentAudio.onended = () => {
+        currentAudio = null;
+        onEnd?.();
+        resolve();
+      };
+      
+      currentAudio.onerror = (e) => {
+        const error = new Error('Audio playback failed');
+        currentAudio = null;
+        onError?.(error);
+        reject(error);
+      };
+      
+      currentAudio.play().catch((err) => {
+        console.error('Error playing audio:', err);
+        onError?.(err);
+        reject(err);
+      });
+    });
   } catch (error) {
     console.error('Error with TTS, falling back to browser:', error);
-    return useBrowserTTS(text, lang);
+    return useBrowserTTS(text, lang, options);
   }
 };
 
+// Speak multiple texts in sequence (useful for vocabulary lists, etc.)
+export const speakTextQueue = async (
+  texts: string[],
+  lang: 'de-DE' | 'en-US' = 'de-DE',
+  options: SpeakOptions = {}
+): Promise<void> => {
+  if (isPlayingQueue) {
+    stopSpeaking();
+  }
+  
+  audioQueue = [...texts];
+  isPlayingQueue = true;
+  
+  for (const text of audioQueue) {
+    if (!isPlayingQueue) break;
+    await speakText(text, lang, options);
+    // Small pause between items
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  
+  isPlayingQueue = false;
+  audioQueue = [];
+};
+
 // Fallback to browser's Web Speech API
-const useBrowserTTS = (text: string, lang: 'de-DE' | 'en-US' = 'de-DE') => {
+const useBrowserTTS = (
+  text: string, 
+  lang: 'de-DE' | 'en-US' = 'de-DE',
+  options: SpeakOptions = {}
+): Promise<void> => {
+  const { onStart, onEnd, onError } = options;
+  
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = lang;
   utterance.rate = 0.9;
   utterance.pitch = 1.0;
   
   window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utterance);
   
   return new Promise<void>((resolve) => {
-    utterance.onend = () => resolve();
-    utterance.onerror = () => resolve();
+    utterance.onstart = () => onStart?.();
+    utterance.onend = () => {
+      onEnd?.();
+      resolve();
+    };
+    utterance.onerror = (e) => {
+      onError?.(new Error(e.error));
+      resolve();
+    };
+    
+    window.speechSynthesis.speak(utterance);
   });
 };
 
@@ -64,11 +140,26 @@ export const pauseSpeaking = () => {
   }
 };
 
+export const resumeSpeaking = () => {
+  if (currentAudio) {
+    currentAudio.play();
+  } else {
+    window.speechSynthesis.resume();
+  }
+};
+
 export const stopSpeaking = () => {
+  isPlayingQueue = false;
+  audioQueue = [];
+  
   if (currentAudio) {
     currentAudio.pause();
     currentAudio.currentTime = 0;
     currentAudio = null;
   }
   window.speechSynthesis.cancel();
+};
+
+export const isSpeaking = (): boolean => {
+  return currentAudio !== null || window.speechSynthesis.speaking;
 };
