@@ -15,7 +15,7 @@ export interface SpeakOptions {
   onCacheHit?: () => void;
 }
 
-// High-quality text-to-speech with ElevenLabs premium voices + caching
+// High-quality text-to-speech with Gemini TTS + caching
 export const speakText = async (
   text: string, 
   lang: 'de-DE' | 'en-US' = 'de-DE',
@@ -37,6 +37,7 @@ export const speakText = async (
 
     const language = lang === 'de-DE' ? 'de' : 'en';
     let audioContent: string | null = null;
+    let mimeType: string = 'audio/mpeg';
 
     // Try cache first if enabled
     if (useCache) {
@@ -47,14 +48,14 @@ export const speakText = async (
       }
     }
 
-    // If not in cache, fetch from API
+    // If not in cache, fetch from Gemini TTS API
     if (!audioContent) {
-      const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { text, language, voice, speed }
+      const { data, error } = await supabase.functions.invoke('gemini-tts', {
+        body: { text, language, voice }
       });
 
       if (error) {
-        console.log('ElevenLabs unavailable, falling back to browser TTS:', error.message);
+        console.log('Gemini TTS unavailable, falling back to browser TTS:', error.message);
         return useBrowserTTS(text, lang, options);
       }
 
@@ -64,6 +65,7 @@ export const speakText = async (
       }
 
       audioContent = data.audioContent;
+      mimeType = data.mimeType || 'audio/wav';
 
       // Cache the audio for future use
       if (useCache) {
@@ -78,8 +80,8 @@ export const speakText = async (
       }
     }
 
-    // Create audio element and play with data URI (prevents corruption)
-    currentAudio = new Audio(`data:audio/mpeg;base64,${audioContent}`);
+    // Create audio element and play with data URI
+    currentAudio = new Audio(`data:${mimeType};base64,${audioContent}`);
     currentAudio.playbackRate = Math.max(0.5, Math.min(2.0, speed));
     
     onStart?.();
