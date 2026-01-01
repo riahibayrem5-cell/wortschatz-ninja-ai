@@ -351,17 +351,19 @@ const TelcVorbereitung = () => {
     setAudioLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { text, voice: 'alloy', language: 'de' }
+        body: { 
+          text, 
+          language: 'de',
+          voice: 'default', // Uses premium ElevenLabs voice
+          speed: 0.9 // Slightly slower for language learning
+        }
       });
 
       if (error) throw error;
 
       if (data.audioContent) {
-        const audioBlob = new Blob(
-          [Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))],
-          { type: 'audio/mp3' }
-        );
-        const url = URL.createObjectURL(audioBlob);
+        // Use data URI directly - prevents corruption issues
+        const url = `data:audio/mpeg;base64,${data.audioContent}`;
         setAudioUrl(url);
       }
     } catch (error: any) {
