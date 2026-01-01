@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Volume2, Pause } from "lucide-react";
-import { speakText, pauseSpeaking } from "@/utils/audio";
-import AudioPlayer from "./AudioPlayer";
+import { Volume2, Pause, Loader2, Check } from "lucide-react";
+import { speakText, pauseSpeaking, stopSpeaking } from "@/utils/audio";
+import { cn } from "@/lib/utils";
 
 interface AudioButtonProps {
   text: string;
   lang?: 'de-DE' | 'en-US';
-  size?: 'sm' | 'default' | 'lg';
-  variant?: 'default' | 'outline' | 'ghost';
-  showPlayer?: boolean;
+  size?: 'sm' | 'default' | 'lg' | 'icon';
+  variant?: 'default' | 'outline' | 'ghost' | 'secondary';
+  showCacheIndicator?: boolean;
+  showPlayer?: boolean; // Legacy prop, ignored
+  useCache?: boolean;
   className?: string;
 }
 
@@ -18,42 +20,70 @@ const AudioButton = ({
   lang = 'de-DE', 
   size = 'sm', 
   variant = 'outline',
-  showPlayer = false,
+  showCacheIndicator = true,
+  useCache = true,
   className = ""
 }: AudioButtonProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [wasFromCache, setWasFromCache] = useState(false);
 
   const handleClick = async () => {
+    if (isLoading) return;
+    
     if (isPlaying) {
-      pauseSpeaking();
+      stopSpeaking();
       setIsPlaying(false);
     } else {
+      setIsLoading(true);
       setIsPlaying(true);
+      setWasFromCache(false);
+      
       try {
-        await speakText(text, lang);
-        setIsPlaying(false);
+        await speakText(text, lang, {
+          useCache,
+          onCacheHit: () => setWasFromCache(true),
+          onEnd: () => {
+            setIsPlaying(false);
+            setIsLoading(false);
+          },
+          onError: () => {
+            setIsPlaying(false);
+            setIsLoading(false);
+          }
+        });
       } catch (error) {
         setIsPlaying(false);
+      } finally {
+        setIsLoading(false);
       }
     }
   };
-
-  if (showPlayer) {
-    return <AudioPlayer text={text} lang={lang} className={className} />;
-  }
 
   return (
     <Button
       onClick={handleClick}
       size={size}
       variant={variant}
-      className={`glass ${className}`}
+      className={cn(
+        "relative transition-all",
+        wasFromCache && showCacheIndicator && "ring-1 ring-green-500/30",
+        className
+      )}
       title={isPlaying ? "Stop audio" : "Play audio"}
+      disabled={isLoading && !isPlaying}
     >
-      {isPlaying ? (
+      {isLoading && !isPlaying ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : isPlaying ? (
         <Pause className="w-4 h-4" />
       ) : (
         <Volume2 className="w-4 h-4" />
+      )}
+      
+      {/* Cache indicator */}
+      {showCacheIndicator && wasFromCache && !isLoading && (
+        <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full" />
       )}
     </Button>
   );

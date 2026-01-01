@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getCachedAudio, cacheAudio } from "./advancedCache";
 
 let currentAudio: HTMLAudioElement | null = null;
 let audioQueue: string[] = [];
@@ -7,43 +8,79 @@ let isPlayingQueue = false;
 export interface SpeakOptions {
   voice?: 'default' | 'female' | 'male';
   speed?: number;
+  useCache?: boolean;
   onStart?: () => void;
   onEnd?: () => void;
   onError?: (error: Error) => void;
+  onCacheHit?: () => void;
 }
 
-// High-quality text-to-speech with ElevenLabs premium voices
+// High-quality text-to-speech with ElevenLabs premium voices + caching
 export const speakText = async (
   text: string, 
   lang: 'de-DE' | 'en-US' = 'de-DE',
   options: SpeakOptions = {}
 ): Promise<void> => {
-  const { voice = 'default', speed = 1.0, onStart, onEnd, onError } = options;
+  const { 
+    voice = 'default', 
+    speed = 1.0, 
+    useCache = true,
+    onStart, 
+    onEnd, 
+    onError,
+    onCacheHit
+  } = options;
   
   try {
     // Stop any currently playing audio
     stopSpeaking();
 
     const language = lang === 'de-DE' ? 'de' : 'en';
-    
-    // Try ElevenLabs first
-    const { data, error } = await supabase.functions.invoke('text-to-speech', {
-      body: { text, language, voice, speed }
-    });
+    let audioContent: string | null = null;
 
-    // If ElevenLabs fails, fallback to browser TTS
-    if (error) {
-      console.log('ElevenLabs unavailable, falling back to browser TTS:', error.message);
-      return useBrowserTTS(text, lang, options);
+    // Try cache first if enabled
+    if (useCache) {
+      audioContent = await getCachedAudio(text, language, voice);
+      if (audioContent) {
+        onCacheHit?.();
+        console.log('Using cached audio');
+      }
     }
 
-    if (!data?.audioContent) {
-      console.log('No audio content, falling back to browser TTS');
-      return useBrowserTTS(text, lang, options);
+    // If not in cache, fetch from API
+    if (!audioContent) {
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { text, language, voice, speed }
+      });
+
+      if (error) {
+        console.log('ElevenLabs unavailable, falling back to browser TTS:', error.message);
+        return useBrowserTTS(text, lang, options);
+      }
+
+      if (!data?.audioContent) {
+        console.log('No audio content, falling back to browser TTS');
+        return useBrowserTTS(text, lang, options);
+      }
+
+      audioContent = data.audioContent;
+
+      // Cache the audio for future use
+      if (useCache) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          cacheAudio(text, language, voice, audioContent, user.id).then(() => {
+            console.log('Audio cached successfully');
+          }).catch(err => {
+            console.log('Audio caching failed:', err);
+          });
+        }
+      }
     }
 
     // Create audio element and play with data URI (prevents corruption)
-    currentAudio = new Audio(`data:audio/mpeg;base64,${data.audioContent}`);
+    currentAudio = new Audio(`data:audio/mpeg;base64,${audioContent}`);
+    currentAudio.playbackRate = Math.max(0.5, Math.min(2.0, speed));
     
     onStart?.();
     
