@@ -127,8 +127,17 @@ serve(async (req) => {
     // Convert PCM to WAV (Gemini returns 24kHz 16-bit mono PCM)
     const wavBytes = pcmToWav(pcmBytes, 24000, 1, 16);
     
-    // Encode WAV as base64
-    const wavBase64 = btoa(String.fromCharCode(...wavBytes));
+    // Encode WAV as base64 safely without stack overflow
+    const uint8Array = wavBytes;
+    let binaryString = '';
+    const chunkSize = 8192;
+
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.slice(i, i + chunkSize);
+      binaryString += String.fromCharCode.apply(null, Array.from(chunk));
+    }
+
+    const wavBase64 = btoa(binaryString);
 
     console.log(`Speech generated successfully with Gemini TTS, converted to WAV`);
 

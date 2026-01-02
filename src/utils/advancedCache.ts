@@ -140,18 +140,23 @@ export const cacheAudio = async (
 
     // 3. Upload to Supabase Storage for persistence (background)
     let storageUrl: string | undefined;
-    
+
     // Only upload to storage if audio is not too large
     const audioSizeBytes = (audioBase64.length * 3) / 4;
     if (audioSizeBytes < MAX_AUDIO_SIZE_MB * 1024 * 1024) {
       try {
-        const blob = base64ToBlob(audioBase64, 'audio/mpeg');
-        const filePath = `${userId}/${key}.mp3`;
-        
+        // Detect format (Gemini TTS returns WAV; legacy providers might be MP3)
+        const isWav = audioBase64.startsWith('UklGR');
+        const contentType = isWav ? 'audio/wav' : 'audio/mpeg';
+        const ext = isWav ? 'wav' : 'mp3';
+
+        const blob = base64ToBlob(audioBase64, contentType);
+        const filePath = `${userId}/${key}.${ext}`;
+
         const { data, error } = await supabase.storage
           .from('audio-cache')
           .upload(filePath, blob, {
-            contentType: 'audio/mpeg',
+            contentType,
             upsert: true
           });
 
@@ -229,24 +234,26 @@ export const getCachedAudio = async (
     // 3. Check Supabase Storage (slowest but persistent)
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const filePath = `${user.id}/${key}.mp3`;
-      
-      const { data } = await supabase.storage
-        .from('audio-cache')
-        .download(filePath);
+      const candidates = [`${user.id}/${key}.wav`, `${user.id}/${key}.mp3`];
 
-      if (data) {
-        const base64 = await blobToBase64(data);
-        
-        // Restore to memory and IndexedDB
-        memoryCache.set(key, {
-          data: { audioBase64: base64, text, language, voice },
-          timestamp: Date.now(),
-          hits: 1
-        });
-        
-        console.log('Audio cache hit: Supabase Storage');
-        return base64;
+      for (const filePath of candidates) {
+        const { data } = await supabase.storage
+          .from('audio-cache')
+          .download(filePath);
+
+        if (data) {
+          const base64 = await blobToBase64(data);
+
+          // Restore to memory and IndexedDB
+          memoryCache.set(key, {
+            data: { audioBase64: base64, text, language, voice },
+            timestamp: Date.now(),
+            hits: 1
+          });
+
+          console.log('Audio cache hit: Supabase Storage');
+          return base64;
+        }
       }
     }
 

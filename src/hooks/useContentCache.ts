@@ -122,22 +122,23 @@ export function useAudioCache(options: UseAudioCacheOptions = {}) {
 
   const play = useCallback(async (text: string): Promise<boolean> => {
     if (!text.trim()) return false;
-    
+
     // Stop any current playback
     stop();
-    
+
     setIsLoading(true);
     setCurrentText(text);
-    
+
     try {
       // Check cache first
       let audioBase64 = await getCachedAudio(text, language, voice);
-      
+      let mimeType = audioBase64?.startsWith('UklGR') ? 'audio/wav' : 'audio/mpeg';
+
       if (audioBase64) {
         setIsFromCache(true);
       } else {
         setIsFromCache(false);
-        
+
         // Generate new audio
         const { data, error } = await supabase.functions.invoke('gemini-tts', {
           body: { text, language, voice }
@@ -147,19 +148,19 @@ export function useAudioCache(options: UseAudioCacheOptions = {}) {
         if (!data?.audioContent) throw new Error('No audio content received');
 
         audioBase64 = data.audioContent;
-        const mime = data?.mimeType || 'audio/wav';
-        setIsFromCache(false);
+        mimeType = data?.mimeType || (audioBase64.startsWith('UklGR') ? 'audio/wav' : 'audio/mpeg');
 
         // Cache the audio
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           await cacheAudio(text, language, voice, audioBase64, user.id);
         }
+      }
 
-        // Play the audio (Gemini returns WAV)
-        audioRef.current = new Audio(`data:${mime};base64,${audioBase64}`);
-        audioRef.current.playbackRate = speed;
-      
+      // Play the audio
+      audioRef.current = new Audio(`data:${mimeType};base64,${audioBase64}`);
+      audioRef.current.playbackRate = speed;
+
       audioRef.current.onended = () => {
         setIsPlaying(false);
         setCurrentText(null);
@@ -241,7 +242,7 @@ export function useAudioPrefetch(texts: string[], language: 'de' | 'en' = 'de') 
       try {
         const cached = await getCachedAudio(text, language, 'default');
         if (!cached) {
-          const { data } = await supabase.functions.invoke('text-to-speech', {
+          const { data } = await supabase.functions.invoke('gemini-tts', {
             body: { text, language, voice: 'default' }
           });
           
