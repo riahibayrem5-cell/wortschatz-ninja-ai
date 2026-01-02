@@ -564,10 +564,10 @@ export const prefetchAudio = async (
     const cached = await getCachedAudio(text, language, voice);
     if (!cached) {
       try {
-        const { data } = await supabase.functions.invoke('text-to-speech', {
+        const { data } = await supabase.functions.invoke('gemini-tts', {
           body: { text, language, voice }
         });
-        
+
         if (data?.audioContent) {
           await cacheAudio(text, language, voice, data.audioContent, user.id);
         }

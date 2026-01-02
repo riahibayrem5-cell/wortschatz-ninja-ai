@@ -350,20 +350,19 @@ const TelcVorbereitung = () => {
   const generateAudio = async (text: string) => {
     setAudioLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { 
-          text, 
+      const { data, error } = await supabase.functions.invoke('gemini-tts', {
+        body: {
+          text,
           language: 'de',
-          voice: 'default', // Uses premium ElevenLabs voice
-          speed: 0.9 // Slightly slower for language learning
+          voice: 'default'
         }
       });
 
       if (error) throw error;
 
-      if (data.audioContent) {
-        // Use data URI directly - prevents corruption issues
-        const url = `data:audio/mpeg;base64,${data.audioContent}`;
+      if (data?.audioContent) {
+        const mime = data?.mimeType || 'audio/wav';
+        const url = `data:${mime};base64,${data.audioContent}`;
         setAudioUrl(url);
       }
     } catch (error: any) {

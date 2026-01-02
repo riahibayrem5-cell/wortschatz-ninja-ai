@@ -139,25 +139,26 @@ export function useAudioCache(options: UseAudioCacheOptions = {}) {
         setIsFromCache(false);
         
         // Generate new audio
-        const { data, error } = await supabase.functions.invoke('text-to-speech', {
-          body: { text, language, voice, speed }
+        const { data, error } = await supabase.functions.invoke('gemini-tts', {
+          body: { text, language, voice }
         });
 
         if (error) throw error;
         if (!data?.audioContent) throw new Error('No audio content received');
-        
+
         audioBase64 = data.audioContent;
-        
+        const mime = data?.mimeType || 'audio/wav';
+        setIsFromCache(false);
+
         // Cache the audio
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           await cacheAudio(text, language, voice, audioBase64, user.id);
         }
-      }
 
-      // Play the audio
-      audioRef.current = new Audio(`data:audio/mpeg;base64,${audioBase64}`);
-      audioRef.current.playbackRate = speed;
+        // Play the audio (Gemini returns WAV)
+        audioRef.current = new Audio(`data:${mime};base64,${audioBase64}`);
+        audioRef.current.playbackRate = speed;
       
       audioRef.current.onended = () => {
         setIsPlaying(false);

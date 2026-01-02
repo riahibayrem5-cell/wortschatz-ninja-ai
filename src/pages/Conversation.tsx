@@ -210,13 +210,16 @@ const Conversation = () => {
       if (error) throw error;
       
       // Generate audio for AI response if in verbal mode
-      let audioData = null;
+      let audioData: string | null = null;
       if (audioMode === 'verbal') {
         try {
-          const { data: ttsData } = await supabase.functions.invoke('text-to-speech', {
-            body: { text: data.reply, language: 'de' }
+          const { data: ttsData, error: ttsError } = await supabase.functions.invoke('gemini-tts', {
+            body: { text: data.reply, language: 'de', voice: 'default' }
           });
-          audioData = ttsData?.audioContent;
+          if (!ttsError && ttsData?.audioContent) {
+            const mime = ttsData?.mimeType || 'audio/wav';
+            audioData = `data:${mime};base64,${ttsData.audioContent}`;
+          }
         } catch (ttsError) {
           console.error('TTS error:', ttsError);
         }
@@ -228,7 +231,7 @@ const Conversation = () => {
 
       // Auto-play in verbal mode
       if (audioMode === 'verbal' && audioData) {
-        const audio = new Audio(`data:audio/mpeg;base64,${audioData}`);
+        const audio = new Audio(audioData);
         audio.play();
       }
 
