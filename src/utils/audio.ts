@@ -44,6 +44,8 @@ export const speakText = async (
       audioContent = await getCachedAudio(text, language, voice);
       if (audioContent) {
         onCacheHit?.();
+        // Heuristic: WAV starts with "RIFF" => base64 starts with "UklGR"
+        mimeType = audioContent.startsWith('UklGR') ? 'audio/wav' : 'audio/mpeg';
         console.log('Using cached audio');
       }
     }
