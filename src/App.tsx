@@ -6,6 +6,7 @@ import { SubscriptionReminder } from "@/components/SubscriptionReminder";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import RequireAuth from "@/components/RequireAuth";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Vocabulary from "./pages/Vocabulary";
@@ -50,32 +51,37 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/vocabulary" element={<Vocabulary />} />
-            <Route path="/word-dossier" element={<WordDossier />} />
-            <Route path="/sentence-generator" element={<SentenceGenerator />} />
-            <Route path="/review" element={<Review />} />
-            <Route path="/writing" element={<WritingAssistant />} />
-            <Route path="/exercises" element={<Exercises />} />
-            <Route path="/memorizer" element={<Memorizer />} />
-            <Route path="/word-association" element={<WordAssociation />} />
-            <Route path="/conversation" element={<Conversation />} />
-            <Route path="/highlighter" element={<TextHighlighter />} />
-            <Route path="/diary" element={<MistakeDiary />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/telc-exam" element={<TelcExam />} />
-            <Route path="/telc-vorbereitung" element={<TelcVorbereitung />} />
-            <Route path="/ai-companion" element={<AICompanion />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/activity-log" element={<ActivityLog />} />
-            <Route path="/subscriptions" element={<Subscriptions />} />
-            <Route path="/learning-path" element={<LearningPath />} />
-            <Route path="/achievements" element={<Achievements />} />
-            <Route path="/mastery-course" element={<MasteryCourse />} />
-            <Route path="/mastery-course/:moduleId" element={<ModuleDetail />} />
-            <Route path="/mastery-course/:moduleId/lesson/:lessonId" element={<LessonPage />} />
-            <Route path="/mastery-course/:moduleId/tutor" element={<CourseTutor />} />
-            <Route path="/certificates" element={<Certificates />} />
+
+            {/* Protected app */}
+            <Route element={<RequireAuth />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/vocabulary" element={<Vocabulary />} />
+              <Route path="/word-dossier" element={<WordDossier />} />
+              <Route path="/sentence-generator" element={<SentenceGenerator />} />
+              <Route path="/review" element={<Review />} />
+              <Route path="/writing" element={<WritingAssistant />} />
+              <Route path="/exercises" element={<Exercises />} />
+              <Route path="/memorizer" element={<Memorizer />} />
+              <Route path="/word-association" element={<WordAssociation />} />
+              <Route path="/conversation" element={<Conversation />} />
+              <Route path="/highlighter" element={<TextHighlighter />} />
+              <Route path="/diary" element={<MistakeDiary />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/telc-exam" element={<TelcExam />} />
+              <Route path="/telc-vorbereitung" element={<TelcVorbereitung />} />
+              <Route path="/ai-companion" element={<AICompanion />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/activity-log" element={<ActivityLog />} />
+              <Route path="/subscriptions" element={<Subscriptions />} />
+              <Route path="/learning-path" element={<LearningPath />} />
+              <Route path="/achievements" element={<Achievements />} />
+              <Route path="/mastery-course" element={<MasteryCourse />} />
+              <Route path="/mastery-course/:moduleId" element={<ModuleDetail />} />
+              <Route path="/mastery-course/:moduleId/lesson/:lessonId" element={<LessonPage />} />
+              <Route path="/mastery-course/:moduleId/tutor" element={<CourseTutor />} />
+              <Route path="/certificates" element={<Certificates />} />
+            </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
@@ -85,3 +91,4 @@ const App = () => (
 );
 
 export default App;
+

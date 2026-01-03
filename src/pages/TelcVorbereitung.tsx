@@ -247,11 +247,16 @@ const TelcVorbereitung = () => {
   const [results, setResults] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [isTimerActive, setIsTimerActive] = useState(false);
+
+  // AI Coach state (hints/explanations per question)
+  const [loadingHelp, setLoadingHelp] = useState(false);
+  const [aiHelp, setAiHelp] = useState<Record<number, any>>({});
   
   // Audio state for Hören
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioText, setAudioText] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   // Recording state for Sprechen
@@ -301,6 +306,48 @@ const TelcVorbereitung = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const getCorrectAnswerText = (question: any): string => {
+    const ca = question?.correctAnswer;
+    if (typeof ca === "number") {
+      return question?.options?.[ca] ?? String(ca);
+    }
+    return String(ca ?? "");
+  };
+
+  const requestAiHelp = async (
+    type: 'hint' | 'explanation',
+    questionId: number,
+    question: any,
+    userAnswer: string,
+    text?: string
+  ) => {
+    setLoadingHelp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('telc-practice-helper', {
+        body: {
+          type,
+          question: question?.question,
+          userAnswer,
+          correctAnswer: getCorrectAnswerText(question),
+          context: question?.explanation,
+          text
+        }
+      });
+
+      if (error) throw error;
+
+      setAiHelp(prev => ({
+        ...prev,
+        [questionId]: { ...data, type }
+      }));
+    } catch (e) {
+      console.error('Error requesting AI help:', e);
+      toast.error('AI-Hilfe konnte nicht geladen werden');
+    } finally {
+      setLoadingHelp(false);
+    }
+  };
+
   const generateContent = async (section: string, teil?: number) => {
     setLoading(true);
     setSubmitted(false);
@@ -309,6 +356,8 @@ const TelcVorbereitung = () => {
     setSpeakingNotes("");
     setResults(null);
     setAudioUrl(null);
+    setAudioText(null);
+    setAiHelp({});
 
     try {
       const sectionMap: Record<string, string> = {
@@ -347,7 +396,7 @@ const TelcVorbereitung = () => {
     }
   };
 
-  const generateAudio = async (text: string) => {
+  const generateAudio = async (text: string, autoPlay = false) => {
     setAudioLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('gemini-tts', {
@@ -363,7 +412,15 @@ const TelcVorbereitung = () => {
       if (data?.audioContent) {
         const mime = data?.mimeType || 'audio/wav';
         const url = `data:${mime};base64,${data.audioContent}`;
+        setAudioText(text);
         setAudioUrl(url);
+
+        if (autoPlay) {
+          // Let React update the <audio> src before playing.
+          setTimeout(() => {
+            audioRef.current?.play().catch(() => {});
+          }, 50);
+        }
       }
     } catch (error: any) {
       console.error("Audio generation error:", error);
@@ -383,6 +440,18 @@ const TelcVorbereitung = () => {
       setAudioPlaying(!audioPlaying);
     }
   };
+
+  const handleListen = async (text?: string) => {
+    if (!text) return;
+
+    if (audioUrl && audioText === text) {
+      playAudio();
+      return;
+    }
+
+    await generateAudio(text, true);
+  };
+
 
   const startRecording = async () => {
     try {
@@ -435,10 +504,12 @@ const TelcVorbereitung = () => {
         let correct = 0;
         const questionResults = questions.map((q: any, idx: number) => {
           const userAnswer = answers[q.id || idx];
-          const isCorrect = userAnswer === q.correctAnswer;
+          const correctAnswer = getCorrectAnswerText(q);
+          const isCorrect = userAnswer === correctAnswer;
           if (isCorrect) correct++;
-          return { ...q, userAnswer, isCorrect };
+          return { ...q, userAnswer, isCorrect, correctAnswer };
         });
+
 
         const percentage = questions.length > 0 ? Math.round((correct / questions.length) * 100) : 0;
         setResults({
@@ -1089,9 +1160,14 @@ const TelcVorbereitung = () => {
                     <Card className="bg-muted/30">
                       <CardContent className="pt-4">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-sm font-medium">Lesetext</span>
+                          <span className="text-sm font-medium">{activeSection === "hoeren" ? "Transkript" : "Lesetext"}</span>
                           {activeSection === "hoeren" && (
-                            <Button size="sm" variant="ghost" onClick={playAudio} disabled={!audioUrl}>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleListen(teil.text)}
+                              disabled={audioLoading || !teil.text}
+                            >
                               <Volume2 className="h-4 w-4 mr-1" />
                               Anhören
                             </Button>
@@ -1229,8 +1305,11 @@ const TelcVorbereitung = () => {
                     <div className="space-y-4">
                       {teil.questions.map((question: any, qIdx: number) => {
                         const qId = question.id || qIdx;
-                        const isCorrect = submitted && answers[qId] === question.correctAnswer;
-                        const isWrong = submitted && answers[qId] && answers[qId] !== question.correctAnswer;
+                        const correctAnswerText = getCorrectAnswerText(question);
+                        const userAnswer = answers[qId] || "";
+                        const isCorrect = submitted && userAnswer === correctAnswerText;
+                        const isWrong = submitted && !!userAnswer && userAnswer !== correctAnswerText;
+                        const help = aiHelp[qId];
 
                         return (
                           <Card 
@@ -1253,14 +1332,14 @@ const TelcVorbereitung = () => {
                               </div>
 
                               <RadioGroup
-                                value={answers[qId] || ""}
+                                value={userAnswer}
                                 onValueChange={(value) => setAnswers(prev => ({ ...prev, [qId]: value }))}
                                 disabled={submitted}
                                 className="space-y-2"
                               >
                                 {question.options?.map((option: string, optIdx: number) => {
-                                  const isThisCorrect = submitted && option === question.correctAnswer;
-                                  const isThisWrong = submitted && answers[qId] === option && option !== question.correctAnswer;
+                                  const isThisCorrect = submitted && option === correctAnswerText;
+                                  const isThisWrong = submitted && userAnswer === option && option !== correctAnswerText;
 
                                   return (
                                     <div
@@ -1282,12 +1361,69 @@ const TelcVorbereitung = () => {
                                 })}
                               </RadioGroup>
 
-                              {submitted && isWrong && question.explanation && (
+                              <div className="flex flex-wrap gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => requestAiHelp('hint', qId, question, userAnswer, teil.text)}
+                                  disabled={loadingHelp}
+                                >
+                                  <Lightbulb className="h-4 w-4 mr-2" />
+                                  Hinweis
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => requestAiHelp('explanation', qId, question, userAnswer, teil.text)}
+                                  disabled={loadingHelp || !userAnswer}
+                                >
+                                  <Brain className="h-4 w-4 mr-2" />
+                                  Erklärung
+                                </Button>
+                              </div>
+
+                              {help && (
+                                <div className="p-3 bg-muted/40 rounded-lg text-sm space-y-2">
+                                  {help.type === 'hint' ? (
+                                    <>
+                                      {help.hint && <p className="whitespace-pre-wrap">{help.hint}</p>}
+                                      {Array.isArray(help.keyVocabulary) && help.keyVocabulary.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                          {help.keyVocabulary.slice(0, 8).map((w: string, i: number) => (
+                                            <Badge key={i} variant="secondary">{w}</Badge>
+                                          ))}
+                                        </div>
+                                      )}
+                                      {help.strategy && (
+                                        <p className="text-muted-foreground">{help.strategy}</p>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      {help.explanation && <p className="whitespace-pre-wrap">{help.explanation}</p>}
+                                      {help.concept && (
+                                        <p className="text-muted-foreground"><span className="font-medium">Konzept:</span> {help.concept}</p>
+                                      )}
+                                      {Array.isArray(help.tips) && help.tips.length > 0 && (
+                                        <ul className="list-disc pl-5 space-y-1">
+                                          {help.tips.slice(0, 4).map((t: string, i: number) => (
+                                            <li key={i}>{t}</li>
+                                          ))}
+                                        </ul>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              )}
+
+                              {submitted && isWrong && (
                                 <div className="p-3 bg-muted rounded-lg text-sm">
                                   <p className="font-medium text-green-600 mb-1">
-                                    Richtige Antwort: {question.correctAnswer}
+                                    Richtige Antwort: {correctAnswerText}
                                   </p>
-                                  <p className="text-muted-foreground">{question.explanation}</p>
+                                  {question.explanation && (
+                                    <p className="text-muted-foreground">{question.explanation}</p>
+                                  )}
                                 </div>
                               )}
                             </CardContent>

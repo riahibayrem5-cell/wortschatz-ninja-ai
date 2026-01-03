@@ -38,10 +38,11 @@ interface Question {
   id: number;
   question: string;
   options: string[];
-  correctAnswer: string;
-  explanation: string;
+  correctAnswer: string | number;
+  explanation?: string;
   points?: number;
 }
+
 
 interface Teil {
   teilNumber: number;
@@ -359,8 +360,14 @@ const TelcExam = () => {
       const content = examState[sectionId as keyof ExamState];
       const teil = content?.teile.find(t => t.questions?.some(q => q.id === questionId));
       const question = teil?.questions?.find(q => q.id === questionId);
-      
-      if (question && answer !== question.correctAnswer) {
+
+      const correctAnswerText = question
+        ? (typeof question.correctAnswer === 'number'
+            ? question.options?.[question.correctAnswer] ?? String(question.correctAnswer)
+            : String(question.correctAnswer))
+        : '';
+
+      if (question && answer !== correctAnswerText) {
         requestAiHelp('hint', questionId, question, answer, teil?.text);
       }
     }
@@ -387,10 +394,14 @@ const TelcExam = () => {
         let correct = 0;
         const sectionResults = allQuestions.map((q: any) => {
           const userAnswer = answers[sectionId]?.[q.id];
-          const isCorrect = userAnswer === q.correctAnswer;
+          const correctAnswerText = typeof q.correctAnswer === 'number'
+            ? (q.options?.[q.correctAnswer] ?? String(q.correctAnswer))
+            : String(q.correctAnswer);
+          const isCorrect = userAnswer === correctAnswerText;
           if (isCorrect) correct++;
-          return { ...q, userAnswer, isCorrect };
+          return { ...q, userAnswer, isCorrect, correctAnswer: correctAnswerText };
         });
+
 
         const { data: scoreData, error: scoreError } = await supabase.functions.invoke('score-telc-section', {
           body: {
@@ -469,16 +480,21 @@ const TelcExam = () => {
   ) => {
     setLoadingHelp(true);
     try {
+      const correctAnswerText = typeof question.correctAnswer === 'number'
+        ? (question.options?.[question.correctAnswer] ?? String(question.correctAnswer))
+        : String(question.correctAnswer);
+
       const { data, error } = await supabase.functions.invoke('telc-practice-helper', {
         body: {
           type,
           question: question.question,
           userAnswer,
-          correctAnswer: question.correctAnswer,
+          correctAnswer: correctAnswerText,
           context: question.explanation,
           text
         }
       });
+
 
       if (error) throw error;
 
