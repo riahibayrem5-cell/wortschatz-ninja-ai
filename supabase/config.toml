@@ -92,3 +92,6 @@ verify_jwt = true
 
 [functions.gemini-tts]
 verify_jwt = true
+
+[functions.generate-smart-exercises]
+verify_jwt = true

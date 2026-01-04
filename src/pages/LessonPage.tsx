@@ -12,7 +12,8 @@ import {
   ArrowLeft, ArrowRight, CheckCircle2, Clock, 
   MessageCircle, BookOpen, Target, Lightbulb
 } from "lucide-react";
-import PracticeContainer from "@/components/exercises/PracticeContainer";
+import LessonContentRenderer from "@/components/lessons/LessonContentRenderer";
+import SmartExerciseContainer from "@/components/exercises/SmartExerciseContainer";
 
 interface CourseLesson {
   id: string;
@@ -378,123 +379,12 @@ const LessonPage = () => {
               <div className="lg:col-span-2">
                 <Card className="glass">
                   <CardContent className="pt-6">
-                    {/* Learning Objectives */}
-                    <div className="mb-6">
-                      <h3 className="font-semibold mb-3 flex items-center gap-2">
-                        <Target className="h-5 w-5 text-primary" />
-                        Learning Objectives
-                      </h3>
-                      <ul className="space-y-2">
-                        {typeInfo.objectives.map((obj, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm">
-                            <CheckCircle2 className="h-4 w-4 text-primary mt-0.5" />
-                            {obj}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* Dynamic Content Based on Type */}
-                    <div className="border-t pt-6">
-                      <h3 className="font-semibold mb-4 flex items-center gap-2">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                        Lesson Material
-                      </h3>
-                      
-                      <div className="prose prose-sm max-w-none">
-                        {lesson.lesson_type === 'vocabulary' && (
-                          <div className="space-y-4">
-                            <p>In this vocabulary lesson, you will learn words related to: <strong>{(lesson.content as any)?.topics?.join(', ') || 'various topics'}</strong></p>
-                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
-                              <p className="text-sm">
-                                Head to the <strong>Interactive Practice</strong> tab to test your vocabulary with fill-in-the-blank exercises, matching games, and translation challenges!
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {lesson.lesson_type === 'grammar' && (
-                          <div className="space-y-4">
-                            <p>This grammar lesson covers: <strong>{(lesson.content as any)?.topics?.join(', ') || 'key grammar concepts'}</strong></p>
-                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
-                              <p className="text-sm">
-                                Practice grammar structures in the <strong>Interactive Practice</strong> tab with targeted exercises!
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {lesson.lesson_type === 'reading' && (
-                          <div className="space-y-4">
-                            <p>Focus: <strong>{(lesson.content as any)?.skill || 'Reading comprehension'}</strong></p>
-                            <p>Text types: {(lesson.content as any)?.text_types?.join(', ') || 'Various texts'}</p>
-                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
-                              <p className="text-sm">
-                                Test your reading comprehension with multiple-choice questions in the <strong>Interactive Practice</strong> tab!
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {lesson.lesson_type === 'listening' && (
-                          <div className="space-y-4">
-                            <p>Audio type: <strong>{(lesson.content as any)?.audio_type || 'Various audio materials'}</strong></p>
-                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
-                              <p className="text-sm">
-                                Practice listening comprehension with structured exercises in the <strong>Interactive Practice</strong> tab!
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {lesson.lesson_type === 'writing' && (
-                          <div className="space-y-4">
-                            <p>Format: <strong>{(lesson.content as any)?.format || 'Written communication'}</strong></p>
-                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
-                              <p className="text-sm">
-                                Practice sentence construction and translation in the <strong>Interactive Practice</strong> tab!
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {lesson.lesson_type === 'speaking' && (
-                          <div className="space-y-4">
-                            <p>Topics: <strong>{(lesson.content as any)?.topics?.join(', ') || 'Various speaking scenarios'}</strong></p>
-                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
-                              <p className="text-sm">
-                                Use the <strong>AI Tutor</strong> tab to practice conversational responses and get feedback!
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {lesson.lesson_type === 'exam_practice' && (
-                          <div className="space-y-4">
-                            <p>Section: <strong>{(lesson.content as any)?.section || 'TELC B2 Exam Practice'}</strong></p>
-                            <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
-                              <p className="text-sm">
-                                Get exam-style practice in the <strong>Interactive Practice</strong> tab!
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Tips Section */}
-                    <div className="border-t pt-6 mt-6">
-                      <h3 className="font-semibold mb-3 flex items-center gap-2">
-                        <Lightbulb className="h-5 w-5 text-yellow-500" />
-                        Pro Tips
-                      </h3>
-                      <ul className="text-sm text-muted-foreground space-y-2">
-                        <li>• Take your time to understand each concept before moving on</li>
-                        <li>• Complete the interactive exercises to reinforce learning</li>
-                        <li>• Use the AI Tutor for personalized help with difficult topics</li>
-                        <li>• Write notes to help remember key points</li>
-                      </ul>
-                    </div>
+                    <LessonContentRenderer
+                      lessonType={lesson.lesson_type}
+                      lessonTitle={lesson.title}
+                      lessonTitleDe={lesson.title_de}
+                      content={lesson.content}
+                    />
                   </CardContent>
                 </Card>
               </div>
@@ -521,12 +411,12 @@ const LessonPage = () => {
           <TabsContent value="practice">
             <Card className="glass">
               <CardContent className="pt-6">
-                <PracticeContainer
+                <SmartExerciseContainer
                   lessonId={lesson.id}
                   lessonType={lesson.lesson_type}
                   lessonTitle={lesson.title}
                   lessonContent={lesson.content}
-                  onExerciseComplete={handlePracticeComplete}
+                  onComplete={handlePracticeComplete}
                 />
               </CardContent>
             </Card>
