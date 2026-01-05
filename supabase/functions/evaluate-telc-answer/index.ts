@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { section, task, userAnswer } = await req.json();
+    const { section, task, userAnswer, teil, maxPoints } = await req.json();
     
     const GOOGLE_GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
     if (!GOOGLE_GEMINI_API_KEY) {
@@ -22,75 +22,14 @@ serve(async (req) => {
     let prompt = '';
 
     if (section === 'writing') {
-      prompt = `You are a TELC B2 examiner evaluating a German writing task.
-
-Task: ${task}
-Student's answer: ${userAnswer}
-
-Evaluate according to TELC B2 criteria and provide JSON:
-{
-  "score": <0-25 points>,
-  "grade": "<sehr gut|gut|befriedigend|ausreichend|mangelhaft>",
-  "taskCompletion": {
-    "score": <0-10>,
-    "feedback": "<detailed feedback in German>"
-  },
-  "coherence": {
-    "score": <0-10>,
-    "feedback": "<feedback on structure and organization>"
-  },
-  "vocabulary": {
-    "score": <0-10>,
-    "feedback": "<feedback on word choice and range>"
-  },
-  "grammar": {
-    "score": <0-10>,
-    "feedback": "<feedback on accuracy and complexity>"
-  },
-  "strengths": ["<strength 1>", "<strength 2>"],
-  "improvements": ["<improvement 1>", "<improvement 2>"],
-  "correctedVersion": "<improved version with corrections>",
-  "detailedErrors": [
-    {"type": "<error type>", "original": "<text>", "correction": "<fix>", "explanation": "<why>"}
-  ]
-}`;
+      prompt = `You are a TELC Deutsch B2 examiner evaluating a German writing task.\n\nTask:\n${task}\n\nStudent's answer:\n${userAnswer}\n\nEvaluate according to TELC B2 criteria. Provide VALID JSON only (no markdown).\n\nReturn JSON exactly in this schema:\n{\n  \"maxPoints\": 45,\n  \"score\": <0-45>,\n  \"percentage\": <0-100>,\n  \"grade\": \"<Sehr gut|Gut|Befriedigend|Ausreichend|Mangelhaft>\",\n  \"taskCompletion\": {\n    \"score\": <0-15>,\n    \"feedback\": \"<detailed feedback in German>\"\n  },\n  \"coherence\": {\n    \"score\": <0-10>,\n    \"feedback\": \"<feedback on structure and organization>\"\n  },\n  \"vocabulary\": {\n    \"score\": <0-10>,\n    \"feedback\": \"<feedback on word choice and range>\"\n  },\n  \"grammar\": {\n    \"score\": <0-10>,\n    \"feedback\": \"<feedback on accuracy and complexity>\"\n  },\n  \"strengths\": [\"<strength 1>\", \"<strength 2>\"],\n  \"improvements\": [\"<improvement 1>\", \"<improvement 2>\"],\n  \"correctedVersion\": \"<improved version with corrections>\",\n  \"detailedErrors\": [\n    {\"type\": \"<error type>\", \"original\": \"<text>\", \"correction\": \"<fix>\", \"explanation\": \"<why>\"}\n  ]\n}`;
     } else if (section === 'speaking') {
-      prompt = `You are a TELC B2 examiner evaluating a German speaking performance.
+      const mp = typeof maxPoints === 'number' && maxPoints > 0 ? maxPoints : 75;
+      const perCat = Math.round((mp / 5) * 10) / 10;
 
-Task: ${task}
-Transcript: ${userAnswer}
-
-Evaluate according to TELC B2 criteria and provide JSON:
-{
-  "score": <0-25 points>,
-  "grade": "<sehr gut|gut|befriedigend|ausreichend|mangelhaft>",
-  "fluency": {
-    "score": <0-10>,
-    "feedback": "<feedback on flow and hesitations>"
-  },
-  "vocabulary": {
-    "score": <0-10>,
-    "feedback": "<feedback on range and appropriacy>"
-  },
-  "grammar": {
-    "score": <0-10>,
-    "feedback": "<feedback on accuracy and variety>"
-  },
-  "pronunciation": {
-    "score": <0-10>,
-    "feedback": "<feedback on clarity and accent>"
-  },
-  "taskCompletion": {
-    "score": <0-10>,
-    "feedback": "<feedback on addressing the task>"
-  },
-  "strengths": ["<strength 1>", "<strength 2>"],
-  "improvements": ["<improvement 1>", "<improvement 2>"],
-  "keyErrorsAndCorrections": [
-    {"error": "<text>", "correction": "<fix>", "explanation": "<why>"}
-  ]
-}`;
+      prompt = `You are a TELC Deutsch B2 examiner evaluating a German speaking performance.\n\nTeil: ${teil ?? 'full'}\nTask:\n${task}\n\nTranscript (or notes if transcript is not available):\n${userAnswer}\n\nEvaluate according to TELC B2 criteria. Provide VALID JSON only (no markdown).\n\nReturn JSON exactly in this schema:\n{\n  \"maxPoints\": ${mp},\n  \"score\": <0-${mp}>,\n  \"percentage\": <0-100>,\n  \"grade\": \"<Sehr gut|Gut|Befriedigend|Ausreichend|Mangelhaft>\",\n  \"fluency\": {\n    \"score\": <0-${perCat}>,\n    \"feedback\": \"<feedback on flow and hesitations>\"\n  },\n  \"vocabulary\": {\n    \"score\": <0-${perCat}>,\n    \"feedback\": \"<feedback on range and appropriacy>\"\n  },\n  \"grammar\": {\n    \"score\": <0-${perCat}>,\n    \"feedback\": \"<feedback on accuracy and variety>\"\n  },\n  \"pronunciation\": {\n    \"score\": <0-${perCat}>,\n    \"feedback\": \"<feedback on clarity and accent>\"\n  },\n  \"taskCompletion\": {\n    \"score\": <0-${perCat}>,\n    \"feedback\": \"<feedback on addressing the task>\"\n  },\n  \"strengths\": [\"<strength 1>\", \"<strength 2>\"],\n  \"improvements\": [\"<improvement 1>\", \"<improvement 2>\"],\n  \"keyErrorsAndCorrections\": [\n    {\"error\": \"<text>\", \"correction\": \"<fix>\", \"explanation\": \"<why>\"}\n  ]\n}`;
     }
+
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GOOGLE_GEMINI_API_KEY}`,
@@ -118,7 +57,14 @@ Evaluate according to TELC B2 criteria and provide JSON:
 
     const data = await response.json();
     const evaluationText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!evaluationText) {
+      throw new Error('No evaluation returned from model');
+    }
+
     const evaluation = JSON.parse(evaluationText);
+    if (typeof evaluation.score === 'number' && typeof evaluation.maxPoints === 'number' && typeof evaluation.percentage !== 'number') {
+      evaluation.percentage = Math.round((evaluation.score / evaluation.maxPoints) * 100);
+    }
 
     return new Response(JSON.stringify(evaluation), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
