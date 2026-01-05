@@ -5,13 +5,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// TELC B2 official scoring guidelines
+// TELC B2 scoring (aligned with our 300-point model)
 const SECTION_WEIGHTS = {
-  reading: 25,        // 25 points
-  sprachbausteine: 15, // 15 points  
-  listening: 25,      // 25 points
-  writing: 45,        // 45 points (15 + 30)
-  speaking: 60        // 60 points (15 + 15 + 30)
+  reading: 75,         // 75 points
+  sprachbausteine: 30, // 30 points
+  listening: 75,       // 75 points
+  writing: 45,         // 45 points
+  speaking: 75         // 75 points
 };
 
 const TELC_GRADES = {

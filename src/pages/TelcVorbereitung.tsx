@@ -55,84 +55,161 @@ const TELC_SECTIONS = {
     title: "Leseverstehen",
     titleEn: "Reading Comprehension",
     icon: BookOpen,
-    color: "hsl(217 91% 60%)",
-    bgClass: "bg-blue-500/10 dark:bg-blue-500/20",
-    borderClass: "border-blue-500/30",
-    textClass: "text-blue-600 dark:text-blue-400",
+    barClass: "bg-primary",
+    bgClass: "bg-primary/10",
+    borderClass: "border-primary/20",
+    textClass: "text-primary",
+    badgeClass: "bg-primary text-primary-foreground",
     duration: 90,
     maxPoints: 75,
     teile: [
-      { number: 1, title: "Globalverstehen", description: "5 Überschriften zu Textabschnitten zuordnen", points: 25 },
-      { number: 2, title: "Detailverstehen", description: "Längeren Text lesen, 5 MC-Fragen beantworten", points: 25 },
-      { number: 3, title: "Selektives Verstehen", description: "10 Situationen zu Anzeigen zuordnen", points: 25 }
-    ]
+      {
+        number: 1,
+        title: "Globalverstehen",
+        description: "5 Texte (A–E) → 6 Überschriften (1 extra) zuordnen",
+        points: 25,
+        suggestedMinutes: 30,
+      },
+      {
+        number: 2,
+        title: "Detailverstehen",
+        description: "1 langer Text → 10 Aussagen (richtig/falsch/steht nicht im Text)",
+        points: 25,
+        suggestedMinutes: 35,
+      },
+      {
+        number: 3,
+        title: "Selektives Verstehen",
+        description: "10 Situationen → 12 Anzeigen (A–L) zuordnen",
+        points: 25,
+        suggestedMinutes: 25,
+      },
+    ],
   },
   sprachbausteine: {
     id: "sprachbausteine",
     title: "Sprachbausteine",
     titleEn: "Language Elements",
     icon: PenTool,
-    color: "hsl(271 81% 56%)",
-    bgClass: "bg-purple-500/10 dark:bg-purple-500/20",
-    borderClass: "border-purple-500/30",
-    textClass: "text-purple-600 dark:text-purple-400",
+    barClass: "bg-accent",
+    bgClass: "bg-accent/10",
+    borderClass: "border-accent/20",
+    textClass: "text-foreground",
+    badgeClass: "bg-accent text-accent-foreground",
     duration: 30,
     maxPoints: 30,
     teile: [
-      { number: 1, title: "Grammatik im Kontext", description: "10 Lücken mit je 3 Optionen füllen", points: 15 },
-      { number: 2, title: "Wortschatz und Struktur", description: "10 Lücken aus Wortbank füllen", points: 15 }
-    ]
+      {
+        number: 1,
+        title: "Grammatik im Kontext",
+        description: "10 Lücken (a/b/c) im zusammenhängenden Text",
+        points: 15,
+        suggestedMinutes: 15,
+      },
+      {
+        number: 2,
+        title: "Wortschatz & Struktur",
+        description: "10 Lücken (a/b/c) im zweiten Text",
+        points: 15,
+        suggestedMinutes: 15,
+      },
+    ],
   },
   hoeren: {
     id: "hoeren",
     title: "Hörverstehen",
     titleEn: "Listening Comprehension",
     icon: Headphones,
-    color: "hsl(142 71% 45%)",
-    bgClass: "bg-green-500/10 dark:bg-green-500/20",
-    borderClass: "border-green-500/30",
-    textClass: "text-green-600 dark:text-green-400",
+    barClass: "bg-secondary",
+    bgClass: "bg-secondary",
+    borderClass: "border-border",
+    textClass: "text-foreground",
+    badgeClass: "bg-secondary text-secondary-foreground",
     duration: 20,
     maxPoints: 75,
     teile: [
-      { number: 1, title: "Globalverstehen", description: "5 kurze Texte hören, Themen zuordnen", points: 25 },
-      { number: 2, title: "Detailverstehen", description: "Längeren Text hören, richtig/falsch", points: 25 },
-      { number: 3, title: "Selektives Verstehen", description: "5 Dialoge hören, MC-Fragen", points: 25 }
-    ]
+      {
+        number: 1,
+        title: "Teil 1",
+        description: "Kurzer Hörtext → 5 Multiple-Choice-Aufgaben",
+        points: 25,
+        suggestedMinutes: 7,
+      },
+      {
+        number: 2,
+        title: "Teil 2",
+        description: "Längerer Hörtext → 10 Aussagen (richtig/falsch)",
+        points: 25,
+        suggestedMinutes: 8,
+      },
+      {
+        number: 3,
+        title: "Teil 3",
+        description: "5 kurze Nachrichten/Ansagen → 5 Multiple-Choice-Aufgaben",
+        points: 25,
+        suggestedMinutes: 5,
+      },
+    ],
   },
   schreiben: {
     id: "schreiben",
     title: "Schriftlicher Ausdruck",
     titleEn: "Written Expression",
     icon: FileText,
-    color: "hsl(25 95% 53%)",
-    bgClass: "bg-orange-500/10 dark:bg-orange-500/20",
-    borderClass: "border-orange-500/30",
-    textClass: "text-orange-600 dark:text-orange-400",
+    barClass: "bg-muted-foreground",
+    bgClass: "bg-muted",
+    borderClass: "border-border",
+    textClass: "text-foreground",
+    badgeClass: "bg-foreground text-background",
     duration: 30,
     maxPoints: 45,
     teile: [
-      { number: 1, title: "Beschwerde / Anfrage", description: "Halbformellen Brief schreiben (150+ Wörter)", points: 45 }
-    ]
+      {
+        number: 1,
+        title: "Brief/E-Mail",
+        description: "Ca. 150 Wörter, 4 Punkte der Aufgabe vollständig abdecken",
+        points: 45,
+        suggestedMinutes: 30,
+      },
+    ],
   },
   sprechen: {
     id: "sprechen",
     title: "Mündlicher Ausdruck",
     titleEn: "Oral Expression",
     icon: Mic,
-    color: "hsl(0 72% 51%)",
-    bgClass: "bg-red-500/10 dark:bg-red-500/20",
-    borderClass: "border-red-500/30",
-    textClass: "text-red-600 dark:text-red-400",
-    duration: 20,
+    barClass: "bg-destructive",
+    bgClass: "bg-destructive/10",
+    borderClass: "border-destructive/20",
+    textClass: "text-destructive",
+    badgeClass: "bg-destructive text-destructive-foreground",
+    duration: 15,
     maxPoints: 75,
     teile: [
-      { number: 1, title: "Präsentation", description: "Ein Thema 3-4 Minuten präsentieren", points: 25 },
-      { number: 2, title: "Diskussion", description: "Über das Thema 4-5 Minuten diskutieren", points: 25 },
-      { number: 3, title: "Problemlösung", description: "Gemeinsam eine Lösung finden", points: 25 }
-    ]
-  }
-};
+      {
+        number: 1,
+        title: "Präsentation",
+        description: "Thema strukturieren und ca. 3–4 Minuten präsentieren",
+        points: 25,
+        suggestedMinutes: 5,
+      },
+      {
+        number: 2,
+        title: "Diskussion",
+        description: "Mit Partner*in diskutieren, reagieren und begründen",
+        points: 25,
+        suggestedMinutes: 5,
+      },
+      {
+        number: 3,
+        title: "Problemlösung",
+        description: "Gemeinsam Optionen abwägen und zu einer Entscheidung kommen",
+        points: 25,
+        suggestedMinutes: 5,
+      },
+    ],
+  },
+} as const;
 
 type SectionKey = keyof typeof TELC_SECTIONS;
 type ViewMode = "overview" | "section" | "practice";
@@ -166,16 +243,24 @@ const TelcVorbereitung = () => {
   const [aiCoachOpen, setAiCoachOpen] = useState(false);
   const [aiMessages, setAiMessages] = useState<{ role: string; content: string }[]>([]);
   
-  // Audio
+  // Audio (Listening)
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [audioLoading, setAudioLoading] = useState(false);
+  const [showTranscript, setShowTranscript] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  
-  // Recording (Sprechen)
+
+  // Materials (texts/transcripts)
+  const [materialOpen, setMaterialOpen] = useState(true);
+
+  // Recording + transcription (Sprechen)
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [recordingUrl, setRecordingUrl] = useState<string | null>(null);
+  const [transcribing, setTranscribing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordingChunksRef = useRef<BlobPart[]>([]);
+  const recordingBlobRef = useRef<Blob | null>(null);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Timer effect
@@ -221,13 +306,25 @@ const TelcVorbereitung = () => {
     setActiveSection(sectionId);
     setActiveTeil(teil);
     setView("practice");
+
     setAnswers({});
     setWritingAnswer("");
     setSubmitted(false);
     setResults(null);
     setCurrentQuestion(0);
+
+    setContent(null);
+    setTimerActive(false);
+    setMaterialOpen(true);
+    setShowTranscript(false);
+
     setAiMessages([]);
     setAiCoachOpen(false);
+
+    setAudioUrl(null);
+    setRecordingUrl(null);
+    recordingBlobRef.current = null;
+
     await generateContent(sectionId, teil);
   };
 
@@ -264,7 +361,9 @@ const TelcVorbereitung = () => {
       setContent(data);
       
       const sectionConfig = TELC_SECTIONS[section];
-      setTimeLeft(sectionConfig.duration * 60);
+      const teilConfig = sectionConfig.teile.find((t) => t.number === teil);
+      const suggestedMinutes = teilConfig?.suggestedMinutes ?? sectionConfig.duration;
+      setTimeLeft(suggestedMinutes * 60);
 
       // Generate audio for listening
       if (section === "hoeren" && data.teile?.[0]?.text) {
@@ -292,6 +391,57 @@ const TelcVorbereitung = () => {
       toast.error("Audio konnte nicht generiert werden");
     } finally {
       setAudioLoading(false);
+    }
+  };
+
+  const toggleAudioPlayback = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (el.paused) {
+      void el.play();
+    } else {
+      el.pause();
+    }
+  };
+
+  const blobToBase64 = (blob: Blob) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const res = String(reader.result || "");
+        const base64 = res.includes(",") ? res.split(",")[1] : res;
+        resolve(base64);
+      };
+      reader.onerror = () => reject(new Error("Failed to read audio"));
+      reader.readAsDataURL(blob);
+    });
+
+  const transcribeRecording = async () => {
+    if (!recordingBlobRef.current) {
+      toast.error("Keine Aufnahme gefunden");
+      return;
+    }
+
+    setTranscribing(true);
+    try {
+      const audio = await blobToBase64(recordingBlobRef.current);
+      const { data, error } = await supabase.functions.invoke('speech-to-text', {
+        body: { audio, language: 'de' }
+      });
+      if (error) throw error;
+
+      const text = data?.text || "";
+      if (!text.trim()) {
+        toast.error("Transkript war leer – bitte erneut aufnehmen");
+        return;
+      }
+
+      setWritingAnswer(text);
+      toast.success("Transkript erstellt");
+    } catch (e: any) {
+      toast.error("Transkription fehlgeschlagen: " + (e?.message || "Unbekannter Fehler"));
+    } finally {
+      setTranscribing(false);
     }
   };
 
@@ -347,32 +497,51 @@ const TelcVorbereitung = () => {
 
     try {
       if (activeSection === "schreiben" || activeSection === "sprechen") {
+        const maxPoints = activeSection === "schreiben" ? 45 : 25;
         const { data, error } = await supabase.functions.invoke('evaluate-telc-answer', {
           body: {
             section: activeSection === "schreiben" ? "writing" : "speaking",
+            teil: activeTeil,
+            maxPoints,
             task: content.teile?.[0]?.task || content.teile?.[0]?.instructions,
-            userAnswer: writingAnswer
+            userAnswer: writingAnswer,
           }
         });
         if (error) throw error;
         setResults(data);
       } else {
-        // Score MC questions
-        const questions = content.teile?.[0]?.questions || [];
+        const teilData = content.teile?.[0];
+        const questions = teilData?.questions || [];
+        const maxPoints = Number(teilData?.maxPoints ?? questions.length);
+        const pointsPerQuestion = Number(
+          teilData?.pointsPerQuestion ?? (questions.length ? maxPoints / questions.length : 0)
+        );
+
         let correct = 0;
         const details = questions.map((q: any, idx: number) => {
           const userAns = answers[idx];
           const correctAns = getCorrectAnswerText(q);
-          const isCorrect = userAns === correctAns || 
-            (typeof q.correctAnswer === 'number' && parseInt(userAns) === q.correctAnswer);
+          const isCorrect = userAns === correctAns;
           if (isCorrect) correct++;
-          return { question: q.question, userAnswer: userAns, correctAnswer: correctAns, isCorrect };
+          return {
+            question: q.question,
+            userAnswer: userAns,
+            correctAnswer: correctAns,
+            isCorrect,
+            explanation: q.explanation,
+          };
         });
+
+        const earnedPoints = Math.round(correct * pointsPerQuestion * 10) / 10;
+        const percentage = maxPoints ? Math.round((earnedPoints / maxPoints) * 100) : 0;
+
         setResults({
-          score: correct,
+          correct,
           total: questions.length,
-          percentage: Math.round((correct / questions.length) * 100),
-          details
+          earnedPoints,
+          maxPoints,
+          percentage,
+          details,
         });
       }
       setSubmitted(true);
@@ -391,9 +560,30 @@ const TelcVorbereitung = () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
-      const chunks: BlobPart[] = [];
-      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-      mediaRecorder.onstop = () => stream.getTracks().forEach(t => t.stop());
+
+      // Reset old recording
+      if (recordingUrl) URL.revokeObjectURL(recordingUrl);
+      setRecordingUrl(null);
+      recordingBlobRef.current = null;
+      recordingChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) recordingChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        try {
+          const blob = new Blob(recordingChunksRef.current, {
+            type: mediaRecorder.mimeType || 'audio/webm',
+          });
+          recordingBlobRef.current = blob;
+          const url = URL.createObjectURL(blob);
+          setRecordingUrl(url);
+        } finally {
+          stream.getTracks().forEach((t) => t.stop());
+        }
+      };
+
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingTime(0);
@@ -486,7 +676,7 @@ const TelcVorbereitung = () => {
               style={{ animationDelay: `${idx * 0.1}s` }}
               onClick={() => openSection(section.id as SectionKey)}
             >
-              <div className={`h-2 w-full ${section.bgClass}`} style={{ background: section.color }} />
+              <div className={`h-2 w-full ${section.barClass}`} />
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className={`p-3 rounded-xl ${section.bgClass}`}>
@@ -595,10 +785,7 @@ const TelcVorbereitung = () => {
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <Badge 
-                    className="text-sm px-3 py-1"
-                    style={{ background: section.color, color: 'white' }}
-                  >
+                  <Badge className={`text-sm px-3 py-1 ${section.badgeClass}`}>
                     Teil {teil.number}
                   </Badge>
                   <span className="text-sm text-muted-foreground">{teil.points} Punkte</span>
@@ -611,13 +798,13 @@ const TelcVorbereitung = () => {
                 {/* Tips */}
                 <div className="p-4 rounded-xl bg-muted/50 space-y-2">
                   <p className="text-sm font-medium flex items-center gap-2">
-                    <Lightbulb className="h-4 w-4 text-yellow-500" />
+                    <Lightbulb className="h-4 w-4 text-primary" />
                     Tipps für diesen Teil
                   </p>
                   <ul className="text-sm text-muted-foreground space-y-1">
                     {getTeileenTips(activeSection, teil.number).slice(0, 3).map((tip, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500 mt-0.5 shrink-0" />
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
                         {tip}
                       </li>
                     ))}
@@ -656,7 +843,8 @@ const TelcVorbereitung = () => {
     if (!activeSection || !content) return null;
     const section = TELC_SECTIONS[activeSection];
     const Icon = section.icon;
-    const questions = content.teile?.[0]?.questions || [];
+    const teilData = content.teile?.[0];
+    const questions = teilData?.questions || [];
     const currentQ = questions[currentQuestion];
 
     return (
@@ -712,7 +900,100 @@ const TelcVorbereitung = () => {
 
           {/* Content Area */}
           <Card className="glass-luxury">
-            <CardContent className="p-6">
+            <CardContent className="p-6 space-y-6">
+              {/* Official instructions + material */}
+              {(teilData?.instructions || teilData?.text || activeSection === "hoeren") && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <p className="text-sm font-medium">Aufgabenstellung & Material</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setMaterialOpen((v) => !v)}
+                      className="gap-2"
+                    >
+                      {materialOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                      {materialOpen ? "Ausblenden" : "Einblenden"}
+                    </Button>
+                  </div>
+
+                  {materialOpen && (
+                    <Card className="border-primary/10">
+                      <CardContent className="p-4 space-y-4">
+                        {teilData?.instructions && (
+                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                            {teilData.instructions}
+                          </p>
+                        )}
+
+                        {/* Reading / Sprachbausteine material */}
+                        {activeSection !== "hoeren" && teilData?.text && (
+                          <ScrollArea className="h-72 rounded-lg border bg-background">
+                            <div className="p-4">
+                              <pre className="whitespace-pre-wrap text-sm leading-relaxed">
+                                {teilData.text}
+                              </pre>
+                            </div>
+                          </ScrollArea>
+                        )}
+
+                        {/* Listening material: audio first, transcript optional */}
+                        {activeSection === "hoeren" && (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={toggleAudioPlayback}
+                                disabled={!audioUrl || audioLoading}
+                                className="gap-2"
+                              >
+                                {audioPlaying ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                                {audioPlaying ? "Pause" : "Abspielen"}
+                              </Button>
+                              <span className="text-xs text-muted-foreground">
+                                (Im echten Test hörst du i.d.R. nur 1×/2× – hier kannst du zum Lernen wiederholen.)
+                              </span>
+                            </div>
+
+                            {audioLoading && (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Audio wird vorbereitet…
+                              </div>
+                            )}
+
+                            {submitted && teilData?.text && (
+                              <div className="space-y-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="gap-2"
+                                  onClick={() => setShowTranscript((v) => !v)}
+                                >
+                                  <FileText className="h-4 w-4" />
+                                  {showTranscript ? "Transkript ausblenden" : "Transkript anzeigen"}
+                                </Button>
+                                {showTranscript && (
+                                  <ScrollArea className="h-56 rounded-lg border bg-background">
+                                    <div className="p-4">
+                                      <pre className="whitespace-pre-wrap text-sm leading-relaxed">
+                                        {teilData.text}
+                                      </pre>
+                                    </div>
+                                  </ScrollArea>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
+
+              {/* Main interactive area */}
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-12 gap-4">
                   <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -725,9 +1006,7 @@ const TelcVorbereitung = () => {
               ) : questions.length > 0 ? (
                 renderQuestion(currentQ, currentQuestion)
               ) : (
-                <p className="text-center text-muted-foreground py-8">
-                  Keine Fragen verfügbar
-                </p>
+                <p className="text-center text-muted-foreground py-8">Keine Fragen verfügbar</p>
               )}
             </CardContent>
           </Card>
@@ -801,7 +1080,7 @@ const TelcVorbereitung = () => {
                   onClick={() => askAiCoach('hint')}
                   disabled={aiLoading}
                 >
-                  <Lightbulb className="h-4 w-4 text-yellow-500" />
+                  <Lightbulb className="h-4 w-4 text-primary" />
                   Hinweis
                 </Button>
                 <Button
@@ -811,7 +1090,7 @@ const TelcVorbereitung = () => {
                   onClick={() => askAiCoach('explain')}
                   disabled={aiLoading}
                 >
-                  <MessageSquare className="h-4 w-4 text-blue-500" />
+                  <MessageSquare className="h-4 w-4 text-primary" />
                   Erklärung
                 </Button>
               </div>
@@ -869,11 +1148,6 @@ const TelcVorbereitung = () => {
         <div className="space-y-2">
           <Badge variant="outline" className="mb-2">Frage {idx + 1}</Badge>
           <h3 className="text-lg font-medium">{q.question}</h3>
-          {q.context && (
-            <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-              {q.context}
-            </p>
-          )}
         </div>
 
         <RadioGroup
@@ -921,7 +1195,13 @@ const TelcVorbereitung = () => {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Deine Antwort</span>
-              <span className={writingAnswer.split(/\s+/).filter(Boolean).length >= 150 ? 'text-green-500' : 'text-muted-foreground'}>
+              <span
+                className={
+                  writingAnswer.split(/\s+/).filter(Boolean).length >= 150
+                    ? 'text-primary'
+                    : 'text-muted-foreground'
+                }
+              >
                 {writingAnswer.split(/\s+/).filter(Boolean).length} / 150+ Wörter
               </span>
             </div>
@@ -961,12 +1241,28 @@ const TelcVorbereitung = () => {
               )}
             </div>
 
+            {recordingUrl && (
+              <div className="space-y-2">
+                <Label>Deine Aufnahme (optional):</Label>
+                <audio controls src={recordingUrl} className="w-full" />
+                <Button
+                  variant="outline"
+                  onClick={transcribeRecording}
+                  disabled={transcribing}
+                  className="gap-2"
+                >
+                  {transcribing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                  {transcribing ? "Transkribiere…" : "Aufnahme transkribieren"}
+                </Button>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label>Oder schreibe deine Notizen:</Label>
+              <Label>Oder füge ein Transkript / Notizen ein:</Label>
               <Textarea
                 value={writingAnswer}
                 onChange={(e) => setWritingAnswer(e.target.value)}
-                placeholder="Notizen für deine Präsentation..."
+                placeholder="Transkript oder Notizen…"
                 className="min-h-[150px]"
               />
             </div>
@@ -989,25 +1285,26 @@ const TelcVorbereitung = () => {
         {/* Score Header */}
         <div className="text-center space-y-4">
           <div className={`inline-flex p-4 rounded-full ${
-            (results.percentage || results.score) >= 60 ? 'bg-green-500/10' : 'bg-destructive/10'
+            (results.percentage ?? 0) >= 60 ? 'bg-primary/10' : 'bg-destructive/10'
           }`}>
-            {(results.percentage || results.score) >= 60 ? (
-              <Trophy className="h-12 w-12 text-green-500" />
+            {(results.percentage ?? 0) >= 60 ? (
+              <Trophy className="h-12 w-12 text-primary" />
             ) : (
               <Target className="h-12 w-12 text-destructive" />
             )}
           </div>
-          
+
           <div>
             <h3 className="text-2xl font-bold">
               {isWritingOrSpeaking ? (
-                `${results.score || results.overall_score || 0} Punkte`
+                `${results.score ?? 0} / ${results.maxPoints ?? (activeSection === 'schreiben' ? 45 : 25)} Punkte`
               ) : (
-                `${results.score} / ${results.total} richtig`
+                `${results.earnedPoints ?? 0} / ${results.maxPoints ?? 0} Punkte`
               )}
             </h3>
             <p className="text-muted-foreground">
-              {(results.percentage || results.score) >= 60 ? 'Gut gemacht!' : 'Weiter üben!'}
+              {(results.percentage ?? 0) >= 60 ? 'Gut gemacht!' : 'Weiter üben!'}
+              {typeof results.grade === 'string' ? ` • Note: ${results.grade}` : ''}
             </p>
           </div>
         </div>
@@ -1043,24 +1340,23 @@ const TelcVorbereitung = () => {
               <div 
                 key={i} 
                 className={`p-3 rounded-lg border ${
-                  d.isCorrect ? 'border-green-500/30 bg-green-500/5' : 'border-destructive/30 bg-destructive/5'
+                  d.isCorrect ? 'border-primary/30 bg-primary/5' : 'border-destructive/30 bg-destructive/5'
                 }`}
               >
                 <div className="flex items-start gap-2">
                   {d.isCorrect ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
                   ) : (
                     <XCircle className="h-5 w-5 text-destructive shrink-0" />
                   )}
                   <div className="space-y-1 text-sm">
                     <p className="font-medium">{d.question}</p>
-                    <p className="text-muted-foreground">
-                      Deine Antwort: {d.userAnswer || '-'}
-                    </p>
+                    <p className="text-muted-foreground">Deine Antwort: {d.userAnswer || '-'}</p>
                     {!d.isCorrect && (
-                      <p className="text-green-600 dark:text-green-400">
-                        Richtig: {d.correctAnswer}
-                      </p>
+                      <p className="text-primary">Richtig: {d.correctAnswer}</p>
+                    )}
+                    {submitted && d.explanation && (
+                      <p className="text-muted-foreground whitespace-pre-wrap">{d.explanation}</p>
                     )}
                   </div>
                 </div>
@@ -1106,9 +1402,9 @@ const TelcVorbereitung = () => {
         2: ["Bestimme die Wortart", "Prüfe Kollokationen", "Formelle Sprache verwenden"]
       },
       hoeren: {
-        1: ["Lies alle Optionen vorher", "Fokus auf Hauptbotschaft", "Vertraue deinem ersten Eindruck"],
-        2: ["Erstes Hören: Gesamtverständnis", "Zweites Hören: Details prüfen", "'Nicht im Text' = gar nicht erwähnt"],
-        3: ["Lies Frage und Optionen vorher", "Achte auf Ton und Haltung", "Nur einmal zu hören"]
+        1: ["Lies Frage/Optionen vor dem Hören", "Fokus auf die gesuchte Info", "Mach kurze Stichwörter"],
+        2: ["Achte auf Schlüsselwörter", "richtig/falsch: nur entscheiden, was gesagt wurde", "Bei Unsicherheit: zweite Stelle im Hörtext suchen"],
+        3: ["Kurze Ansagen: schnell entscheiden", "Zahlen/Zeiten/Orte mitschreiben", "Nur die Frage beantworten – nicht alles verstehen müssen"],
       },
       schreiben: {
         1: ["Alle Punkte der Aufgabe behandeln", "Formelle Anrede und Grußformel", "Mindestens 150 Wörter"]
