@@ -9,17 +9,16 @@ import {
   BookOpen, MessageSquare, Target, Brain, TrendingUp, 
   AlertCircle, CheckCircle2, Activity, Sparkles, Loader2, 
   Calendar, Zap, GraduationCap, RotateCcw, Trophy, Flame, 
-  Star, ArrowRight, Play
+  Star, ArrowRight, Play, LayoutDashboard
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/contexts/LanguageContext";
 import CourseProgressWidget from "@/components/CourseProgressWidget";
-import HeroBanner from "@/components/HeroBanner";
 import StatCard from "@/components/StatCard";
 import ConfettiCelebration from "@/components/ConfettiCelebration";
-import dashboardBanner from "@/assets/dashboard-banner.jpg";
+import PageBanner from "@/components/PageBanner";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -229,12 +228,12 @@ const Dashboard = () => {
       
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
         {/* Hero Banner */}
-        <HeroBanner
-          image={dashboardBanner}
+        <PageBanner
+          type="dashboard"
           title={`Welcome back${user?.email ? `, ${user.email.split('@')[0]}` : ''}!`}
           subtitle="Continue your German learning journey. Track your progress and unlock new achievements."
           badge={`🔥 ${progress?.streak_days || 0} Day Streak`}
-          height="md"
+          icon={LayoutDashboard}
         >
           <div className="flex gap-3 mt-2">
             <Button 
@@ -258,7 +257,7 @@ const Dashboard = () => {
               AI Insights
             </Button>
           </div>
-        </HeroBanner>
+        </PageBanner>
 
         {/* Celebration Banner for Milestones */}
         {(progress?.streak_days === 7 || progress?.streak_days === 30 || progress?.words_learned >= 100) && (
