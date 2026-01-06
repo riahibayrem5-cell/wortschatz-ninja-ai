@@ -6,200 +6,495 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-function buildPrompt(section: string, teil?: number) {
-  const teilLine = typeof teil === "number" ? `\nONLY generate Teil ${teil}. Return an array with exactly ONE teil object.` : "\nGenerate the FULL section (all Teile).";
+// ─────────────────────────────────────────────────────────────
+// STRICT TELC B2 Exam Specifications per Teil
+// ─────────────────────────────────────────────────────────────
+const TELC_SPECS = {
+  reading: {
+    1: {
+      title: "Globalverstehen",
+      questionCount: 5,
+      optionType: "heading_match", // text A-E matched with 6 headings
+      pointsPerQuestion: 5,
+      maxPoints: 25,
+      optionLabels: ["Überschrift 1", "Überschrift 2", "Überschrift 3", "Überschrift 4", "Überschrift 5", "Überschrift 6"],
+      instructions: "Ordnen Sie jedem Text (A–E) eine passende Überschrift zu. Es gibt eine Überschrift zu viel.",
+    },
+    2: {
+      title: "Detailverstehen",
+      questionCount: 10,
+      optionType: "richtig_falsch_steht_nicht",
+      pointsPerQuestion: 2.5,
+      maxPoints: 25,
+      optionLabels: ["richtig", "falsch", "steht nicht im Text"],
+      instructions: "Lesen Sie den Text und entscheiden Sie, ob die Aussagen richtig, falsch sind, oder ob die Information nicht im Text steht.",
+    },
+    3: {
+      title: "Selektives Verstehen",
+      questionCount: 10,
+      optionType: "ad_match", // situations 1-10 matched with ads A-L
+      pointsPerQuestion: 2.5,
+      maxPoints: 25,
+      optionLabels: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"],
+      instructions: "Lesen Sie die Situationen 1–10 und die Anzeigen A–L. Wählen Sie die passende Anzeige für jede Situation.",
+    },
+  },
+  sprachbausteine: {
+    1: {
+      title: "Grammatik im Kontext",
+      questionCount: 10,
+      optionType: "abc",
+      pointsPerQuestion: 1.5,
+      maxPoints: 15,
+      optionLabels: ["a", "b", "c"],
+      instructions: "Lesen Sie den folgenden Text und wählen Sie für jede Lücke die richtige Lösung (a, b oder c).",
+    },
+    2: {
+      title: "Wortschatz & Struktur",
+      questionCount: 10,
+      optionType: "abc",
+      pointsPerQuestion: 1.5,
+      maxPoints: 15,
+      optionLabels: ["a", "b", "c"],
+      instructions: "Lesen Sie den folgenden Text und wählen Sie für jede Lücke die richtige Lösung (a, b oder c).",
+    },
+  },
+  listening: {
+    1: {
+      title: "Teil 1",
+      questionCount: 5,
+      optionType: "multiple_choice",
+      pointsPerQuestion: 5,
+      maxPoints: 25,
+      optionLabels: null, // 4 options generated per question
+      instructions: "Sie hören ein Gespräch. Lesen Sie zuerst die Aufgaben. Hören Sie dann den Text zweimal und lösen Sie die Aufgaben.",
+    },
+    2: {
+      title: "Teil 2",
+      questionCount: 10,
+      optionType: "richtig_falsch",
+      pointsPerQuestion: 2.5,
+      maxPoints: 25,
+      optionLabels: ["richtig", "falsch"],
+      instructions: "Sie hören ein Interview. Lesen Sie zuerst die Aufgaben. Hören Sie dann den Text einmal und entscheiden Sie: richtig oder falsch?",
+    },
+    3: {
+      title: "Teil 3",
+      questionCount: 5,
+      optionType: "multiple_choice",
+      pointsPerQuestion: 5,
+      maxPoints: 25,
+      optionLabels: null, // 3 options generated per question
+      instructions: "Sie hören fünf kurze Texte. Lösen Sie die Aufgaben. Hören Sie jeden Text einmal.",
+    },
+  },
+  writing: {
+    1: {
+      title: "Brief/E-Mail",
+      questionCount: 0,
+      optionType: "free_text",
+      pointsPerQuestion: 0,
+      maxPoints: 45,
+      optionLabels: null,
+      instructions: "Schreiben Sie einen halbformellen oder formellen Brief/E-Mail mit ca. 150 Wörtern.",
+    },
+  },
+  speaking: {
+    1: {
+      title: "Präsentation",
+      questionCount: 0,
+      optionType: "speaking",
+      pointsPerQuestion: 0,
+      maxPoints: 25,
+      optionLabels: null,
+      instructions: "Wählen Sie ein Thema und halten Sie eine Präsentation von ca. 3–4 Minuten.",
+    },
+    2: {
+      title: "Diskussion",
+      questionCount: 0,
+      optionType: "speaking",
+      pointsPerQuestion: 0,
+      maxPoints: 25,
+      optionLabels: null,
+      instructions: "Diskutieren Sie mit Ihrem Partner/Ihrer Partnerin über ein vorgegebenes Thema.",
+    },
+    3: {
+      title: "Problemlösung",
+      questionCount: 0,
+      optionType: "speaking",
+      pointsPerQuestion: 0,
+      maxPoints: 25,
+      optionLabels: null,
+      instructions: "Lösen Sie gemeinsam mit Ihrem Partner/Ihrer Partnerin eine vorgegebene Aufgabe.",
+    },
+  },
+};
 
-  const questionSchema = `Each question MUST follow this schema (no extra keys):\n{
-  "id": 1,
-  "question": "...",
-  "options": ["...", "...", "..."],
-  "correctAnswer": "<MUST be EXACTLY one of options>",
-  "explanation": "1-2 short sentences in German explaining why"
-}`;
+function buildPrompt(section: string, teil: number) {
+  const specs = TELC_SPECS[section as keyof typeof TELC_SPECS];
+  if (!specs) return null;
+  
+  const teilSpec = specs[teil as keyof typeof specs];
+  if (!teilSpec) return null;
+
+  const baseInstructions = `You are creating ORIGINAL practice content that EXACTLY matches the TELC Deutsch B2 exam format.
+CRITICAL: Do NOT copy any real TELC exam content. Generate completely new, original content.
+
+SECTION: ${section.toUpperCase()} - Teil ${teil}
+Title: ${teilSpec.title}
+Instructions: ${teilSpec.instructions}
+Question count: ${teilSpec.questionCount}
+Points per question: ${teilSpec.pointsPerQuestion}
+Max points: ${teilSpec.maxPoints}
+`;
+
+  let contentInstructions = "";
+  let jsonSchema = "";
 
   switch (section) {
     case "reading":
-      return `You are creating ORIGINAL practice content that matches the TELC Deutsch B2 *format* (do NOT copy any real telc texts, questions, or answer keys).\n${teilLine}
-
-SECTION: Leseverstehen (B2)\nTime limit: 90 minutes\nMax points: 75\n
-Teil 1 (Globalverstehen): 5 short texts (A–E, each 60–90 words) + 6 headings (one extra). For each text choose the best heading.\nTeil 2 (Detailverstehen): 1 longer text (350–450 words) + 10 statements. Options MUST be: ["richtig", "falsch", "steht nicht im Text"].\nTeil 3 (Selektives Verstehen): 10 situations + 12 short ads/notices (A–L). For each situation choose the best matching ad label (e.g. "A", "B", ...).\n
-Return VALID JSON with this structure:\n{
+      if (teil === 1) {
+        contentInstructions = `
+Generate 5 short texts (A-E) about B2-level topics like work, education, health, environment, technology, society.
+Each text should be 60-90 words, distinct in topic.
+Generate 6 headings (one extra doesn't match any text).
+Each question asks "Welche Überschrift passt zu Text X?"
+correctAnswer must be the full heading text that matches.`;
+        jsonSchema = `{
   "title": "Leseverstehen",
-  "instructions": "...",
-  "timeLimit": 90,
-  "maxPoints": 75,
-  "teile": [
-    {
-      "teilNumber": 1,
-      "title": "Globalverstehen",
-      "instructions": "...",
-      "maxPoints": 25,
-      "pointsPerQuestion": 5,
-      "text": "Text A: ...\n\nText B: ...\n\nText C: ...\n\nText D: ...\n\nText E: ...",
-      "questions": [5 questions]
-    },
-    {
-      "teilNumber": 2,
-      "title": "Detailverstehen",
-      "instructions": "...",
-      "maxPoints": 25,
-      "pointsPerQuestion": 2.5,
-      "text": "<one longer text>",
-      "questions": [10 questions]
-    },
-    {
-      "teilNumber": 3,
-      "title": "Selektives Verstehen",
-      "instructions": "...",
-      "maxPoints": 25,
-      "pointsPerQuestion": 2.5,
-      "text": "Anzeigen A: ...\nAnzeigen B: ...\n...\nAnzeigen L: ...\n\nSituationen 1-10: ...",
-      "questions": [10 questions]
-    }
-  ]
-}\n
-${questionSchema}\n
-IMPORTANT:\n- Keep B2 language authentic and realistic (topics: work, education, society, health, environment, services).\n- Do NOT use any copyrighted telc content. Everything must be newly written.`;
+  "instructions": "${teilSpec.instructions}",
+  "timeLimit": 30,
+  "maxPoints": ${teilSpec.maxPoints},
+  "teile": [{
+    "teilNumber": ${teil},
+    "title": "${teilSpec.title}",
+    "instructions": "${teilSpec.instructions}",
+    "maxPoints": ${teilSpec.maxPoints},
+    "pointsPerQuestion": ${teilSpec.pointsPerQuestion},
+    "text": "Text A: [60-90 words]\\n\\nText B: [60-90 words]\\n\\nText C: [60-90 words]\\n\\nText D: [60-90 words]\\n\\nText E: [60-90 words]\\n\\nÜberschriften:\\n1. [heading]\\n2. [heading]\\n3. [heading]\\n4. [heading]\\n5. [heading]\\n6. [heading - extra]",
+    "questions": [
+      {"id": 1, "question": "Welche Überschrift passt zu Text A?", "options": ["heading1", "heading2", "heading3", "heading4", "heading5", "heading6"], "correctAnswer": "matching heading text", "explanation": "..."},
+      ... (5 questions total, one per text)
+    ]
+  }]
+}`;
+      } else if (teil === 2) {
+        contentInstructions = `
+Generate 1 longer text (350-450 words) on a B2-level topic.
+Generate exactly 10 statements about the text.
+Options MUST ALWAYS be exactly: ["richtig", "falsch", "steht nicht im Text"]
+correctAnswer must be EXACTLY one of these three strings.`;
+        jsonSchema = `{
+  "title": "Leseverstehen",
+  "instructions": "${teilSpec.instructions}",
+  "timeLimit": 35,
+  "maxPoints": ${teilSpec.maxPoints},
+  "teile": [{
+    "teilNumber": ${teil},
+    "title": "${teilSpec.title}",
+    "instructions": "${teilSpec.instructions}",
+    "maxPoints": ${teilSpec.maxPoints},
+    "pointsPerQuestion": ${teilSpec.pointsPerQuestion},
+    "text": "[350-450 word text]",
+    "questions": [
+      {"id": 1, "question": "Statement about the text", "options": ["richtig", "falsch", "steht nicht im Text"], "correctAnswer": "richtig|falsch|steht nicht im Text", "explanation": "..."},
+      ... (10 questions total)
+    ]
+  }]
+}`;
+      } else if (teil === 3) {
+        contentInstructions = `
+Generate 12 short ads/notices (A-L), each 30-50 words.
+Generate 10 situations describing what someone is looking for.
+Options MUST be: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
+correctAnswer must be exactly one letter from A-L.`;
+        jsonSchema = `{
+  "title": "Leseverstehen",
+  "instructions": "${teilSpec.instructions}",
+  "timeLimit": 25,
+  "maxPoints": ${teilSpec.maxPoints},
+  "teile": [{
+    "teilNumber": ${teil},
+    "title": "${teilSpec.title}",
+    "instructions": "${teilSpec.instructions}",
+    "maxPoints": ${teilSpec.maxPoints},
+    "pointsPerQuestion": ${teilSpec.pointsPerQuestion},
+    "text": "Anzeige A: [30-50 words]\\nAnzeige B: [30-50 words]\\n... (A through L)",
+    "questions": [
+      {"id": 1, "question": "Situation 1: Someone looking for...", "options": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"], "correctAnswer": "A|B|C|...|L", "explanation": "..."},
+      ... (10 questions total)
+    ]
+  }]
+}`;
+      }
+      break;
 
     case "sprachbausteine":
-      return `You are creating ORIGINAL practice content that matches the TELC Deutsch B2 *format* (do NOT copy any real telc texts/questions).\n${teilLine}
-
-SECTION: Sprachbausteine (B2)\nTime limit: 30 minutes\nMax points: 30\n
-Teil 1: 10 gaps in a coherent text with options (a/b/c style content).\nTeil 2: 10 gaps in another coherent text with options (a/b/c style content).\nFocus: prepositions, verb forms, conjunctions, word order, collocations, articles, pronouns.\n
-Return JSON:\n{
+      contentInstructions = `
+Generate a coherent text (200-250 words) with exactly 10 gaps numbered [1]-[10].
+Each gap has 3 options (a, b, c) focusing on: prepositions, verb forms, conjunctions, articles, pronouns, collocations.
+Options must be realistic alternatives where only one is grammatically/semantically correct.
+correctAnswer must be EXACTLY the correct option text (not the letter).`;
+      jsonSchema = `{
   "title": "Sprachbausteine",
-  "instructions": "...",
-  "timeLimit": 30,
-  "maxPoints": 30,
-  "teile": [
-    {
-      "teilNumber": 1,
-      "title": "Sprachbausteine Teil 1",
-      "instructions": "...",
-      "maxPoints": 15,
-      "pointsPerQuestion": 1.5,
-      "text": "<text with [1]...[10] gaps>",
-      "questions": [10 questions]
-    },
-    {
-      "teilNumber": 2,
-      "title": "Sprachbausteine Teil 2",
-      "instructions": "...",
-      "maxPoints": 15,
-      "pointsPerQuestion": 1.5,
-      "text": "<text with [11]...[20] gaps>",
-      "questions": [10 questions]
-    }
-  ]
-}\n
-${questionSchema}\n
-IMPORTANT:\n- correctAnswer MUST be the exact option string, not an index.`;
+  "instructions": "${teilSpec.instructions}",
+  "timeLimit": 15,
+  "maxPoints": ${teilSpec.maxPoints},
+  "teile": [{
+    "teilNumber": ${teil},
+    "title": "${teilSpec.title}",
+    "instructions": "${teilSpec.instructions}",
+    "maxPoints": ${teilSpec.maxPoints},
+    "pointsPerQuestion": ${teilSpec.pointsPerQuestion},
+    "text": "Text with [1], [2], ... [10] gaps",
+    "questions": [
+      {"id": 1, "question": "Lücke 1", "options": ["option a", "option b", "option c"], "correctAnswer": "correct option text", "explanation": "..."},
+      ... (10 questions)
+    ]
+  }]
+}`;
+      break;
 
     case "listening":
-      return `You are creating ORIGINAL practice content that matches the TELC Deutsch B2 *format* (do NOT copy any real telc transcripts or questions).\n${teilLine}
-
-SECTION: Hörverstehen (B2)\nTime limit: 20 minutes\nMax points: 75\n
-Teil 1: 5 tasks (MC) based on a short radio item/interview transcript (200–260 words).\nTeil 2: 10 tasks based on a longer transcript (280–360 words). Options MUST be: ["richtig", "falsch"].\nTeil 3: 5 short messages/announcements (each 30–60 words) with 5 tasks (MC).\n
-Return JSON:\n{
+      if (teil === 1) {
+        contentInstructions = `
+Generate a radio interview/conversation transcript (200-260 words).
+Generate 5 multiple-choice questions with 4 options each.
+Questions test understanding of main ideas, opinions, reasons.
+correctAnswer must be EXACTLY one of the option texts.`;
+        jsonSchema = `{
   "title": "Hörverstehen",
-  "instructions": "...",
-  "timeLimit": 20,
-  "maxPoints": 75,
-  "teile": [
-    {
-      "teilNumber": 1,
-      "title": "Teil 1",
-      "instructions": "...",
-      "maxPoints": 25,
-      "pointsPerQuestion": 5,
-      "text": "<transcript>",
-      "questions": [5 questions]
-    },
-    {
-      "teilNumber": 2,
-      "title": "Teil 2",
-      "instructions": "...",
-      "maxPoints": 25,
-      "pointsPerQuestion": 2.5,
-      "text": "<transcript>",
-      "questions": [10 questions]
-    },
-    {
-      "teilNumber": 3,
-      "title": "Teil 3",
-      "instructions": "...",
-      "maxPoints": 25,
-      "pointsPerQuestion": 5,
-      "text": "Nachricht 1: ...\nNachricht 2: ...\nNachricht 3: ...\nNachricht 4: ...\nNachricht 5: ...",
-      "questions": [5 questions]
-    }
-  ]
-}\n
-${questionSchema}\n
-IMPORTANT:\n- Keep the transcripts speakable and natural; no stage directions.\n- correctAnswer MUST be the exact option string.`;
+  "instructions": "${teilSpec.instructions}",
+  "timeLimit": 7,
+  "maxPoints": ${teilSpec.maxPoints},
+  "teile": [{
+    "teilNumber": ${teil},
+    "title": "${teilSpec.title}",
+    "instructions": "${teilSpec.instructions}",
+    "maxPoints": ${teilSpec.maxPoints},
+    "pointsPerQuestion": ${teilSpec.pointsPerQuestion},
+    "text": "[transcript 200-260 words - natural spoken German]",
+    "questions": [
+      {"id": 1, "question": "Was sagt...?", "options": ["option1", "option2", "option3", "option4"], "correctAnswer": "correct option", "explanation": "..."},
+      ... (5 questions)
+    ]
+  }]
+}`;
+      } else if (teil === 2) {
+        contentInstructions = `
+Generate a longer interview transcript (280-360 words).
+Generate exactly 10 statements.
+Options MUST ALWAYS be exactly: ["richtig", "falsch"]
+correctAnswer must be EXACTLY "richtig" or "falsch".`;
+        jsonSchema = `{
+  "title": "Hörverstehen",
+  "instructions": "${teilSpec.instructions}",
+  "timeLimit": 8,
+  "maxPoints": ${teilSpec.maxPoints},
+  "teile": [{
+    "teilNumber": ${teil},
+    "title": "${teilSpec.title}",
+    "instructions": "${teilSpec.instructions}",
+    "maxPoints": ${teilSpec.maxPoints},
+    "pointsPerQuestion": ${teilSpec.pointsPerQuestion},
+    "text": "[transcript 280-360 words]",
+    "questions": [
+      {"id": 1, "question": "Statement", "options": ["richtig", "falsch"], "correctAnswer": "richtig|falsch", "explanation": "..."},
+      ... (10 questions)
+    ]
+  }]
+}`;
+      } else if (teil === 3) {
+        contentInstructions = `
+Generate 5 short announcements/messages (each 30-60 words).
+Generate 5 multiple-choice questions (1 per message), 3 options each.
+Topics: train announcements, voicemails, radio notices, etc.
+correctAnswer must be EXACTLY one of the option texts.`;
+        jsonSchema = `{
+  "title": "Hörverstehen",
+  "instructions": "${teilSpec.instructions}",
+  "timeLimit": 5,
+  "maxPoints": ${teilSpec.maxPoints},
+  "teile": [{
+    "teilNumber": ${teil},
+    "title": "${teilSpec.title}",
+    "instructions": "${teilSpec.instructions}",
+    "maxPoints": ${teilSpec.maxPoints},
+    "pointsPerQuestion": ${teilSpec.pointsPerQuestion},
+    "text": "Nachricht 1: [30-60 words]\\nNachricht 2: [30-60 words]\\nNachricht 3: [30-60 words]\\nNachricht 4: [30-60 words]\\nNachricht 5: [30-60 words]",
+    "questions": [
+      {"id": 1, "question": "Was wird gesagt?", "options": ["option1", "option2", "option3"], "correctAnswer": "correct option", "explanation": "..."},
+      ... (5 questions)
+    ]
+  }]
+}`;
+      }
+      break;
 
     case "writing":
-      return `You are creating ORIGINAL practice content that matches the TELC Deutsch B2 *format* (do NOT copy any real telc tasks).\n${teilLine}
-
-SECTION: Schriftlicher Ausdruck (B2)\nTime limit: 30 minutes\nMax points: 45\n
-Return JSON:\n{
+      contentInstructions = `
+Generate a realistic semi-formal/formal writing task.
+Include a scenario (e.g., complaint, request, application, recommendation).
+Provide exactly 4 bullet points the learner must address.
+Topics: work, services, education, everyday situations.`;
+      jsonSchema = `{
   "title": "Schriftlicher Ausdruck",
-  "instructions": "...",
+  "instructions": "${teilSpec.instructions}",
   "timeLimit": 30,
-  "maxPoints": 45,
-  "teile": [
-    {
-      "teilNumber": 1,
-      "title": "Brief/E-Mail",
-      "instructions": "Schreiben Sie ca. 150 Wörter.",
-      "maxPoints": 45,
-      "task": "<a realistic semi-formal/formal prompt with exactly 4 bullet points>",
-      "wordCount": 150
-    }
-  ]
-}\n
-IMPORTANT:\n- The task must feel like real-life (complaint, request, recommendation, problem).`;
+  "maxPoints": ${teilSpec.maxPoints},
+  "teile": [{
+    "teilNumber": 1,
+    "title": "${teilSpec.title}",
+    "instructions": "${teilSpec.instructions}",
+    "maxPoints": ${teilSpec.maxPoints},
+    "task": "Sie haben [scenario]...\\n\\nSchreiben Sie einen Brief/eine E-Mail.\\n• Punkt 1\\n• Punkt 2\\n• Punkt 3\\n• Punkt 4",
+    "wordCount": 150
+  }]
+}`;
+      break;
 
     case "speaking":
-      return `You are creating ORIGINAL practice content that matches the TELC Deutsch B2 *format* (do NOT copy any real telc topics/tasks).\n${teilLine}
-
-SECTION: Mündlicher Ausdruck (B2)\nTime limit (exam part): 15 minutes\nMax points: 75\n
-Return JSON:\n{
+      if (teil === 1) {
+        contentInstructions = `
+Generate 2 presentation topics (Thema A and Thema B) - learner chooses one.
+Each topic should be a B2-level discussion topic (work-life balance, technology, education, environment, health).
+Include 4-5 guiding points to structure the presentation.`;
+      } else if (teil === 2) {
+        contentInstructions = `
+Generate a discussion scenario with two different positions.
+Include 3-4 arguments for each side.
+Topic should encourage debate (advantages/disadvantages of something).`;
+      } else if (teil === 3) {
+        contentInstructions = `
+Generate a problem-solving scenario.
+Include a situation description and 4 specific points to discuss/decide.
+E.g., planning an event, solving a conflict, making a decision.`;
+      }
+      jsonSchema = `{
   "title": "Mündlicher Ausdruck",
-  "instructions": "...",
-  "timeLimit": 15,
-  "maxPoints": 75,
-  "teile": [
-    {
-      "teilNumber": 1,
-      "title": "Präsentation",
-      "instructions": "...",
-      "maxPoints": 25,
-      "task": "THEMA A: ...\nTHEMA B: ...",
-      "wordCount": 0
-    },
-    {
-      "teilNumber": 2,
-      "title": "Diskussion",
-      "instructions": "...",
-      "maxPoints": 25,
-      "task": "<discussion prompts and roles>",
-      "wordCount": 0
-    },
-    {
-      "teilNumber": 3,
-      "title": "Problemlösung",
-      "instructions": "...",
-      "maxPoints": 25,
-      "task": "SITUATION: ...\n- Punkt 1\n- Punkt 2\n- Punkt 3\n- Punkt 4",
-      "wordCount": 0
-    }
-  ]
+  "instructions": "${teilSpec.instructions}",
+  "timeLimit": 5,
+  "maxPoints": ${teilSpec.maxPoints},
+  "teile": [{
+    "teilNumber": ${teil},
+    "title": "${teilSpec.title}",
+    "instructions": "${teilSpec.instructions}",
+    "maxPoints": ${teilSpec.maxPoints},
+    "task": "[Task description with structure points]",
+    "wordCount": 0
+  }]
 }`;
-
-    default:
-      return null;
+      break;
   }
+
+  return `${baseInstructions}
+${contentInstructions}
+
+CRITICAL RULES:
+1. correctAnswer MUST be EXACTLY one of the options strings (not an index number)
+2. Generate EXACTLY ${teilSpec.questionCount} questions (unless it's writing/speaking)
+3. Use authentic B2-level German language
+4. All content must be original - never copy real exam content
+5. Output valid JSON only - no markdown code blocks
+
+JSON SCHEMA:
+${jsonSchema}`;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Validation & Auto-Fix Functions
+// ─────────────────────────────────────────────────────────────
+function validateAndFixContent(content: any, section: string, teil: number): any {
+  const specs = TELC_SPECS[section as keyof typeof TELC_SPECS];
+  if (!specs) return content;
+  
+  const teilSpec = specs[teil as keyof typeof specs];
+  if (!teilSpec || !content.teile?.[0]) return content;
+
+  const teilData = content.teile[0];
+  const questions = teilData.questions || [];
+
+  // Fix question count
+  const expectedCount = teilSpec.questionCount;
+  if (questions.length !== expectedCount && expectedCount > 0) {
+    console.log(`Fixing question count: got ${questions.length}, expected ${expectedCount}`);
+    // Trim or pad questions
+    if (questions.length > expectedCount) {
+      teilData.questions = questions.slice(0, expectedCount);
+    }
+  }
+
+  // Fix options based on optionType
+  if (teilSpec.optionLabels && questions.length > 0) {
+    teilData.questions = questions.map((q: any, idx: number) => {
+      // Ensure correct options
+      if (teilSpec.optionType === "richtig_falsch_steht_nicht") {
+        q.options = ["richtig", "falsch", "steht nicht im Text"];
+        // Fix correctAnswer if it's not one of the valid options
+        if (!q.options.includes(q.correctAnswer)) {
+          // Try to match by similarity
+          const lowerAnswer = String(q.correctAnswer).toLowerCase().trim();
+          if (lowerAnswer.includes("richtig") && !lowerAnswer.includes("falsch")) {
+            q.correctAnswer = "richtig";
+          } else if (lowerAnswer.includes("falsch")) {
+            q.correctAnswer = "falsch";
+          } else {
+            q.correctAnswer = "steht nicht im Text";
+          }
+        }
+      } else if (teilSpec.optionType === "richtig_falsch") {
+        q.options = ["richtig", "falsch"];
+        if (!q.options.includes(q.correctAnswer)) {
+          const lowerAnswer = String(q.correctAnswer).toLowerCase().trim();
+          q.correctAnswer = lowerAnswer.includes("richtig") ? "richtig" : "falsch";
+        }
+      } else if (teilSpec.optionType === "ad_match") {
+        q.options = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+        // Ensure correctAnswer is a valid letter
+        const validLetters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+        if (!validLetters.includes(q.correctAnswer)) {
+          // Extract letter from answer if possible
+          const match = String(q.correctAnswer).match(/[A-L]/i);
+          q.correctAnswer = match ? match[0].toUpperCase() : validLetters[idx % 12];
+        }
+      } else if (teilSpec.optionType === "abc") {
+        // Ensure 3 options
+        if (q.options?.length !== 3) {
+          q.options = q.options?.slice(0, 3) || ["a", "b", "c"];
+        }
+        // Ensure correctAnswer is one of the options
+        if (!q.options.includes(q.correctAnswer)) {
+          // Default to first option if invalid
+          q.correctAnswer = q.options[0];
+        }
+      }
+
+      // Ensure correctAnswer is in options for MC questions
+      if (q.options && !q.options.includes(q.correctAnswer)) {
+        // Try to find closest match
+        const matchingOption = q.options.find((opt: string) => 
+          String(opt).toLowerCase() === String(q.correctAnswer).toLowerCase()
+        );
+        if (matchingOption) {
+          q.correctAnswer = matchingOption;
+        }
+      }
+
+      // Ensure explanation exists
+      if (!q.explanation) {
+        q.explanation = "Siehe Text für Erklärung.";
+      }
+
+      return q;
+    });
+  }
+
+  // Ensure metadata
+  teilData.maxPoints = teilSpec.maxPoints;
+  teilData.pointsPerQuestion = teilSpec.pointsPerQuestion;
+  teilData.teilNumber = teil;
+
+  return content;
 }
 
 serve(async (req) => {
@@ -215,15 +510,18 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const prompt = buildPrompt(section, teil);
+    // Validate teil
+    const parsedTeil = typeof teil === "number" ? teil : 1;
+    
+    const prompt = buildPrompt(section, parsedTeil);
     if (!prompt) {
-      return new Response(JSON.stringify({ error: "Invalid section" }), {
+      return new Response(JSON.stringify({ error: "Invalid section or teil" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log(`Generating TELC exam for section=${section} difficulty=${difficulty} teil=${teil ?? "all"}`);
+    console.log(`Generating TELC exam: section=${section}, difficulty=${difficulty}, teil=${parsedTeil}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -236,8 +534,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content:
-              "You are an expert TELC Deutsch B2 exam content generator. You only output valid JSON. Never include markdown code fences.",
+            content: "You are an expert TELC Deutsch B2 exam content generator. Output ONLY valid JSON. Never include markdown code fences, explanatory text, or anything other than the JSON object.",
           },
           { role: "user", content: prompt },
         ],
@@ -252,14 +549,14 @@ serve(async (req) => {
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment.", code: "RATE_LIMITED" }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
       if (response.status === 402) {
         return new Response(
           JSON.stringify({ error: "AI credits depleted. Please add credits to continue.", code: "PAYMENT_REQUIRED" }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -273,10 +570,11 @@ serve(async (req) => {
       throw new Error("No content received from AI");
     }
 
-    // Parse JSON from the response, handling potential markdown code blocks (just in case)
+    // Parse JSON from the response
     let content;
     try {
       const trimmed = String(contentText).trim();
+      // Handle potential markdown code blocks
       const jsonMatch =
         trimmed.match(/```json\n?([\s\S]*?)\n?```/) ||
         trimmed.match(/```\n?([\s\S]*?)\n?```/);
@@ -287,7 +585,12 @@ serve(async (req) => {
       throw new Error("Failed to parse AI response as JSON");
     }
 
-    return new Response(JSON.stringify(content), {
+    // Validate and fix the content
+    const validatedContent = validateAndFixContent(content, section, parsedTeil);
+    
+    console.log(`Generated content validated: ${validatedContent.teile?.[0]?.questions?.length || 0} questions`);
+
+    return new Response(JSON.stringify(validatedContent), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
@@ -298,4 +601,3 @@ serve(async (req) => {
     });
   }
 });
-
