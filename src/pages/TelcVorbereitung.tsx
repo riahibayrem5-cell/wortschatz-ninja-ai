@@ -1143,33 +1143,82 @@ const TelcVorbereitung = () => {
   const renderQuestion = (q: any, idx: number) => {
     if (!q) return null;
 
+    const teilData = content?.teile?.[0];
+    const questions = teilData?.questions || [];
+    const isRichtigFalsch = q.options?.length === 2 && 
+      q.options.includes("richtig") && q.options.includes("falsch");
+    const isRichtigFalschStehtNicht = q.options?.length === 3 && 
+      q.options.includes("richtig") && q.options.includes("steht nicht im Text");
+    const isAdMatch = q.options?.every((opt: string) => /^[A-L]$/.test(opt));
+
     return (
       <div className="space-y-6 animate-slide-up" key={idx}>
+        {/* Question navigation pills */}
+        {questions.length > 5 && (
+          <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-lg">
+            {questions.map((_: any, qIdx: number) => (
+              <button
+                key={qIdx}
+                onClick={() => setCurrentQuestion(qIdx)}
+                className={`w-8 h-8 rounded-full text-sm font-medium transition-all ${
+                  qIdx === idx 
+                    ? 'bg-primary text-primary-foreground' 
+                    : answers[qIdx] 
+                      ? 'bg-primary/20 text-primary' 
+                      : 'bg-muted hover:bg-muted-foreground/20'
+                }`}
+              >
+                {qIdx + 1}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="space-y-2">
-          <Badge variant="outline" className="mb-2">Frage {idx + 1}</Badge>
-          <h3 className="text-lg font-medium">{q.question}</h3>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="mb-2">Frage {idx + 1} von {questions.length}</Badge>
+            {isRichtigFalsch && <Badge variant="secondary" className="mb-2">Richtig/Falsch</Badge>}
+            {isRichtigFalschStehtNicht && <Badge variant="secondary" className="mb-2">R/F/Steht nicht</Badge>}
+            {isAdMatch && <Badge variant="secondary" className="mb-2">Zuordnung</Badge>}
+          </div>
+          <h3 className="text-lg font-medium leading-relaxed">{q.question}</h3>
         </div>
 
         <RadioGroup
           value={answers[idx] || ""}
           onValueChange={(val) => setAnswers(prev => ({ ...prev, [idx]: val }))}
-          className="space-y-3"
+          className={isAdMatch ? "grid grid-cols-4 sm:grid-cols-6 gap-2" : "space-y-3"}
         >
           {q.options?.map((option: string, optIdx: number) => (
             <Label
               key={optIdx}
               htmlFor={`q${idx}-opt${optIdx}`}
-              className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                answers[idx] === option
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50 hover:bg-muted/50'
+              className={`flex items-center gap-3 cursor-pointer transition-all duration-200 ${
+                isAdMatch 
+                  ? `justify-center p-3 rounded-lg border-2 text-center font-medium ${
+                      answers[idx] === option
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                    }`
+                  : `p-4 rounded-xl border-2 ${
+                      answers[idx] === option
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                    }`
               }`}
             >
-              <RadioGroupItem value={option} id={`q${idx}-opt${optIdx}`} />
+              <RadioGroupItem value={option} id={`q${idx}-opt${optIdx}`} className={isAdMatch ? "sr-only" : ""} />
               <span>{option}</span>
             </Label>
           ))}
         </RadioGroup>
+
+        {/* Quick hint for specific question types */}
+        {isRichtigFalschStehtNicht && (
+          <p className="text-xs text-muted-foreground italic">
+            💡 Tipp: "steht nicht im Text" = Die Information wird im Text weder bestätigt noch widerlegt.
+          </p>
+        )}
       </div>
     );
   };
