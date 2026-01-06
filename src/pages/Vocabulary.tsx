@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Check } from "lucide-react";
+import { Loader2, Plus, Check, BookOpen } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS } from "@/utils/constants";
 import { trackActivity } from "@/utils/activityTracker";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 import { useLanguage } from "@/contexts/LanguageContext";
+import PageBanner from "@/components/PageBanner";
 
 interface VocabularyItem {
   word: string;
@@ -104,9 +105,17 @@ const Vocabulary = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-4xl mx-auto p-4">
-        <Card className="p-8 glass mb-8 mt-6">
-          <h1 className="text-3xl font-bold mb-6 text-gradient">{t('vocabulary.title')}</h1>
+      <div className="container max-w-4xl mx-auto p-4 space-y-6">
+        <PageBanner
+          type="vocabulary"
+          title={t('vocabulary.title')}
+          subtitle="Build your German vocabulary with AI-generated word lists tailored to TELC B2 exam topics."
+          icon={BookOpen}
+          badge="B2 Niveau"
+          compact
+        />
+        
+        <Card className="p-8 glass">
           
           <div className="space-y-4">
             <DifficultySelector 

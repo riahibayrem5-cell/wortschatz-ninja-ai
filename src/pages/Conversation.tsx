@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Loader2, Lightbulb, Volume2, VolumeX, Mic, MicOff } from "lucide-react";
+import { Send, Loader2, Lightbulb, Volume2, VolumeX, Mic, MicOff, MessageSquare } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { trackActivity } from "@/utils/activityTracker";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AudioButton from "@/components/AudioButton";
+import PageBanner from "@/components/PageBanner";
 
 const SCENARIOS = [
   "Job Interview (Vorstellungsgespräch)",
@@ -266,10 +267,19 @@ const Conversation = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-4xl mx-auto p-4">
+      <div className="container max-w-4xl mx-auto p-4 space-y-6">
         {!started ? (
-          <Card className="p-8 glass mt-6">
-            <h1 className="text-3xl font-bold mb-6 text-gradient">Conversation Practice</h1>
+          <>
+            <PageBanner
+              type="conversation"
+              title="Conversation Practice"
+              subtitle="Practice real-life German conversations with AI. Choose a scenario and start speaking!"
+              icon={MessageSquare}
+              badge="Interactive"
+              compact
+            />
+            
+            <Card className="p-8 glass">
             
             <div className="space-y-4">
               <DifficultySelector 
@@ -333,6 +343,7 @@ const Conversation = () => {
               </Button>
             </div>
           </Card>
+          </>
         ) : (
           <div className="space-y-4">
             <Card className="p-6 glass">
