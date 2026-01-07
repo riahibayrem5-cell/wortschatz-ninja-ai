@@ -6,12 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, PenTool } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_WRITING_PROMPTS } from "@/utils/constants";
 import { trackActivity } from "@/utils/activityTracker";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
-
+import { PageBanner } from "@/components/PageBanner";
 const WritingAssistant = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -79,13 +79,15 @@ const WritingAssistant = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-5xl mx-auto p-4">
-        <Card className="p-8 glass mb-8 mt-6">
-          <h1 className="text-3xl font-bold mb-4 text-gradient">AI Writing Assistant</h1>
-          <p className="text-muted-foreground mb-6">
-            Get expert B2-C1 level feedback on your German writing with detailed corrections, style suggestions, 
-            and grammar explanations. Perfect for TELC B2 exam preparation.
-          </p>
+      <div className="container max-w-5xl mx-auto p-4 space-y-6">
+        <PageBanner
+          type="writing"
+          title="AI Writing Assistant"
+          subtitle="Get expert B2-C1 level feedback on your German writing with detailed corrections and grammar explanations"
+          icon={PenTool}
+        />
+        
+        <Card className="p-8 glass">
 
           {/* Tips Section */}
           <div className="bg-accent/10 border border-accent/30 rounded-lg p-6 mb-6">

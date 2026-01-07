@@ -11,7 +11,7 @@ import { Loader2, Search, BookOpen } from "lucide-react";
 import AudioPlayer from "@/components/AudioPlayer";
 import Navbar from "@/components/Navbar";
 import { useLanguage } from "@/contexts/LanguageContext";
-
+import { PageBanner } from "@/components/PageBanner";
 const WordDossier = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -65,12 +65,15 @@ const WordDossier = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-6xl mx-auto p-4">
-        <Card className="p-8 glass mb-8 mt-6">
-          <div className="flex items-center gap-3 mb-6">
-            <BookOpen className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold text-gradient">Word Dossier</h1>
-          </div>
+      <div className="container max-w-6xl mx-auto p-4 space-y-6">
+        <PageBanner
+          type="word-dossier"
+          title="Word Dossier"
+          subtitle="Deep analysis of German words with synonyms, antonyms, and examples"
+          icon={BookOpen}
+        />
+        
+        <Card className="p-8 glass">
           
           <div className="flex gap-3">
             <Input

@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Highlighter } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
-
+import { PageBanner } from "@/components/PageBanner";
 interface HighlightedWord {
   word: string;
   definition: string;
@@ -96,9 +96,15 @@ const TextHighlighter = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-5xl mx-auto p-4">
-        <Card className="p-8 glass mb-8 mt-6">
-          <h1 className="text-3xl font-bold mb-6 text-gradient">Text Highlighter</h1>
+      <div className="container max-w-5xl mx-auto p-4 space-y-6">
+        <PageBanner
+          type="text-highlighter"
+          title="Text Highlighter"
+          subtitle="Paste German text and highlight vocabulary at your level"
+          icon={Highlighter}
+        />
+        
+        <Card className="p-8 glass">
           
           <div className="space-y-4">
             <DifficultySelector 

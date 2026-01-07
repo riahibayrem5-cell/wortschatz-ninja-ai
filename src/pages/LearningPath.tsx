@@ -22,7 +22,7 @@ import {
   RotateCcw
 } from "lucide-react";
 import { trackActivity } from "@/utils/activityTracker";
-
+import { PageBanner } from "@/components/PageBanner";
 interface Task {
   type: string;
   title: string;
@@ -216,18 +216,12 @@ const LearningPath = () => {
       <Navbar />
       
       <div className="container max-w-4xl mx-auto p-4 md:p-6 space-y-6">
-        {/* Header */}
-        <div className="text-center animate-fade-in">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <TrendingUp className="w-10 h-10 text-primary" />
-            <h1 className="text-3xl md:text-4xl font-bold text-gradient-luxury">
-              Your Learning Path
-            </h1>
-          </div>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            AI-powered personalized curriculum to help you achieve TELC B2 certification
-          </p>
-        </div>
+        <PageBanner
+          type="learning-path"
+          title="Your Learning Path"
+          subtitle="AI-powered personalized curriculum to help you achieve TELC B2 certification"
+          icon={TrendingUp}
+        />
 
         {!hasPath ? (
           // Onboarding Card

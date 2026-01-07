@@ -27,7 +27,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import AudioButton from "@/components/AudioButton";
-
+import { PageBanner } from "@/components/PageBanner";
 interface Message {
   role: 'user' | 'assistant';
   content: string;
@@ -370,7 +370,15 @@ const AICompanion = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-7xl mx-auto p-4 md:p-6">
+      <div className="container max-w-7xl mx-auto p-4 md:p-6 space-y-4">
+        <PageBanner
+          type="ai-companion"
+          title={t('aiCompanion.title')}
+          subtitle="Your personal German tutor that adapts to your level and provides instant feedback"
+          icon={Brain}
+          compact
+        />
+        
         {/* Compact Header with Progress */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 mt-2">
           <Card className="glass-luxury">
