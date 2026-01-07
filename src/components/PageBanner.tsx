@@ -5,6 +5,7 @@ import { LucideIcon } from "lucide-react";
 // Import all banners
 import dashboardBanner from "@/assets/banners/dashboard-banner.jpg";
 import telcBanner from "@/assets/banners/telc-banner.jpg";
+import telcExamBanner from "@/assets/banners/telc-exam-banner.jpg";
 import vocabularyBanner from "@/assets/banners/vocabulary-banner.jpg";
 import conversationBanner from "@/assets/banners/conversation-banner.jpg";
 import writingBanner from "@/assets/banners/writing-banner.jpg";
@@ -25,6 +26,7 @@ import wordDossierBanner from "@/assets/banners/word-dossier-banner.jpg";
 export type BannerType = 
   | "dashboard"
   | "telc"
+  | "telc-exam"
   | "vocabulary"
   | "conversation"
   | "writing"
@@ -45,6 +47,7 @@ export type BannerType =
 const bannerImages: Record<BannerType, string> = {
   dashboard: dashboardBanner,
   telc: telcBanner,
+  "telc-exam": telcExamBanner,
   vocabulary: vocabularyBanner,
   conversation: conversationBanner,
   writing: writingBanner,

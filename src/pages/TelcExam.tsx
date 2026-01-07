@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import PageBanner from "@/components/PageBanner";
+import SubsectionBanner from "@/components/SubsectionBanner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +31,8 @@ import {
   Play,
   Pause,
   RotateCcw,
-  Calendar
+  Calendar,
+  GraduationCap
 } from "lucide-react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -883,7 +886,16 @@ const TelcExam = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-6xl mx-auto p-4 mt-6">
+      <div className="container max-w-6xl mx-auto p-4 mt-6 space-y-6">
+        {/* Page Banner */}
+        <PageBanner
+          type="telc-exam"
+          title="TELC B2 Full Mock Exam"
+          subtitle="Complete simulation of the official TELC B2 exam with all 5 sections, authentic timing, and AI-powered evaluation"
+          badge="Official Format"
+          icon={GraduationCap}
+        />
+
         {/* Tab Navigation */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'exam' | 'history')} className="mb-6">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
