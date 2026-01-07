@@ -10,7 +10,7 @@ import {
   Award, Download, Share2, CheckCircle2, 
   GraduationCap, Star, Calendar, Shield
 } from "lucide-react";
-
+import { PageBanner } from "@/components/PageBanner";
 interface Certificate {
   id: string;
   certificate_type: string;
@@ -227,17 +227,13 @@ const Certificates = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Award className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">My Certificates</h1>
-          </div>
-          <p className="text-muted-foreground">
-            Your earned certificates and achievements from the FluentPass Mastery Course
-          </p>
-        </div>
+      <div className="container mx-auto px-4 py-8 space-y-6">
+        <PageBanner
+          type="certificates"
+          title="My Certificates"
+          subtitle="Your earned certificates and achievements from the FluentPass Mastery Course"
+          icon={Award}
+        />
 
         {certificates.length === 0 ? (
           <Card className="text-center py-12">

@@ -16,7 +16,7 @@ import {
   Zap,
   Flame
 } from "lucide-react";
-
+import { PageBanner } from "@/components/PageBanner";
 interface Achievement {
   id: string;
   name: string;
@@ -168,18 +168,12 @@ const Achievements = () => {
       <Navbar />
       
       <div className="container max-w-4xl mx-auto p-4 md:p-6 space-y-6">
-        {/* Header */}
-        <div className="text-center animate-fade-in">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <Trophy className="w-10 h-10 text-yellow-500" />
-            <h1 className="text-3xl md:text-4xl font-bold text-gradient-luxury">
-              Achievements
-            </h1>
-          </div>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Unlock achievements as you progress on your German learning journey
-          </p>
-        </div>
+        <PageBanner
+          type="achievements"
+          title="Achievements"
+          subtitle="Unlock achievements as you progress on your German learning journey"
+          icon={Trophy}
+        />
 
         {/* Stats Overview */}
         <div className="grid grid-cols-3 gap-4">

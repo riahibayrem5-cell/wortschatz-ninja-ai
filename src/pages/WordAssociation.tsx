@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Trophy, Timer, Zap, Target, Sparkles, Lightbulb, Brain, BookmarkPlus, CheckCircle2 } from "lucide-react";
 import { trackActivity } from "@/utils/activityTracker";
-
+import { PageBanner } from "@/components/PageBanner";
 interface Word {
   german: string;
   article?: string;
@@ -251,19 +251,13 @@ const WordAssociation = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-4xl mx-auto p-4 md:p-6">
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <Brain className="w-12 h-12 text-primary animate-pulse" />
-            <h1 className="text-4xl md:text-5xl font-bold text-gradient-luxury">
-              Wortassoziation
-            </h1>
-          </div>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Test your German vocabulary with AI-generated word associations! 
-            Match words with their correct English translations and build your streak.
-          </p>
-        </div>
+      <div className="container max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+        <PageBanner
+          type="word-association"
+          title="Wortassoziation"
+          subtitle="Test your German vocabulary with AI-generated word associations and build your streak!"
+          icon={Brain}
+        />
 
         {!gameActive ? (
           <Card className="glass-luxury animate-scale-in">

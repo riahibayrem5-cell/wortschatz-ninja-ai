@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +24,7 @@ import {
 } from "lucide-react";
 import { openInNewTab } from "@/utils/contentCache";
 import { exportMistakesToPDF } from "@/utils/exportUtils";
-
+import { PageBanner } from "@/components/PageBanner";
 interface Mistake {
   id: string;
   type: string;
@@ -293,40 +294,46 @@ const MistakeDiary = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">{t('diary.title')}</h1>
-          <p className="text-muted-foreground mt-1">{t('diary.subtitle')}</p>
+    <div className="min-h-screen gradient-hero">
+      <Navbar />
+      
+      <div className="container mx-auto p-6 space-y-6">
+        <PageBanner
+          type="mistake-diary"
+          title={t('diary.title')}
+          subtitle={t('diary.subtitle')}
+          icon={AlertCircle}
+        />
+        
+        <div className="flex justify-end items-center">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={autoDetectMistakes}
+              disabled={autoDetecting}
+              className="glass hover:glow"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              {autoDetecting ? t('diary.autoDetecting') : t('diary.autoDetect') || 'Auto-Detect'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportMistakesToPDF(mistakes)}
+            >
+              {t('diary.exportPDF')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openInNewTab('/mistake-diary')}
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              {t('diary.openNewTab')}
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={autoDetectMistakes}
-            disabled={autoDetecting}
-            className="glass hover:glow"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            {autoDetecting ? t('diary.autoDetecting') : t('diary.autoDetect') || 'Auto-Detect'}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportMistakesToPDF(mistakes)}
-          >
-            {t('diary.exportPDF')}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => openInNewTab('/mistake-diary')}
-          >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            {t('diary.openNewTab')}
-          </Button>
-        </div>
-      </div>
 
       {/* Statistics Dashboard */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -613,6 +620,7 @@ const MistakeDiary = () => {
           </div>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 };

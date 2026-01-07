@@ -4,13 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X, Brain, Trophy } from "lucide-react";
+import { Check, X, Brain, Trophy, RotateCcw } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
 import Navbar from "@/components/Navbar";
 import { trackActivity } from "@/utils/activityTracker";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Progress } from "@/components/ui/progress";
-
+import { PageBanner } from "@/components/PageBanner";
 const Review = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -127,9 +127,17 @@ const Review = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-4xl mx-auto p-4">
+      <div className="container max-w-4xl mx-auto p-4 space-y-6">
+        <PageBanner
+          type="review"
+          title={t('reviewPage')}
+          subtitle="Review your vocabulary with spaced repetition"
+          icon={RotateCcw}
+          compact
+        />
+        
         {/* Progress Header */}
-        <div className="mb-6 mt-6 space-y-3 animate-fade-in">
+        <div className="space-y-3 animate-fade-in">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">
               {t('reviewPage')}: {currentIndex + 1} / {dueItems.length}

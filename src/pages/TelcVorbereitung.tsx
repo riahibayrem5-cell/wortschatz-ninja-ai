@@ -45,7 +45,7 @@ import {
   BarChart3,
   ArrowLeft
 } from "lucide-react";
-
+import { PageBanner } from "@/components/PageBanner";
 // ─────────────────────────────────────────────────────────────
 // TELC B2 Section Configuration
 // ─────────────────────────────────────────────────────────────

@@ -7,12 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check, X } from "lucide-react";
+import { Loader2, Check, X, Target } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS } from "@/utils/constants";
 import { trackActivity } from "@/utils/activityTracker";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
-
+import { PageBanner } from "@/components/PageBanner";
 const Exercises = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -148,9 +148,15 @@ const Exercises = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-4xl mx-auto p-4">
-        <Card className="p-8 glass mb-8 mt-6">
-          <h1 className="text-3xl font-bold mb-6 text-gradient">Exercises</h1>
+      <div className="container max-w-4xl mx-auto p-4 space-y-6">
+        <PageBanner
+          type="exercises"
+          title="Exercises"
+          subtitle="Practice with multiple choice, translation, and gap fill exercises"
+          icon={Target}
+        />
+        
+        <Card className="p-8 glass">
           
           <div className="flex gap-4 mb-6 flex-wrap">
             <Button

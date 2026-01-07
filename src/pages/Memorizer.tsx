@@ -7,14 +7,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Eye, EyeOff, Plus } from "lucide-react";
+import { Loader2, Eye, EyeOff, Plus, Brain } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
 import AudioPlayer from "@/components/AudioPlayer";
 import Navbar from "@/components/Navbar";
 import { TELC_B2_TOPICS } from "@/utils/constants";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 import { trackActivity } from "@/utils/activityTracker";
-
+import { PageBanner } from "@/components/PageBanner";
 const Memorizer = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -129,9 +129,15 @@ const Memorizer = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-4xl mx-auto p-4">
-        <Card className="p-8 glass mb-8 mt-6">
-          <h1 className="text-3xl font-bold mb-6 text-gradient">The Memorizer</h1>
+      <div className="container max-w-4xl mx-auto p-4 space-y-6">
+        <PageBanner
+          type="memorizer"
+          title="The Memorizer"
+          subtitle="Generate German paragraphs for memorization and practice"
+          icon={Brain}
+        />
+        
+        <Card className="p-8 glass">
           
           <div className="space-y-4">
             <div>
