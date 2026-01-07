@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import SubsectionBanner from "@/components/SubsectionBanner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -9,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { 
   BookOpen, Clock, CheckCircle2, Play, ArrowLeft, 
-  MessageCircle, Trophy, Lock, ChevronRight, Star
+  MessageCircle, Trophy, Lock, ChevronRight, Star, GraduationCap
 } from "lucide-react";
 
 interface CourseModule {
@@ -218,29 +219,31 @@ const ModuleDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Back Button */}
         <Button 
           variant="ghost" 
-          className="mb-4"
           onClick={() => navigate('/mastery-course')}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Course
         </Button>
 
-        {/* Module Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Badge variant="secondary">Week {module.week_number}</Badge>
-            {moduleProgress?.status === 'completed' && (
-              <Badge className="bg-primary">Completed</Badge>
-            )}
-          </div>
-          <h1 className="text-3xl font-bold mb-1">{module.title}</h1>
-          <p className="text-lg text-muted-foreground italic mb-4">{module.title_de}</p>
-          <p className="text-muted-foreground">{module.description}</p>
-        </div>
+        {/* Module Header Banner */}
+        <SubsectionBanner
+          title={module.title}
+          subtitle={module.description}
+          badge={`Week ${module.week_number}`}
+          icon={GraduationCap}
+          variant="gradient"
+          color="primary"
+        >
+          {moduleProgress?.status === 'completed' && (
+            <Badge className="bg-primary text-primary-foreground">Completed</Badge>
+          )}
+        </SubsectionBanner>
+
+        <p className="text-lg text-muted-foreground italic">{module.title_de}</p>
 
         {/* Progress & AI Tutor */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

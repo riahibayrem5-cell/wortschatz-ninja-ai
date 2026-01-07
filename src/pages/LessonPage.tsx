@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
+import SubsectionBanner from "@/components/SubsectionBanner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { 
   ArrowLeft, ArrowRight, CheckCircle2, Clock, 
-  MessageCircle, BookOpen, Target, Lightbulb
+  MessageCircle, BookOpen, Target, Lightbulb, 
+  Headphones, PenTool, Mic, FileText, Brain
 } from "lucide-react";
 import LessonContentRenderer from "@/components/lessons/LessonContentRenderer";
 import SmartExerciseContainer from "@/components/exercises/SmartExerciseContainer";
@@ -251,34 +253,41 @@ const LessonPage = () => {
   const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
   const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
 
-  const lessonTypeContent: Record<string, { icon: React.ReactNode; objectives: string[] }> = {
+  const lessonTypeContent: Record<string, { icon: React.ElementType; objectives: string[]; color: "blue" | "purple" | "green" | "orange" | "primary" | "accent" }> = {
     reading: {
-      icon: <BookOpen className="h-6 w-6" />,
-      objectives: ["Understand main ideas", "Find specific information", "Analyze text structure", "Learn vocabulary in context"]
+      icon: BookOpen,
+      objectives: ["Understand main ideas", "Find specific information", "Analyze text structure", "Learn vocabulary in context"],
+      color: "blue"
     },
     listening: {
-      icon: <BookOpen className="h-6 w-6" />,
-      objectives: ["Understand spoken German", "Take effective notes", "Identify key information", "Handle different accents"]
+      icon: Headphones,
+      objectives: ["Understand spoken German", "Take effective notes", "Identify key information", "Handle different accents"],
+      color: "purple"
     },
     writing: {
-      icon: <BookOpen className="h-6 w-6" />,
-      objectives: ["Write formal correspondence", "Structure arguments", "Use appropriate style", "Avoid common errors"]
+      icon: PenTool,
+      objectives: ["Write formal correspondence", "Structure arguments", "Use appropriate style", "Avoid common errors"],
+      color: "green"
     },
     speaking: {
-      icon: <BookOpen className="h-6 w-6" />,
-      objectives: ["Express opinions clearly", "Participate in discussions", "Give presentations", "Improve pronunciation"]
+      icon: Mic,
+      objectives: ["Express opinions clearly", "Participate in discussions", "Give presentations", "Improve pronunciation"],
+      color: "orange"
     },
     grammar: {
-      icon: <BookOpen className="h-6 w-6" />,
-      objectives: ["Understand grammar rules", "Apply structures correctly", "Recognize patterns", "Practice with exercises"]
+      icon: FileText,
+      objectives: ["Understand grammar rules", "Apply structures correctly", "Recognize patterns", "Practice with exercises"],
+      color: "accent"
     },
     vocabulary: {
-      icon: <BookOpen className="h-6 w-6" />,
-      objectives: ["Learn new words", "Understand context usage", "Practice with examples", "Build word associations"]
+      icon: Brain,
+      objectives: ["Learn new words", "Understand context usage", "Practice with examples", "Build word associations"],
+      color: "primary"
     },
     exam_practice: {
-      icon: <Target className="h-6 w-6" />,
-      objectives: ["Practice TELC format", "Manage time effectively", "Apply test strategies", "Build confidence"]
+      icon: Target,
+      objectives: ["Practice TELC format", "Manage time effectively", "Apply test strategies", "Build confidence"],
+      color: "primary"
     },
   };
 
@@ -336,25 +345,20 @@ const LessonPage = () => {
           </div>
         </div>
 
-        {/* Lesson Header */}
-        <Card className="mb-6 glass-luxury border-primary/20">
-          <CardHeader>
-            <div className="flex items-center gap-2 mb-2">
-              <Badge variant="secondary" className="bg-primary/20 text-primary">
-                Week {module?.week_number} • Lesson {lesson.lesson_number}
-              </Badge>
-              <Badge variant="outline">
-                {lesson.lesson_type.replace('_', ' ')}
-              </Badge>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground ml-auto">
-                <Clock className="h-4 w-4" />
-                {lesson.estimated_minutes} minutes
-              </div>
-            </div>
-            <CardTitle className="text-2xl">{lesson.title}</CardTitle>
-            <p className="text-muted-foreground italic">{lesson.title_de}</p>
-          </CardHeader>
-        </Card>
+        {/* Lesson Header with Subsection Banner */}
+        <SubsectionBanner
+          title={lesson.title}
+          subtitle={lesson.title_de}
+          badge={`Week ${module?.week_number} • Lesson ${lesson.lesson_number}`}
+          icon={typeInfo.icon}
+          variant="gradient"
+          color={typeInfo.color}
+        >
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4" />
+            {lesson.estimated_minutes}m
+          </div>
+        </SubsectionBanner>
 
         {/* Main Content - Full Width Tabs */}
         <Tabs defaultValue="content" className="w-full">
