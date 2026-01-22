@@ -14,9 +14,11 @@ import {
   Target,
   Trophy,
   Sparkles,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSectionProgress } from "@/hooks/useTelcStats";
 
 interface SectionProgress {
   id: string;
@@ -34,11 +36,7 @@ interface SectionProgress {
   practiceCount: number;
 }
 
-interface SectionProgressCardsProps {
-  sections?: Partial<SectionProgress>[];
-}
-
-const defaultSections: SectionProgress[] = [
+const defaultSectionConfigs: Omit<SectionProgress, 'progress' | 'bestScore' | 'practiceCount' | 'lastPracticed'>[] = [
   {
     id: "reading",
     title: "Reading",
@@ -49,8 +47,6 @@ const defaultSections: SectionProgress[] = [
     maxPoints: 75,
     duration: 90,
     teileCount: 3,
-    progress: 0,
-    practiceCount: 0
   },
   {
     id: "sprachbausteine",
@@ -62,8 +58,6 @@ const defaultSections: SectionProgress[] = [
     maxPoints: 30,
     duration: 30,
     teileCount: 2,
-    progress: 0,
-    practiceCount: 0
   },
   {
     id: "listening",
@@ -75,8 +69,6 @@ const defaultSections: SectionProgress[] = [
     maxPoints: 75,
     duration: 20,
     teileCount: 3,
-    progress: 0,
-    practiceCount: 0
   },
   {
     id: "writing",
@@ -88,8 +80,6 @@ const defaultSections: SectionProgress[] = [
     maxPoints: 45,
     duration: 30,
     teileCount: 1,
-    progress: 0,
-    practiceCount: 0
   },
   {
     id: "speaking",
@@ -101,14 +91,25 @@ const defaultSections: SectionProgress[] = [
     maxPoints: 75,
     duration: 15,
     teileCount: 3,
-    progress: 0,
-    practiceCount: 0
   }
 ];
 
-export const SectionProgressCards = ({ sections = defaultSections }: SectionProgressCardsProps) => {
+export const SectionProgressCards = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { sections: sectionData, isLoading } = useSectionProgress();
+
+  // Merge real data with config
+  const sections: SectionProgress[] = defaultSectionConfigs.map(config => {
+    const realData = sectionData.find(s => s.id === config.id);
+    return {
+      ...config,
+      progress: realData?.progress || 0,
+      bestScore: realData?.bestScore || 0,
+      practiceCount: realData?.practiceCount || 0,
+      lastPracticed: realData?.lastPracticed,
+    };
+  });
 
   const handlePractice = (sectionId: string) => {
     navigate(`/telc-vorbereitung?section=${sectionId}`);
@@ -128,6 +129,22 @@ export const SectionProgressCards = ({ sections = defaultSections }: SectionProg
     return { label: t('telc.progressCard.newStart'), variant: "outline" as const };
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Target className="w-5 h-5 text-primary" />
+            {t('telc.examSections')}
+          </h2>
+        </div>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -142,7 +159,7 @@ export const SectionProgressCards = ({ sections = defaultSections }: SectionProg
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        {(sections as SectionProgress[]).map((section) => {
+        {sections.map((section) => {
           const Icon = section.icon;
           const progressBadge = getProgressBadge(section.progress);
           
