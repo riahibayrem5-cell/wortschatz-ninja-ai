@@ -11,7 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Sparkles, Menu, LogOut, Settings, Home, Sun, Moon, Languages, CheckCircle2, AlertCircle } from "lucide-react";
+import { 
+  Sparkles, Menu, LogOut, Settings, Home, Sun, Moon, Languages, 
+  CheckCircle2, AlertCircle, GraduationCap, BookOpen, Target, 
+  MessageSquare, TrendingUp, Award
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import fluentpassLogo from "@/assets/fluentpass-logo.png";
@@ -71,13 +75,15 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({ title: "Logged out successfully" });
+    toast({ title: t('auth.signOut') });
     navigate("/");
   };
 
+  // Reorganized menu sections with clearer grouping
   const menuSections = [
     {
       label: t('nav.foundations'),
+      icon: BookOpen,
       items: [
         { name: t('nav.vocabulary'), path: "/vocabulary" },
         { name: t('nav.wordDossier'), path: "/word-dossier" },
@@ -87,55 +93,60 @@ const Navbar = () => {
     },
     {
       label: t('nav.practice'),
+      icon: Target,
       items: [
         { name: t('nav.exercises'), path: "/exercises" },
         { name: t('nav.memorizer'), path: "/memorizer" },
         { name: t('nav.wordAssociation'), path: "/word-association" },
-      ],
-    },
-    {
-      label: t('nav.communication'),
-      items: [
-        { name: t('nav.conversation'), path: "/conversation" },
         { name: t('nav.highlighter'), path: "/highlighter" },
       ],
     },
     {
+      label: t('nav.communication'),
+      icon: MessageSquare,
+      items: [
+        { name: t('nav.conversation'), path: "/conversation" },
+      ],
+    },
+    {
       label: t('nav.progress'),
+      icon: TrendingUp,
       items: [
         { name: t('nav.review'), path: "/review" },
         { name: t('nav.diary'), path: "/diary" },
         { name: t('nav.activityLog'), path: "/activity-log" },
-        { name: "Learning Path", path: "/learning-path" },
-        { name: "Achievements", path: "/achievements" },
-        { name: "Mastery Course", path: "/mastery-course" },
-        { name: "Certificates", path: "/certificates" },
+        { name: t('nav.learningPath'), path: "/learning-path" },
+        { name: t('nav.achievements'), path: "/achievements" },
+        { name: t('nav.history'), path: "/history" },
       ],
     },
   ];
 
-  const singlePageLinks = [
-    { name: "TELC Vorbereitung", path: "/telc-vorbereitung" },
-    { name: t('nav.telcExam'), path: "/telc-exam" },
-    { name: t('nav.history'), path: "/history" },
-  ];
+  // Dedicated TELC B2 section
+  const telcSection = {
+    label: t('nav.telcB2'),
+    icon: GraduationCap,
+    items: [
+      { name: t('nav.telcPrep'), path: "/telc-vorbereitung" },
+      { name: t('nav.telcExam'), path: "/telc-exam" },
+      { name: t('nav.masteryCourse'), path: "/mastery-course" },
+      { name: t('nav.certificates'), path: "/certificates" },
+    ],
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Handle click for navigation (prevents default for left click, allows middle click)
   const handleNavClick = (e: React.MouseEvent, path: string) => {
-    // Only prevent default for left click (button === 0)
     if (e.button === 0 && !e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       navigate(path);
     }
-    // Middle click (button === 1) or Ctrl/Cmd+click will naturally open in new tab
   };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
-        {/* Logo - Using Link for proper middle-click support */}
+        {/* Logo */}
         <Link
           to="/dashboard"
           className="flex items-center gap-1.5 sm:gap-2 font-bold text-base sm:text-xl hover:scale-105 transition-all group"
@@ -150,40 +161,47 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-2 xl:gap-3">
+        <div className="hidden lg:flex items-center gap-1 xl:gap-2">
+          {/* Dashboard */}
           <Link
             to="/dashboard"
             onClick={(e) => handleNavClick(e, "/dashboard")}
-            className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3 ${isActive("/dashboard") ? "text-primary" : ""}`}
+            className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-accent hover:text-accent-foreground h-9 px-3 ${isActive("/dashboard") ? "text-primary bg-primary/10" : ""}`}
           >
             <Home className="w-4 h-4" />
             <span className="hidden xl:inline">{t('nav.dashboard')}</span>
           </Link>
 
+          {/* AI Companion - Highlighted */}
           <Link
             to="/ai-companion"
             onClick={(e) => handleNavClick(e, "/ai-companion")}
-            className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-bold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 h-9 px-4 gradient-primary hover:opacity-90 text-primary-foreground ${isActive("/ai-companion") ? "ring-2 ring-primary" : ""}`}
+            className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-bold ring-offset-background transition-colors h-9 px-3 gradient-primary hover:opacity-90 text-primary-foreground ${isActive("/ai-companion") ? "ring-2 ring-primary" : ""}`}
           >
             <Sparkles className="w-4 h-4" />
             <span>{t('nav.aiCompanion')}</span>
           </Link>
 
+          {/* Main menu sections */}
           {menuSections.map((section) => (
             <DropdownMenu key={section.label}>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-xs xl:text-sm">
-                  {section.label}
+                <Button variant="ghost" size="sm" className="text-xs xl:text-sm gap-1">
+                  <section.icon className="w-3.5 h-3.5" />
+                  <span className="hidden xl:inline">{section.label}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-48 xl:w-56 bg-popover border-border shadow-lg">
-                <DropdownMenuLabel className="text-xs xl:text-sm">{section.label}</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs xl:text-sm flex items-center gap-2">
+                  <section.icon className="w-4 h-4 text-primary" />
+                  {section.label}
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {section.items.map((item) => (
                   <DropdownMenuItem
                     key={item.path}
                     asChild
-                    className={`text-xs xl:text-sm cursor-pointer ${isActive(item.path) ? "bg-primary/10" : ""}`}
+                    className={`text-xs xl:text-sm cursor-pointer ${isActive(item.path) ? "bg-primary/10 text-primary" : ""}`}
                   >
                     <Link 
                       to={item.path}
@@ -198,16 +216,37 @@ const Navbar = () => {
             </DropdownMenu>
           ))}
 
-          {singlePageLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              onClick={(e) => handleNavClick(e, link.path)}
-              className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs xl:text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-accent hover:text-accent-foreground h-9 px-3 ${isActive(link.path) ? "text-primary" : ""}`}
-            >
-              {link.name}
-            </Link>
-          ))}
+          {/* TELC B2 - Dedicated section with emphasis */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-xs xl:text-sm gap-1 border border-primary/30 hover:border-primary/50">
+                <GraduationCap className="w-3.5 h-3.5 text-primary" />
+                <span>{t('nav.telcB2')}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 bg-popover border-border shadow-lg">
+              <DropdownMenuLabel className="text-sm flex items-center gap-2">
+                <GraduationCap className="w-4 h-4 text-primary" />
+                {t('nav.telcB2')}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {telcSection.items.map((item) => (
+                <DropdownMenuItem
+                  key={item.path}
+                  asChild
+                  className={`text-sm cursor-pointer ${isActive(item.path) ? "bg-primary/10 text-primary" : ""}`}
+                >
+                  <Link 
+                    to={item.path}
+                    onClick={(e) => handleNavClick(e, item.path)}
+                    className="w-full"
+                  >
+                    {item.name}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Server Status */}
           <DropdownMenu>
@@ -280,13 +319,15 @@ const Navbar = () => {
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
 
+          {/* Settings */}
           <Link
             to="/settings"
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-accent hover:text-accent-foreground h-8 w-8"
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground h-8 w-8"
           >
             <Settings className="w-4 h-4" />
           </Link>
 
+          {/* Logout */}
           <Button
             variant="outline"
             size="sm"
@@ -307,15 +348,17 @@ const Navbar = () => {
           </SheetTrigger>
           <SheetContent side="right" className="w-[85vw] max-w-sm bg-background border-border overflow-y-auto">
             <div className="flex flex-col gap-3 mt-6">
+              {/* Dashboard */}
               <Link
                 to="/dashboard"
                 onClick={() => setMobileOpen(false)}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors"
+                className={`inline-flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent transition-colors ${isActive("/dashboard") ? "bg-primary/10 text-primary" : ""}`}
               >
                 <Home className="w-4 h-4" />
                 {t('nav.dashboard')}
               </Link>
 
+              {/* AI Companion */}
               <Link
                 to="/ai-companion"
                 onClick={() => setMobileOpen(false)}
@@ -325,9 +368,31 @@ const Navbar = () => {
                 {t('nav.aiCompanion')}
               </Link>
 
+              {/* TELC B2 Section - Highlighted */}
+              <div className="space-y-1.5 pt-2 border-t">
+                <h3 className="text-xs font-semibold text-primary px-3 pt-2 flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4" />
+                  {t('nav.telcB2')}
+                </h3>
+                {telcSection.items.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={`block px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors ${
+                      isActive(item.path) ? "bg-primary/10 text-primary" : ""
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Menu sections */}
               {menuSections.map((section) => (
-                <div key={section.label} className="space-y-1.5">
-                  <h3 className="text-xs font-semibold text-muted-foreground px-3 pt-2">
+                <div key={section.label} className="space-y-1.5 pt-2 border-t">
+                  <h3 className="text-xs font-semibold text-muted-foreground px-3 pt-2 flex items-center gap-2">
+                    <section.icon className="w-4 h-4" />
                     {section.label}
                   </h3>
                   {section.items.map((item) => (
@@ -336,7 +401,7 @@ const Navbar = () => {
                       to={item.path}
                       onClick={() => setMobileOpen(false)}
                       className={`block px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors ${
-                        isActive(item.path) ? "bg-primary/10" : ""
+                        isActive(item.path) ? "bg-primary/10 text-primary" : ""
                       }`}
                     >
                       {item.name}
@@ -345,21 +410,7 @@ const Navbar = () => {
                 </div>
               ))}
 
-              <div className="space-y-1.5 pt-2 border-t">
-                {singlePageLinks.map((link) => (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    onClick={() => setMobileOpen(false)}
-                    className={`block px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors ${
-                      isActive(link.path) ? "bg-primary/10" : ""
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
-                ))}
-              </div>
-
+              {/* Theme & Language */}
               <div className="flex flex-col gap-2 pt-3 border-t mt-3">
                 <div className="flex items-center gap-2">
                   <Button 
@@ -392,6 +443,7 @@ const Navbar = () => {
                 </div>
               </div>
 
+              {/* Settings */}
               <Link
                 to="/settings"
                 onClick={() => setMobileOpen(false)}
@@ -401,6 +453,7 @@ const Navbar = () => {
                 {t('nav.settings')}
               </Link>
 
+              {/* Logout */}
               <Button
                 variant="outline"
                 size="sm"
