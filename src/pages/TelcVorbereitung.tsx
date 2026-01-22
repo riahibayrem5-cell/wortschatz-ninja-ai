@@ -46,6 +46,9 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { PageBanner } from "@/components/PageBanner";
+import { TelcQuickStats } from "@/components/telc/TelcQuickStats";
+import { ExamTipsCarousel } from "@/components/telc/ExamTipsCarousel";
+import { StudyPlanWidget } from "@/components/telc/StudyPlanWidget";
 // ─────────────────────────────────────────────────────────────
 // TELC B2 Section Configuration
 // ─────────────────────────────────────────────────────────────
@@ -642,6 +645,38 @@ const TelcVorbereitung = () => {
           </div>
         </div>
       </div>
+
+      {/* Quick Stats and Study Plan Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <TelcQuickStats 
+            totalExamsTaken={5}
+            averageScore={72}
+            currentStreak={3}
+            totalPracticeMinutes={245}
+            sectionScores={{
+              reading: 78,
+              listening: 65,
+              writing: 70,
+              speaking: 55,
+              sprachbausteine: 82
+            }}
+            bestSection="Sprachbausteine"
+            weakestSection="Sprechen"
+          />
+        </div>
+        <div>
+          <StudyPlanWidget 
+            examDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)}
+            dailyGoalMinutes={60}
+            completedTodayMinutes={35}
+            streak={3}
+          />
+        </div>
+      </div>
+
+      {/* Exam Tips Carousel */}
+      <ExamTipsCarousel autoRotate={true} rotateInterval={10000} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
