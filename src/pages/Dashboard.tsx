@@ -14,6 +14,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageContext";
 import CourseProgressWidget from "@/components/CourseProgressWidget";
 import StatCard from "@/components/StatCard";
@@ -21,6 +22,7 @@ import ConfettiCelebration from "@/components/ConfettiCelebration";
 import PageBanner from "@/components/PageBanner";
 import { ExamTipsCarousel } from "@/components/telc/ExamTipsCarousel";
 import { SectionProgressCards } from "@/components/telc/SectionProgressCards";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -34,6 +36,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [analyzingProgress, setAnalyzingProgress] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const analyzeProgressWithAI = async () => {
     if (mistakes.length === 0) {
@@ -85,6 +88,17 @@ const Dashboard = () => {
         .single();
       
       setProgress(progressData);
+
+      // Check onboarding status
+      const { data: settings } = await supabase
+        .from("user_settings")
+        .select("onboarding_completed")
+        .eq("user_id", session.user.id)
+        .single();
+      
+      if (!settings?.onboarding_completed) {
+        setShowOnboarding(true);
+      }
 
       // Check for milestones
       if (progressData?.streak_days === 7 || progressData?.streak_days === 30 || progressData?.words_learned >= 100) {
@@ -227,6 +241,9 @@ const Dashboard = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       <ConfettiCelebration trigger={showCelebration} />
+      {showOnboarding && (
+        <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+      )}
       
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
         {/* Hero Banner */}
