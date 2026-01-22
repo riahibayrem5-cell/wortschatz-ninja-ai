@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Target, Trophy, Clock, Flame, BookOpen, 
   CheckCircle2, TrendingUp, Award, Zap 
@@ -21,6 +22,7 @@ interface TelcQuickStatsProps {
   };
   bestSection: string;
   weakestSection: string;
+  isLoading?: boolean;
 }
 
 export const TelcQuickStats = ({
@@ -29,8 +31,9 @@ export const TelcQuickStats = ({
   currentStreak = 0,
   totalPracticeMinutes = 0,
   sectionScores = { reading: 0, listening: 0, writing: 0, speaking: 0, sprachbausteine: 0 },
-  bestSection = "Reading",
-  weakestSection = "Speaking"
+  bestSection = "-",
+  weakestSection = "-",
+  isLoading = false
 }: Partial<TelcQuickStatsProps>) => {
   const { t } = useLanguage();
   
@@ -66,6 +69,34 @@ export const TelcQuickStats = ({
     writing: "Schreiben",
     speaking: "Sprechen"
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="glass">
+              <CardContent className="p-4">
+                <Skeleton className="h-10 w-20 mb-2" />
+                <Skeleton className="h-4 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card className="glass-luxury border-primary/20">
+          <CardContent className="p-6">
+            <Skeleton className="h-6 w-40 mb-4" />
+            <div className="grid grid-cols-5 gap-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useTelcStats } from "@/hooks/useTelcStats";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -216,6 +217,42 @@ const TELC_SECTIONS = {
 
 type SectionKey = keyof typeof TELC_SECTIONS;
 type ViewMode = "overview" | "section" | "practice";
+
+// ─────────────────────────────────────────────────────────────
+// Stats Wrapper Components (using real data)
+// ─────────────────────────────────────────────────────────────
+const TelcQuickStatsWrapper = () => {
+  const stats = useTelcStats();
+  
+  return (
+    <TelcQuickStats 
+      totalExamsTaken={stats.totalExamsTaken}
+      averageScore={stats.averageScore}
+      currentStreak={stats.currentStreak}
+      totalPracticeMinutes={stats.totalPracticeMinutes}
+      sectionScores={stats.sectionScores}
+      bestSection={stats.bestSection}
+      weakestSection={stats.weakestSection}
+    />
+  );
+};
+
+const StudyPlanWrapper = () => {
+  const stats = useTelcStats();
+  
+  // Default exam date 30 days from now if not set
+  const examDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  
+  return (
+    <StudyPlanWidget 
+      examDate={examDate}
+      dailyGoalMinutes={60}
+      completedTodayMinutes={stats.todayMinutes}
+      weeklyProgress={stats.weeklyProgress}
+      streak={stats.currentStreak}
+    />
+  );
+};
 
 // ─────────────────────────────────────────────────────────────
 // Component
@@ -649,29 +686,10 @@ const TelcVorbereitung = () => {
       {/* Quick Stats and Study Plan Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <TelcQuickStats 
-            totalExamsTaken={5}
-            averageScore={72}
-            currentStreak={3}
-            totalPracticeMinutes={245}
-            sectionScores={{
-              reading: 78,
-              listening: 65,
-              writing: 70,
-              speaking: 55,
-              sprachbausteine: 82
-            }}
-            bestSection="Sprachbausteine"
-            weakestSection="Sprechen"
-          />
+          <TelcQuickStatsWrapper />
         </div>
         <div>
-          <StudyPlanWidget 
-            examDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)}
-            dailyGoalMinutes={60}
-            completedTodayMinutes={35}
-            streak={3}
-          />
+          <StudyPlanWrapper />
         </div>
       </div>
 
