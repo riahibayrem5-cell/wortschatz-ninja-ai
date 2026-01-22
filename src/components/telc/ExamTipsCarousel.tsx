@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Lightbulb, BookOpen, Headphones, PenTool, Mic, FileText } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ExamTip {
   id: string;
@@ -14,6 +15,7 @@ interface ExamTip {
   sectionColor: string;
 }
 
+// Tips stay in German as they are learning content
 const examTips: ExamTip[] = [
   {
     id: "1",
@@ -113,6 +115,7 @@ export const ExamTipsCarousel = ({
 }: ExamTipsCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!autoRotate || isPaused) return;
@@ -186,7 +189,7 @@ export const ExamTipsCarousel = ({
 
         {currentTip.example && (
           <div className={`p-3 rounded-lg ${colors.bg} border ${colors.border}`}>
-            <p className="text-xs font-medium mb-1">💡 Beispiel:</p>
+            <p className="text-xs font-medium mb-1">💡 {t('telc.tips.example')}</p>
             <p className="text-sm">{currentTip.example}</p>
           </div>
         )}

@@ -20,6 +20,7 @@ import {
   FileText,
   Sparkles
 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DailyTask {
   id: string;
@@ -48,15 +49,22 @@ export const StudyPlanWidget = ({
   streak = 0
 }: StudyPlanWidgetProps) => {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   
   const daysUntilExam = examDate 
     ? Math.max(0, Math.ceil((examDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : null;
 
   const todayProgress = Math.min(100, (completedTodayMinutes / dailyGoalMinutes) * 100);
-  const weekDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  
+  // Week days translated
+  const weekDays = language === 'ar' 
+    ? ['اث', 'ث', 'أر', 'خ', 'ج', 'س', 'أح']
+    : language === 'de' 
+      ? ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
+      : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
-  // Generate personalized daily tasks based on weak areas
+  // Generate personalized daily tasks - titles stay in German (learning content)
   const dailyTasks: DailyTask[] = [
     {
       id: "1",
@@ -108,12 +116,12 @@ export const StudyPlanWidget = ({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
             <Calendar className="w-5 h-5 text-primary" />
-            Heute lernen
+            {t('telc.studyPlan.todayLearn')}
           </CardTitle>
           {streak > 0 && (
             <Badge variant="outline" className="bg-orange-500/10 text-orange-500 border-orange-500/30">
               <Flame className="w-3 h-3 mr-1" />
-              {streak} Tage
+              {streak} {t('telc.days')}
             </Badge>
           )}
         </div>
@@ -126,15 +134,19 @@ export const StudyPlanWidget = ({
             <div className="flex items-center gap-3">
               <Trophy className="w-5 h-5 text-primary" />
               <div>
-                <p className="text-sm font-medium">TELC B2 Prüfung</p>
+                <p className="text-sm font-medium">{t('telc.studyPlan.examDate')}</p>
                 <p className="text-xs text-muted-foreground">
-                  {examDate?.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  {examDate?.toLocaleDateString(language === 'ar' ? 'ar-SA' : language === 'de' ? 'de-DE' : 'en-US', { 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                  })}
                 </p>
               </div>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-primary">{daysUntilExam}</p>
-              <p className="text-xs text-muted-foreground">Tage</p>
+              <p className="text-xs text-muted-foreground">{t('telc.days')}</p>
             </div>
           </div>
         )}
@@ -144,7 +156,7 @@ export const StudyPlanWidget = ({
           <div className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-2">
               <Target className="w-4 h-4 text-muted-foreground" />
-              Tagesziel
+              {t('telc.studyPlan.dailyGoal')}
             </span>
             <span className="font-medium">
               {completedTodayMinutes}/{dailyGoalMinutes} min
@@ -152,7 +164,7 @@ export const StudyPlanWidget = ({
           </div>
           <Progress value={todayProgress} className="h-2" />
           <p className="text-xs text-muted-foreground text-right">
-            {completedTasks}/{dailyTasks.length} Aufgaben erledigt
+            {completedTasks}/{dailyTasks.length} {t('telc.studyPlan.tasksCompleted')}
           </p>
         </div>
 
@@ -160,7 +172,7 @@ export const StudyPlanWidget = ({
         <div className="space-y-2">
           <p className="text-sm font-medium flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
-            Diese Woche
+            {t('telc.studyPlan.thisWeek')}
           </p>
           <div className="flex justify-between gap-1">
             {weekDays.map((day, idx) => (
@@ -190,7 +202,7 @@ export const StudyPlanWidget = ({
 
         {/* Daily Tasks */}
         <div className="space-y-2">
-          <p className="text-sm font-medium">Empfohlene Übungen</p>
+          <p className="text-sm font-medium">{t('telc.studyPlan.recommendedExercises')}</p>
           <div className="space-y-2">
             {dailyTasks.map((task) => {
               const Icon = task.icon;
@@ -242,14 +254,14 @@ export const StudyPlanWidget = ({
             className="w-full"
             onClick={() => navigate('/telc-vorbereitung')}
           >
-            Übungen
+            {t('telc.exercises')}
           </Button>
           <Button 
             size="sm" 
             className="w-full gradient-primary"
             onClick={() => navigate('/telc-exam')}
           >
-            Mock-Prüfung
+            {t('telc.studyPlan.mockExam')}
           </Button>
         </div>
       </CardContent>
