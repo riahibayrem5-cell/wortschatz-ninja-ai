@@ -19,6 +19,8 @@ import CourseProgressWidget from "@/components/CourseProgressWidget";
 import StatCard from "@/components/StatCard";
 import ConfettiCelebration from "@/components/ConfettiCelebration";
 import PageBanner from "@/components/PageBanner";
+import { ExamTipsCarousel } from "@/components/telc/ExamTipsCarousel";
+import { SectionProgressCards } from "@/components/telc/SectionProgressCards";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -400,6 +402,12 @@ const Dashboard = () => {
           </div>
         </Card>
 
+        {/* TELC Exam Preparation Section */}
+        <SectionProgressCards />
+
+        {/* Exam Tips Carousel */}
+        <ExamTipsCarousel autoRotate={true} rotateInterval={12000} />
+
         {/* Learning Path & Achievements Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card 
@@ -426,8 +434,8 @@ const Dashboard = () => {
             onClick={() => navigate('/achievements')}
           >
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-yellow-500/20 group-hover:animate-float">
-                <Trophy className="w-6 h-6 text-yellow-500" />
+              <div className="p-3 rounded-lg bg-amber-500/20 group-hover:animate-float">
+                <Trophy className="w-6 h-6 text-amber-500" />
               </div>
               <div className="flex-1">
                 <p className="font-semibold">Achievements</p>
