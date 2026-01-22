@@ -16,6 +16,7 @@ import {
   Sparkles,
   TrendingUp
 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SectionProgress {
   id: string;
@@ -107,6 +108,7 @@ const defaultSections: SectionProgress[] = [
 
 export const SectionProgressCards = ({ sections = defaultSections }: SectionProgressCardsProps) => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handlePractice = (sectionId: string) => {
     navigate(`/telc-vorbereitung?section=${sectionId}`);
@@ -120,10 +122,10 @@ export const SectionProgressCards = ({ sections = defaultSections }: SectionProg
   };
 
   const getProgressBadge = (progress: number) => {
-    if (progress >= 80) return { label: "Fortgeschritten", variant: "default" as const };
-    if (progress >= 50) return { label: "Gut", variant: "secondary" as const };
-    if (progress >= 25) return { label: "Anfänger", variant: "outline" as const };
-    return { label: "Neu starten", variant: "outline" as const };
+    if (progress >= 80) return { label: t('telc.progressCard.advanced'), variant: "default" as const };
+    if (progress >= 50) return { label: t('telc.progressCard.intermediate'), variant: "secondary" as const };
+    if (progress >= 25) return { label: t('telc.progressCard.beginner'), variant: "outline" as const };
+    return { label: t('telc.progressCard.newStart'), variant: "outline" as const };
   };
 
   return (
@@ -131,10 +133,10 @@ export const SectionProgressCards = ({ sections = defaultSections }: SectionProg
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold flex items-center gap-2">
           <Target className="w-5 h-5 text-primary" />
-          Prüfungsbereiche
+          {t('telc.examSections')}
         </h2>
         <Button variant="ghost" size="sm" onClick={() => navigate('/telc-vorbereitung')}>
-          Alle anzeigen
+          {t('telc.showAll')}
           <ChevronRight className="w-4 h-4 ml-1" />
         </Button>
       </div>
@@ -169,7 +171,7 @@ export const SectionProgressCards = ({ sections = defaultSections }: SectionProg
                 {/* Progress */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Fortschritt</span>
+                    <span className="text-muted-foreground">{t('telc.progress')}</span>
                     <span className={`font-semibold ${getProgressColor(section.progress)}`}>
                       {section.progress}%
                     </span>
@@ -185,7 +187,7 @@ export const SectionProgressCards = ({ sections = defaultSections }: SectionProg
                   </span>
                   <span className="flex items-center gap-1">
                     <Trophy className="w-3 h-3" />
-                    {section.maxPoints} Pkt
+                    {section.maxPoints} {t('telc.points')}
                   </span>
                 </div>
 
@@ -194,7 +196,7 @@ export const SectionProgressCards = ({ sections = defaultSections }: SectionProg
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground flex items-center gap-1">
                       <TrendingUp className="w-3 h-3" />
-                      Beste Note
+                      {t('telc.progressCard.bestScore')}
                     </span>
                     <span className="font-semibold text-primary">{section.bestScore}%</span>
                   </div>
@@ -204,7 +206,7 @@ export const SectionProgressCards = ({ sections = defaultSections }: SectionProg
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground flex items-center gap-1">
                     <Sparkles className="w-3 h-3" />
-                    Übungen
+                    {t('telc.exercises')}
                   </span>
                   <span>{section.practiceCount}x</span>
                 </div>
@@ -215,7 +217,7 @@ export const SectionProgressCards = ({ sections = defaultSections }: SectionProg
                   variant="outline"
                   className="w-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  Üben
+                  {t('telc.startPractice')}
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </CardContent>
@@ -233,21 +235,21 @@ export const SectionProgressCards = ({ sections = defaultSections }: SectionProg
                 <Trophy className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="font-semibold">TELC B2 Gesamtpunktzahl</p>
-                <p className="text-sm text-muted-foreground">Alle 5 Prüfungsbereiche</p>
+                <p className="font-semibold">TELC B2 {t('telc.maxPoints')}</p>
+                <p className="text-sm text-muted-foreground">{t('telc.examParts')}: 5</p>
               </div>
             </div>
             <div className="flex items-center gap-6">
               <div className="text-center">
                 <p className="text-2xl font-bold text-primary">300</p>
-                <p className="text-xs text-muted-foreground">Max. Punkte</p>
+                <p className="text-xs text-muted-foreground">{t('telc.maxPoints')}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold">60%</p>
-                <p className="text-xs text-muted-foreground">Bestehensgrenze</p>
+                <p className="text-xs text-muted-foreground">{t('telc.passingScore')}</p>
               </div>
               <Button className="gradient-primary" onClick={() => navigate('/telc-exam')}>
-                Probeklausur starten
+                {t('telc.startExam')}
               </Button>
             </div>
           </div>

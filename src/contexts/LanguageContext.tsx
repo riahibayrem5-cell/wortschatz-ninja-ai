@@ -221,6 +221,67 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Learning German - Always keep this in German
     'learningGerman': 'Learning German',
+    
+    // TELC B2 Preparation
+    'telc.title': 'TELC B2 Exam Preparation',
+    'telc.subtitle': 'Prepare for your TELC B2 exam with interactive exercises and AI coaching',
+    'telc.examSections': 'Exam Sections',
+    'telc.myProgress': 'My Progress',
+    'telc.startExam': 'Start Mock Exam',
+    'telc.startPractice': 'Start Practice',
+    'telc.showAll': 'Show All',
+    'telc.passingScore': 'Passing Score',
+    'telc.maxPoints': 'Max Points',
+    'telc.totalDuration': 'Total Duration',
+    'telc.examParts': 'Exam Parts',
+    'telc.progress': 'Progress',
+    'telc.points': 'points',
+    'telc.minutes': 'minutes',
+    'telc.parts': 'parts',
+    'telc.exercises': 'Exercises',
+    'telc.days': 'Days',
+    
+    // Sections
+    'telc.section.reading': 'Reading Comprehension',
+    'telc.section.listening': 'Listening Comprehension',
+    'telc.section.writing': 'Written Expression',
+    'telc.section.speaking': 'Oral Expression',
+    'telc.section.sprachbausteine': 'Language Elements',
+    
+    // Stats
+    'telc.stats.examsTaken': 'Exams Taken',
+    'telc.stats.averageScore': 'Average Score',
+    'telc.stats.dayStreak': 'Day Streak 🔥',
+    'telc.stats.practiceTime': 'Practice Time',
+    'telc.stats.sectionPerformance': 'Section Performance',
+    'telc.stats.best': 'Best',
+    'telc.stats.focus': 'Focus',
+    
+    // Grades
+    'telc.grade.excellent': 'Excellent',
+    'telc.grade.good': 'Good',
+    'telc.grade.satisfactory': 'Satisfactory',
+    'telc.grade.sufficient': 'Sufficient',
+    'telc.grade.failed': 'Not Passed',
+    
+    // Study Plan
+    'telc.studyPlan.todayLearn': 'Learn Today',
+    'telc.studyPlan.examDate': 'TELC B2 Exam',
+    'telc.studyPlan.dailyGoal': 'Daily Goal',
+    'telc.studyPlan.tasksCompleted': 'tasks completed',
+    'telc.studyPlan.thisWeek': 'This Week',
+    'telc.studyPlan.recommendedExercises': 'Recommended Exercises',
+    'telc.studyPlan.mockExam': 'Mock Exam',
+    
+    // Progress Cards
+    'telc.progressCard.advanced': 'Advanced',
+    'telc.progressCard.intermediate': 'Intermediate',
+    'telc.progressCard.beginner': 'Beginner',
+    'telc.progressCard.newStart': 'Start New',
+    'telc.progressCard.bestScore': 'Best Score',
+    
+    // Tips
+    'telc.tips.example': 'Example:',
   },
   de: {
     'nav.dashboard': 'Dashboard',
@@ -401,6 +462,67 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Learning German - Always keep this in German
     'learningGerman': 'Deutsch lernen',
+    
+    // TELC B2 Preparation
+    'telc.title': 'TELC B2 Prüfungsvorbereitung',
+    'telc.subtitle': 'Bereite dich optimal auf deine TELC B2 Prüfung vor mit interaktiven Übungen und KI-Coaching',
+    'telc.examSections': 'Prüfungsbereiche',
+    'telc.myProgress': 'Mein Fortschritt',
+    'telc.startExam': 'Probeklausur starten',
+    'telc.startPractice': 'Übungen starten',
+    'telc.showAll': 'Alle anzeigen',
+    'telc.passingScore': 'Bestehensgrenze',
+    'telc.maxPoints': 'Maximalpunkte',
+    'telc.totalDuration': 'Gesamtdauer',
+    'telc.examParts': 'Prüfungsteile',
+    'telc.progress': 'Fortschritt',
+    'telc.points': 'Punkte',
+    'telc.minutes': 'Minuten',
+    'telc.parts': 'Teile',
+    'telc.exercises': 'Übungen',
+    'telc.days': 'Tage',
+    
+    // Sections
+    'telc.section.reading': 'Leseverstehen',
+    'telc.section.listening': 'Hörverstehen',
+    'telc.section.writing': 'Schriftlicher Ausdruck',
+    'telc.section.speaking': 'Mündlicher Ausdruck',
+    'telc.section.sprachbausteine': 'Sprachbausteine',
+    
+    // Stats
+    'telc.stats.examsTaken': 'Prüfungen absolviert',
+    'telc.stats.averageScore': 'Durchschnitt',
+    'telc.stats.dayStreak': 'Tage-Serie 🔥',
+    'telc.stats.practiceTime': 'Übungszeit',
+    'telc.stats.sectionPerformance': 'Bereichsleistung',
+    'telc.stats.best': 'Beste',
+    'telc.stats.focus': 'Fokus',
+    
+    // Grades
+    'telc.grade.excellent': 'Sehr gut',
+    'telc.grade.good': 'Gut',
+    'telc.grade.satisfactory': 'Befriedigend',
+    'telc.grade.sufficient': 'Ausreichend',
+    'telc.grade.failed': 'Nicht bestanden',
+    
+    // Study Plan
+    'telc.studyPlan.todayLearn': 'Heute lernen',
+    'telc.studyPlan.examDate': 'TELC B2 Prüfung',
+    'telc.studyPlan.dailyGoal': 'Tagesziel',
+    'telc.studyPlan.tasksCompleted': 'Aufgaben erledigt',
+    'telc.studyPlan.thisWeek': 'Diese Woche',
+    'telc.studyPlan.recommendedExercises': 'Empfohlene Übungen',
+    'telc.studyPlan.mockExam': 'Probeklausur',
+    
+    // Progress Cards
+    'telc.progressCard.advanced': 'Fortgeschritten',
+    'telc.progressCard.intermediate': 'Gut',
+    'telc.progressCard.beginner': 'Anfänger',
+    'telc.progressCard.newStart': 'Neu starten',
+    'telc.progressCard.bestScore': 'Beste Note',
+    
+    // Tips
+    'telc.tips.example': 'Beispiel:',
   },
   ar: {
     'nav.dashboard': 'لوحة التحكم',
@@ -581,6 +703,67 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Learning German - Always keep this in German
     'learningGerman': 'تعلم الألمانية',
+    
+    // TELC B2 Preparation
+    'telc.title': 'التحضير لامتحان TELC B2',
+    'telc.subtitle': 'استعد لامتحان TELC B2 مع تمارين تفاعلية وتدريب بالذكاء الاصطناعي',
+    'telc.examSections': 'أقسام الامتحان',
+    'telc.myProgress': 'تقدمي',
+    'telc.startExam': 'بدء الامتحان التجريبي',
+    'telc.startPractice': 'بدء التمارين',
+    'telc.showAll': 'عرض الكل',
+    'telc.passingScore': 'درجة النجاح',
+    'telc.maxPoints': 'أقصى النقاط',
+    'telc.totalDuration': 'المدة الإجمالية',
+    'telc.examParts': 'أقسام الامتحان',
+    'telc.progress': 'التقدم',
+    'telc.points': 'نقاط',
+    'telc.minutes': 'دقائق',
+    'telc.parts': 'أجزاء',
+    'telc.exercises': 'تمارين',
+    'telc.days': 'أيام',
+    
+    // Sections
+    'telc.section.reading': 'فهم القراءة',
+    'telc.section.listening': 'فهم الاستماع',
+    'telc.section.writing': 'التعبير الكتابي',
+    'telc.section.speaking': 'التعبير الشفهي',
+    'telc.section.sprachbausteine': 'العناصر اللغوية',
+    
+    // Stats
+    'telc.stats.examsTaken': 'الامتحانات المؤداة',
+    'telc.stats.averageScore': 'متوسط الدرجة',
+    'telc.stats.dayStreak': 'أيام متتالية 🔥',
+    'telc.stats.practiceTime': 'وقت الممارسة',
+    'telc.stats.sectionPerformance': 'أداء الأقسام',
+    'telc.stats.best': 'الأفضل',
+    'telc.stats.focus': 'التركيز',
+    
+    // Grades
+    'telc.grade.excellent': 'ممتاز',
+    'telc.grade.good': 'جيد',
+    'telc.grade.satisfactory': 'مقبول',
+    'telc.grade.sufficient': 'كافٍ',
+    'telc.grade.failed': 'غير ناجح',
+    
+    // Study Plan
+    'telc.studyPlan.todayLearn': 'تعلم اليوم',
+    'telc.studyPlan.examDate': 'امتحان TELC B2',
+    'telc.studyPlan.dailyGoal': 'الهدف اليومي',
+    'telc.studyPlan.tasksCompleted': 'المهام المنجزة',
+    'telc.studyPlan.thisWeek': 'هذا الأسبوع',
+    'telc.studyPlan.recommendedExercises': 'التمارين الموصى بها',
+    'telc.studyPlan.mockExam': 'امتحان تجريبي',
+    
+    // Progress Cards
+    'telc.progressCard.advanced': 'متقدم',
+    'telc.progressCard.intermediate': 'جيد',
+    'telc.progressCard.beginner': 'مبتدئ',
+    'telc.progressCard.newStart': 'ابدأ جديد',
+    'telc.progressCard.bestScore': 'أفضل درجة',
+    
+    // Tips
+    'telc.tips.example': 'مثال:',
   },
 };
 
