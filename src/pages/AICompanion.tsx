@@ -22,12 +22,17 @@ import {
   Star,
   Trophy,
   Loader2,
-  Lightbulb
+  Lightbulb,
+  ChevronRight,
+  ChevronLeft,
+  X
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 import AudioButton from "@/components/AudioButton";
 import { PageBanner } from "@/components/PageBanner";
+
 interface Message {
   role: 'user' | 'assistant';
   content: string;
@@ -76,10 +81,11 @@ const AICompanion = () => {
     { id: 'polyglot', title: 'Polyglot', description: 'Learn 500 new words', icon: Brain, unlocked: false, progress: 0, total: 500 },
   ]);
   
+  const [insightsOpen, setInsightsOpen] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const recognitionRef = useRef<any>(null);
   const [audioMode, setAudioMode] = useState<'text' | 'verbal'>('text');
   const [analyzingMessage, setAnalyzingMessage] = useState<string | null>(null);
   const [mistakeAnalysis, setMistakeAnalysis] = useState<MistakeAnalysis | null>(null);
@@ -109,7 +115,6 @@ const AICompanion = () => {
       setXp((progress.words_learned + progress.exercises_completed * 10) % 100);
       setStreak(progress.streak_days || 0);
       
-      // Update achievements
       setAchievements(prev => prev.map(ach => {
         if (ach.id === 'polyglot') {
           return { ...ach, progress: progress.words_learned, unlocked: progress.words_learned >= 500 };
@@ -139,7 +144,7 @@ const AICompanion = () => {
       setMessages([welcomeMsg]);
       speakMessage(data.reply);
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
@@ -171,7 +176,7 @@ const AICompanion = () => {
       });
     } catch (error) {
       toast({ 
-        title: "Microphone Error", 
+        title: t('common.error'), 
         description: "Please allow microphone access.",
         variant: "destructive" 
       });
@@ -188,14 +193,12 @@ const AICompanion = () => {
   const processAudio = async (audioBlob: Blob) => {
     setIsProcessing(true);
     try {
-      // Convert to base64
       const reader = new FileReader();
       reader.readAsDataURL(audioBlob);
       
       reader.onloadend = async () => {
         const base64Audio = reader.result?.toString().split(',')[1];
         
-        // Transcribe
         const { data: transcriptData, error: transcriptError } = await supabase.functions.invoke('speech-to-text', {
           body: { audio: base64Audio, language: 'de' }
         });
@@ -204,15 +207,13 @@ const AICompanion = () => {
 
         const transcribedText = transcriptData.text;
         
-        // Add user message
         const userMsg: Message = { role: 'user', content: transcribedText };
         setMessages(prev => [...prev, userMsg]);
 
-        // Get AI response with feedback
         await sendMessageToAI(transcribedText);
       };
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
       setIsProcessing(false);
     }
   };
@@ -238,7 +239,7 @@ const AICompanion = () => {
       setMistakeAnalysis(data);
       setShowMistakeDialog(true);
     } catch (error: any) {
-      toast({ title: "Error analyzing mistakes", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     } finally {
       setAnalyzingMessage(null);
     }
@@ -263,7 +264,6 @@ const AICompanion = () => {
 
       if (error) throw error;
       
-      // Generate audio for AI response if in verbal mode
       let audioData: string | null = null;
       if (audioMode === 'verbal') {
         try {
@@ -279,36 +279,31 @@ const AICompanion = () => {
         }
       }
       
-      // Add AI response
       const aiMsg: Message = {
         role: 'assistant',
         content: data.reply,
         audio: audioData,
         feedback: {
-          grammar: "Analyzing...",
-          vocabulary: "Checking...",
-          pronunciation: "Evaluating..."
+          grammar: "✓",
+          vocabulary: "✓",
+          pronunciation: "✓"
         }
       };
       
       setMessages(prev => [...prev, aiMsg]);
       
-      // Auto-play in verbal mode
       if (audioMode === 'verbal' && audioData) {
         const audio = new Audio(audioData);
-        audio.play();
+        audio.play().catch(() => {});
       } else if (audioMode === 'text') {
         speakMessage(data.reply);
       }
       
-      // Award XP
       awardXP(15);
-      
-      // Check achievements
       checkAchievements();
       
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     } finally {
       setIsProcessing(false);
     }
@@ -328,7 +323,7 @@ const AICompanion = () => {
       const mime = data?.mimeType || 'audio/wav';
       const audio = new Audio(`data:${mime};base64,${data.audioContent}`);
       audio.onended = () => setIsSpeaking(false);
-      audio.play();
+      audio.play().catch(() => setIsSpeaking(false));
     } catch (error) {
       console.error('Text-to-speech error:', error);
       setIsSpeaking(false);
@@ -370,321 +365,318 @@ const AICompanion = () => {
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
-      <div className="container max-w-7xl mx-auto p-4 md:p-6 space-y-4">
+      <div className="container max-w-5xl mx-auto p-4 md:p-6 space-y-4">
         <PageBanner
           type="ai-companion"
           title={t('aiCompanion.title')}
-          subtitle="Your personal German tutor that adapts to your level and provides instant feedback"
+          subtitle={t('aiCompanion.subtitle')}
           icon={Brain}
           compact
         />
         
-        {/* Compact Header with Progress */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 mt-2">
-          <Card className="glass-luxury">
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <p className="text-xs font-semibold text-muted-foreground">Level</p>
-              </div>
-              <p className="text-2xl font-bold text-gradient-luxury">{userLevel}</p>
-              <Progress value={xp} className="h-1.5 mt-2" />
-              <p className="text-xs text-muted-foreground mt-1">{xp}/100 XP</p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-luxury">
-            <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Target className="w-4 h-4 text-accent" />
-                <p className="text-xs font-semibold text-muted-foreground">Streak</p>
-              </div>
-              <p className="text-2xl font-bold text-accent">{streak}</p>
-              <p className="text-xs text-muted-foreground">days</p>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-luxury col-span-2">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Award className="w-4 h-4 text-primary" />
-                <p className="text-xs font-semibold text-muted-foreground">Recent Achievements</p>
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                {achievements.filter(a => a.unlocked).slice(0, 3).map(ach => (
-                  <Badge key={ach.id} className="gradient-primary text-xs">
-                    <ach.icon className="w-3 h-3 mr-1" />
-                    {ach.title}
-                  </Badge>
-                ))}
-                {achievements.filter(a => a.unlocked).length === 0 && (
-                  <p className="text-xs text-muted-foreground">Start chatting to unlock!</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Chat Area - Full Width on Mobile, 2/3 on Desktop */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-          {/* Chat */}
-          <div className="xl:col-span-2">
-            <Card className="glass-luxury h-[calc(100vh-280px)] flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Brain className="w-5 h-5 text-primary animate-pulse" />
-                    <CardTitle className="text-lg">{t('aiCompanion.title')}</CardTitle>
+        {/* Compact Stats Bar */}
+        <div className="flex items-center gap-4 p-3 glass-luxury rounded-lg">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium">{t('common.level')} {userLevel}</span>
+            <Progress value={xp} className="w-20 h-2" />
+            <span className="text-xs text-muted-foreground">{xp}/100</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Target className="w-4 h-4 text-accent" />
+            <span className="text-sm font-medium">{streak} {t('common.days')}</span>
+          </div>
+          <div className="flex items-center gap-1 ml-auto">
+            {achievements.filter(a => a.unlocked).slice(0, 3).map(ach => (
+              <Badge key={ach.id} className="gradient-primary text-xs px-2">
+                <ach.icon className="w-3 h-3" />
+              </Badge>
+            ))}
+            <Sheet open={insightsOpen} onOpenChange={setInsightsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="ml-2">
+                  <ChevronRight className="w-4 h-4" />
+                  {t('aiCompanion.aiInsights')}
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="w-[320px] sm:w-[400px]">
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    {t('aiCompanion.aiInsights')}
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="mt-6 space-y-4">
+                  {/* Learning Style */}
+                  <div className="p-3 bg-accent/10 rounded-lg border border-accent/30">
+                    <p className="text-accent font-semibold text-sm mb-1">{t('aiCompanion.learningStyle')}</p>
+                    <p className="text-xs text-muted-foreground">Visual & Conversational</p>
                   </div>
-                  {isProcessing && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
-                </div>
-                <CardDescription className="text-xs">
-                  Voice or text - I adapt to YOUR learning style in real-time!
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="flex-1 overflow-y-auto space-y-3 px-4">
-                {messages.length === 0 && (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-center space-y-4 max-w-md animate-fade-in">
-                      <Brain className="w-20 h-20 mx-auto text-primary animate-pulse" />
-                      <div>
-                        <h3 className="text-2xl font-bold mb-2 text-gradient-luxury">
-                          AI Learning Companion
-                        </h3>
-                        <p className="text-muted-foreground mb-6 text-sm">
-                          Your personal German tutor that adapts to your level and provides instant feedback!
-                        </p>
-                        <Button
-                          onClick={startCompanion}
-                          disabled={isProcessing}
-                          size="lg"
-                          className="gradient-luxury luxury-glow"
+                  {/* Strength */}
+                  <div className="p-3 bg-primary/10 rounded-lg border border-primary/30">
+                    <p className="text-primary font-semibold text-sm mb-1">{t('aiCompanion.strength')}</p>
+                    <p className="text-xs text-muted-foreground">Vocabulary retention</p>
+                  </div>
+                  {/* Focus Area */}
+                  <div className="p-3 bg-destructive/10 rounded-lg border border-destructive/30">
+                    <p className="text-destructive font-semibold text-sm mb-1">{t('aiCompanion.focusArea')}</p>
+                    <p className="text-xs text-muted-foreground">Article usage (der/die/das)</p>
+                  </div>
+                  
+                  {/* Achievements */}
+                  <div className="pt-4 border-t">
+                    <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                      <Trophy className="w-4 h-4 text-primary" />
+                      {t('aiCompanion.achievements')}
+                    </h3>
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                      {achievements.map(ach => (
+                        <div
+                          key={ach.id}
+                          className={`p-2.5 rounded-lg border transition-all ${
+                            ach.unlocked 
+                              ? 'gradient-primary/10 border-primary/40' 
+                              : 'bg-background/20 border-border/50'
+                          }`}
                         >
-                          {isProcessing ? (
-                            <>
-                              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                              Wird gestartet...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="w-5 h-5 mr-2" />
-                              {t('aiCompanion.startConversation')}
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <ach.icon className={`w-4 h-4 ${ach.unlocked ? 'text-primary' : 'text-muted-foreground'}`} />
+                              <p className="font-medium text-xs">{ach.title}</p>
+                            </div>
+                            {ach.unlocked && <Badge className="text-xs h-5 gradient-accent">✓</Badge>}
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-1.5">{ach.description}</p>
+                          <Progress value={(ach.progress / ach.total) * 100} className="h-1.5" />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {ach.progress}/{ach.total}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                )}
-                {messages.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
-                  >
-                    <div
-                      className={`max-w-[85%] md:max-w-[75%] p-3 rounded-xl transition-all hover:scale-[1.02] ${
-                        msg.role === 'user'
-                          ? 'gradient-primary text-primary-foreground shadow-lg'
-                          : 'glass-luxury border border-primary/20'
-                      }`}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+
+        {/* Main Chat Area - Full Width */}
+        <Card className="glass-luxury flex flex-col" style={{ height: 'calc(100vh - 280px)' }}>
+          <CardHeader className="pb-3 border-b">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Brain className="w-5 h-5 text-primary animate-pulse" />
+                <CardTitle className="text-lg">{t('aiCompanion.title')}</CardTitle>
+              </div>
+              <div className="flex items-center gap-2">
+                {isProcessing && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
+                <Badge variant="outline" className="text-xs">
+                  {audioMode === 'text' ? t('aiCompanion.textMode') : t('aiCompanion.verbalMode')}
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+          
+          {/* Messages Container */}
+          <CardContent className="flex-1 overflow-y-auto space-y-4 p-4">
+            {messages.length === 0 && (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center space-y-4 max-w-md animate-fade-in">
+                  <Brain className="w-16 h-16 mx-auto text-primary animate-pulse" />
+                  <div>
+                    <h3 className="text-xl font-bold mb-2 text-gradient-luxury">
+                      {t('aiCompanion.title')}
+                    </h3>
+                    <p className="text-muted-foreground mb-6 text-sm">
+                      {t('aiCompanion.subtitle')}
+                    </p>
+                    <Button
+                      onClick={startCompanion}
+                      disabled={isProcessing}
+                      size="lg"
+                      className="gradient-luxury luxury-glow"
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="whitespace-pre-line text-sm flex-1">{msg.content}</p>
-                        <div className="flex gap-1 shrink-0">
-                          {msg.role === 'user' && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => analyzeMistakes(msg.content)}
-                              disabled={analyzingMessage === msg.content}
-                              className="h-7 w-7 p-0"
-                            >
-                              {analyzingMessage === msg.content ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <Lightbulb className="w-3 h-3 text-yellow-500" />
-                              )}
-                            </Button>
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          {t('aiCompanion.starting')}
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-5 h-5 mr-2" />
+                          {t('aiCompanion.startConversation')}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
+              >
+                <div
+                  className={`max-w-[85%] md:max-w-[70%] p-4 rounded-2xl transition-all ${
+                    msg.role === 'user'
+                      ? 'gradient-primary text-primary-foreground shadow-lg rounded-br-md'
+                      : 'glass-luxury border border-primary/20 rounded-bl-md'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="whitespace-pre-line text-sm flex-1 leading-relaxed">{msg.content}</p>
+                    <div className="flex gap-1 shrink-0">
+                      {msg.role === 'user' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => analyzeMistakes(msg.content)}
+                          disabled={analyzingMessage === msg.content}
+                          className="h-7 w-7 p-0 hover:bg-white/20"
+                          title={t('aiCompanion.analyzeMistakes')}
+                        >
+                          {analyzingMessage === msg.content ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Lightbulb className="w-3 h-3 text-yellow-400" />
                           )}
-                          {msg.role === 'assistant' && (
-                            <>
-                              <AudioButton text={msg.content} lang="de-DE" showPlayer />
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-7 w-7 p-0 text-xs"
-                                onClick={async () => {
-                                  try {
-                                    const { data } = await supabase.functions.invoke('analyze-translation', {
-                                      body: { text: msg.content, targetLanguage: 'en' }
-                                    });
-                                    toast({
-                                      title: "Translation",
-                                      description: data.translation,
-                                      duration: 8000,
-                                    });
-                                  } catch (error: any) {
-                                    toast({ title: "Translation Error", description: error.message, variant: "destructive" });
-                                  }
-                                }}
-                                title="Translate to English"
-                              >
-                                EN
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      {msg.feedback && msg.role === 'assistant' && (
-                        <div className="text-xs space-y-1 mt-2 pt-2 border-t border-primary/20">
-                          <div className="flex items-center gap-1">
-                            <TrendingUp className="w-3 h-3 text-accent" />
-                            <span className="text-muted-foreground font-medium">Instant Feedback:</span>
-                          </div>
-                          <div className="flex gap-1 flex-wrap">
-                            <Badge variant="outline" className="text-xs bg-primary/10">Grammar ✓</Badge>
-                            <Badge variant="outline" className="text-xs bg-accent/10">Vocab ✓</Badge>
-                            <Badge variant="outline" className="text-xs bg-green-500/10">Fluency +2</Badge>
-                          </div>
-                        </div>
+                        </Button>
+                      )}
+                      {msg.role === 'assistant' && (
+                        <>
+                          <AudioButton text={msg.content} lang="de-DE" showPlayer />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 w-7 p-0 text-xs hover:bg-primary/20"
+                            onClick={async () => {
+                              try {
+                                const { data } = await supabase.functions.invoke('analyze-translation', {
+                                  body: { text: msg.content, targetLanguage: 'en' }
+                                });
+                                toast({
+                                  title: "Translation",
+                                  description: data.translation,
+                                  duration: 8000,
+                                });
+                              } catch (error: any) {
+                                toast({ title: t('common.error'), description: error.message, variant: "destructive" });
+                              }
+                            }}
+                            title="Translate to English"
+                          >
+                            EN
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </CardContent>
-
-              <CardContent className="border-t pt-3 pb-4 px-4">
-                <div className="flex gap-2 mb-2">
-                  <Button
-                    onClick={isListening ? stopVoiceRecording : startVoiceRecording}
-                    variant={isListening ? "destructive" : "default"}
-                    className={isListening ? "animate-pulse" : "gradient-primary"}
-                    disabled={isProcessing}
-                    size="sm"
-                  >
-                    {isListening ? (
-                      <>
-                        <MicOff className="w-4 h-4 mr-1" />
-                        Stop
-                      </>
-                    ) : (
-                      <>
-                        <Mic className="w-4 h-4 mr-1" />
-                        Voice
-                      </>
-                    )}
-                  </Button>
-                  
-                  <Button
-                    onClick={() => isSpeaking ? null : speakMessage(messages[messages.length - 1]?.content || "")}
-                    variant="outline"
-                    className="glass"
-                    disabled={messages.length === 0 || isSpeaking}
-                    size="sm"
-                  >
-                    {isSpeaking ? (
-                      <VolumeX className="w-4 h-4 animate-pulse" />
-                    ) : (
-                      <Volume2 className="w-4 h-4" />
-                    )}
-                  </Button>
-                </div>
-
-                <div className="flex gap-2">
-                  <Textarea
-                    placeholder="Type in German or use voice..."
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendTextMessage())}
-                    disabled={isProcessing}
-                    className="glass min-h-[60px] text-sm resize-none"
-                    rows={2}
-                  />
-                  <Button
-                    onClick={sendTextMessage}
-                    disabled={!inputText.trim() || isProcessing}
-                    className="gradient-accent self-end"
-                  >
-                    {isProcessing ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      "Send"
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Achievements Sidebar - Responsive */}
-          <div className="xl:block space-y-3">
-            <Card className="glass-luxury">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-primary" />
-                  Achievements
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {achievements.map(ach => (
-                  <div
-                    key={ach.id}
-                    className={`p-2.5 rounded-lg border transition-all hover:scale-[1.02] ${
-                      ach.unlocked 
-                        ? 'gradient-primary/10 border-primary/40 shadow-sm' 
-                        : 'bg-background/20 border-border/50'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <ach.icon className={`w-4 h-4 ${ach.unlocked ? 'text-primary' : 'text-muted-foreground'}`} />
-                        <p className="font-semibold text-xs">{ach.title}</p>
+                  {msg.feedback && msg.role === 'assistant' && (
+                    <div className="text-xs mt-3 pt-3 border-t border-primary/20">
+                      <div className="flex items-center gap-1 mb-1">
+                        <TrendingUp className="w-3 h-3 text-accent" />
+                        <span className="text-muted-foreground font-medium">{t('aiCompanion.instantFeedback')}:</span>
                       </div>
-                      {ach.unlocked && <Badge className="text-xs h-5 gradient-accent">✓</Badge>}
+                      <div className="flex gap-1 flex-wrap">
+                        <Badge variant="outline" className="text-xs bg-primary/10">Grammar ✓</Badge>
+                        <Badge variant="outline" className="text-xs bg-accent/10">Vocab ✓</Badge>
+                        <Badge variant="outline" className="text-xs bg-green-500/10">Fluency +2</Badge>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-1.5 line-clamp-1">{ach.description}</p>
-                    <Progress value={(ach.progress / ach.total) * 100} className="h-1.5 mb-1" />
-                    <p className="text-xs text-muted-foreground">
-                      {ach.progress}/{ach.total}
-                    </p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+                  )}
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </CardContent>
 
-            <Card className="glass-luxury">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-accent" />
-                  AI Insights
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="p-2.5 bg-accent/10 rounded-lg border border-accent/30 transition-all hover:bg-accent/15">
-                  <p className="text-accent font-semibold text-xs mb-0.5">Learning Style</p>
-                  <p className="text-xs text-muted-foreground">Visual & Conversational</p>
-                </div>
-                <div className="p-2.5 bg-primary/10 rounded-lg border border-primary/30 transition-all hover:bg-primary/15">
-                  <p className="text-primary font-semibold text-xs mb-0.5">Strength</p>
-                  <p className="text-xs text-muted-foreground">Vocabulary retention</p>
-                </div>
-                <div className="p-2.5 bg-destructive/10 rounded-lg border border-destructive/30 transition-all hover:bg-destructive/15">
-                  <p className="text-destructive font-semibold text-xs mb-0.5">Focus Area</p>
-                  <p className="text-xs text-muted-foreground">Article usage (der/die/das)</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+          {/* Input Area */}
+          <CardContent className="border-t pt-4 pb-4 px-4">
+            <div className="flex gap-2 mb-3">
+              <Button
+                onClick={isListening ? stopVoiceRecording : startVoiceRecording}
+                variant={isListening ? "destructive" : "default"}
+                className={isListening ? "animate-pulse" : "gradient-primary"}
+                disabled={isProcessing || messages.length === 0}
+                size="sm"
+              >
+                {isListening ? (
+                  <>
+                    <MicOff className="w-4 h-4 mr-1" />
+                    {t('aiCompanion.stop')}
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-4 h-4 mr-1" />
+                    {t('aiCompanion.voice')}
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                onClick={() => isSpeaking ? null : speakMessage(messages[messages.length - 1]?.content || "")}
+                variant="outline"
+                className="glass"
+                disabled={messages.length === 0 || isSpeaking}
+                size="sm"
+              >
+                {isSpeaking ? (
+                  <VolumeX className="w-4 h-4 animate-pulse" />
+                ) : (
+                  <Volume2 className="w-4 h-4" />
+                )}
+              </Button>
+              
+              <Button
+                onClick={() => setAudioMode(audioMode === 'text' ? 'verbal' : 'text')}
+                variant="outline"
+                size="sm"
+                className="ml-auto"
+              >
+                {audioMode === 'text' ? t('aiCompanion.verbalMode') : t('aiCompanion.textMode')}
+              </Button>
+            </div>
 
+            <div className="flex gap-3">
+              <Textarea
+                placeholder={t('aiCompanion.placeholder')}
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendTextMessage();
+                  }
+                }}
+                disabled={isProcessing || messages.length === 0}
+                className="glass min-h-[50px] text-sm resize-none flex-1"
+                rows={2}
+              />
+              <Button
+                onClick={sendTextMessage}
+                disabled={!inputText.trim() || isProcessing || messages.length === 0}
+                className="gradient-accent self-end px-6"
+              >
+                {isProcessing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  t('common.send')
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Mistake Analysis Dialog */}
         <Dialog open={showMistakeDialog} onOpenChange={setShowMistakeDialog}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto glass-luxury">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-xl font-bold">
                 <Lightbulb className="w-6 h-6 text-accent" />
-                Mistake Analysis & Suggestions
+                {t('aiCompanion.mistakeAnalysis')}
               </DialogTitle>
             </DialogHeader>
             
@@ -692,12 +684,12 @@ const AICompanion = () => {
               <div className="space-y-4">
                 {!mistakeAnalysis.hasErrors ? (
                   <div className="p-4 bg-accent/20 rounded-lg border border-accent">
-                    <p className="font-semibold text-accent">✨ Excellent! No significant errors found.</p>
+                    <p className="font-semibold text-accent">✨ {t('aiCompanion.noErrors')}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     <div>
-                      <h4 className="font-semibold mb-2">Mistakes Found:</h4>
+                      <h4 className="font-semibold mb-2">{t('aiCompanion.mistakesFound')}:</h4>
                       {mistakeAnalysis.mistakes.map((mistake, idx) => (
                         <div key={idx} className="p-3 bg-destructive/10 rounded-lg border border-destructive/30 mb-2">
                           <p className="text-sm text-destructive font-medium">❌ {mistake.error}</p>
@@ -711,7 +703,7 @@ const AICompanion = () => {
 
                 {mistakeAnalysis.alternatives && mistakeAnalysis.alternatives.length > 0 && (
                   <div>
-                    <h4 className="font-semibold mb-2">Alternative Ways to Say It:</h4>
+                    <h4 className="font-semibold mb-2">{t('aiCompanion.alternatives')}:</h4>
                     <div className="space-y-2">
                       {mistakeAnalysis.alternatives.map((alt, idx) => (
                         <div key={idx} className="p-3 bg-primary/10 rounded-lg border border-primary/30">
@@ -723,7 +715,7 @@ const AICompanion = () => {
                 )}
 
                 <div className="p-4 bg-background/50 rounded-lg">
-                  <h4 className="font-semibold mb-2">Overall Assessment:</h4>
+                  <h4 className="font-semibold mb-2">{t('aiCompanion.overallAssessment')}:</h4>
                   <p className="text-sm text-muted-foreground">{mistakeAnalysis.overallAssessment}</p>
                 </div>
               </div>
