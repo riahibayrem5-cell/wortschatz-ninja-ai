@@ -8,13 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
-import { User, Mail, Bell, Volume2, Key, Eye, EyeOff, Crown, ExternalLink, Loader2 } from "lucide-react";
+import Footer from "@/components/Footer";
+import { ProfileSection } from "@/components/ProfileSection";
+import { Mail, Bell, Volume2, Key, Eye, EyeOff, Crown, ExternalLink, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [email, setEmail] = useState("");
@@ -26,6 +28,9 @@ const Settings = () => {
   const [showGeminiKey, setShowGeminiKey] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const [loadingPortal, setLoadingPortal] = useState(false);
+  const [userSettings, setUserSettings] = useState<any>(null);
+
+  const isDE = language === "de";
 
   useEffect(() => {
     checkUser();
@@ -50,6 +55,21 @@ const Settings = () => {
     if (notifSetting !== null) setNotificationsEnabled(notifSetting === "true");
     if (savedElevenLabsKey) setElevenLabsKey(savedElevenLabsKey);
     if (savedGeminiKey) setGeminiKey(savedGeminiKey);
+    
+    // Load user settings from database
+    try {
+      const { data: settings } = await supabase
+        .from("user_settings")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .single();
+      
+      if (settings) {
+        setUserSettings(settings);
+      }
+    } catch (error) {
+      console.error('Failed to load user settings:', error);
+    }
     
     // Check subscription status
     try {
@@ -143,11 +163,26 @@ const Settings = () => {
         <h1 className="text-3xl font-bold mb-8 text-gradient">{t('settings.title')}</h1>
 
         <div className="space-y-6">
+          {/* Profile Section */}
+          {user && (
+            <ProfileSection
+              userId={user.id}
+              email={email}
+              initialData={{
+                displayName: userSettings?.display_name || "",
+                avatarUrl: userSettings?.avatar_url || null,
+                nativeLanguage: userSettings?.native_language || "",
+                examTargetDate: userSettings?.exam_target_date || null,
+              }}
+              onUpdate={(data) => setUserSettings({ ...userSettings, ...data })}
+            />
+          )}
+
           {/* Account Information */}
           <Card className="p-6 glass">
             <div className="flex items-center gap-3 mb-6">
-              <User className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-semibold">{t('settings.account') || 'Account Information'}</h2>
+              <Mail className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-semibold">{isDE ? 'Konto' : 'Account Information'}</h2>
             </div>
             
             <div className="space-y-4">
@@ -164,12 +199,12 @@ const Settings = () => {
                   className="bg-background/50 mt-2"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {t('settings.emailCantChange') || 'Email cannot be changed. Contact support if needed.'}
+                  {isDE ? 'E-Mail kann nicht geändert werden. Kontaktiere den Support.' : 'Email cannot be changed. Contact support if needed.'}
                 </p>
               </div>
 
               <div>
-                <Label>{t('settings.userId') || 'User ID'}</Label>
+                <Label>{isDE ? 'Benutzer-ID' : 'User ID'}</Label>
                 <Input
                   value={user?.id || ""}
                   disabled
@@ -183,7 +218,7 @@ const Settings = () => {
           <Card className="p-6 glass">
             <div className="flex items-center gap-3 mb-6">
               <Key className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-semibold">API Keys</h2>
+              <h2 className="text-xl font-semibold">{isDE ? 'API-Schlüssel' : 'API Keys'}</h2>
             </div>
             
             <div className="space-y-4">
@@ -393,6 +428,8 @@ const Settings = () => {
           </Card>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };
