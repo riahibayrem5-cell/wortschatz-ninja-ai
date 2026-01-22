@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,83 +10,100 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import PageTransition from "@/components/PageTransition";
 import RequireAuth from "@/components/RequireAuth";
+import { Loader2 } from "lucide-react";
+
+// Critical routes - loaded immediately
 import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import Vocabulary from "./pages/Vocabulary";
-import WordDossier from "./pages/WordDossier";
-import SentenceGenerator from "./pages/SentenceGenerator";
-import Review from "./pages/Review";
-import WritingAssistant from "./pages/WritingAssistant";
-import Exercises from "./pages/Exercises";
-import Memorizer from "./pages/Memorizer";
-import WordAssociation from "./pages/WordAssociation";
-import Conversation from "./pages/Conversation";
-import TextHighlighter from "./pages/TextHighlighter";
-import MistakeDiary from "./pages/MistakeDiary";
-import Settings from "./pages/Settings";
-import TelcExam from "./pages/TelcExam";
-import TelcVorbereitung from "./pages/TelcVorbereitung";
-import AICompanion from "./pages/AICompanion";
-import History from "./pages/History";
-import ActivityLog from "./pages/ActivityLog";
-import Subscriptions from "./pages/Subscriptions";
-import LearningPath from "./pages/LearningPath";
-import Achievements from "./pages/Achievements";
-import MasteryCourse from "./pages/MasteryCourse";
-import ModuleDetail from "./pages/ModuleDetail";
-import LessonPage from "./pages/LessonPage";
-import CourseTutor from "./pages/CourseTutor";
-import Certificates from "./pages/Certificates";
 import AuthPage from "./components/AuthPage";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard";
+
+// Non-critical routes - lazy loaded
+const Vocabulary = lazy(() => import("./pages/Vocabulary"));
+const WordDossier = lazy(() => import("./pages/WordDossier"));
+const SentenceGenerator = lazy(() => import("./pages/SentenceGenerator"));
+const Review = lazy(() => import("./pages/Review"));
+const WritingAssistant = lazy(() => import("./pages/WritingAssistant"));
+const Exercises = lazy(() => import("./pages/Exercises"));
+const Memorizer = lazy(() => import("./pages/Memorizer"));
+const WordAssociation = lazy(() => import("./pages/WordAssociation"));
+const Conversation = lazy(() => import("./pages/Conversation"));
+const TextHighlighter = lazy(() => import("./pages/TextHighlighter"));
+const MistakeDiary = lazy(() => import("./pages/MistakeDiary"));
+const Settings = lazy(() => import("./pages/Settings"));
+const TelcExam = lazy(() => import("./pages/TelcExam"));
+const TelcVorbereitung = lazy(() => import("./pages/TelcVorbereitung"));
+const AICompanion = lazy(() => import("./pages/AICompanion"));
+const History = lazy(() => import("./pages/History"));
+const ActivityLog = lazy(() => import("./pages/ActivityLog"));
+const Subscriptions = lazy(() => import("./pages/Subscriptions"));
+const LearningPath = lazy(() => import("./pages/LearningPath"));
+const Achievements = lazy(() => import("./pages/Achievements"));
+const MasteryCourse = lazy(() => import("./pages/MasteryCourse"));
+const ModuleDetail = lazy(() => import("./pages/ModuleDetail"));
+const LessonPage = lazy(() => import("./pages/LessonPage"));
+const CourseTutor = lazy(() => import("./pages/CourseTutor"));
+const Certificates = lazy(() => import("./pages/Certificates"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="min-h-screen gradient-hero flex items-center justify-center">
+    <div className="flex flex-col items-center gap-4">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <p className="text-muted-foreground text-sm">Loading...</p>
+    </div>
+  </div>
+);
 
 const AnimatedRoutes = () => {
   const location = useLocation();
   
   return (
     <PageTransition key={location.pathname}>
-      <Routes location={location}>
-        <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/terms" element={<Terms />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes location={location}>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
 
-        {/* Protected app */}
-        <Route element={<RequireAuth />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/vocabulary" element={<Vocabulary />} />
-          <Route path="/word-dossier" element={<WordDossier />} />
-          <Route path="/sentence-generator" element={<SentenceGenerator />} />
-          <Route path="/review" element={<Review />} />
-          <Route path="/writing" element={<WritingAssistant />} />
-          <Route path="/exercises" element={<Exercises />} />
-          <Route path="/memorizer" element={<Memorizer />} />
-          <Route path="/word-association" element={<WordAssociation />} />
-          <Route path="/conversation" element={<Conversation />} />
-          <Route path="/highlighter" element={<TextHighlighter />} />
-          <Route path="/diary" element={<MistakeDiary />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/telc-exam" element={<TelcExam />} />
-          <Route path="/telc-vorbereitung" element={<TelcVorbereitung />} />
-          <Route path="/ai-companion" element={<AICompanion />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/activity-log" element={<ActivityLog />} />
-          <Route path="/subscriptions" element={<Subscriptions />} />
-          <Route path="/learning-path" element={<LearningPath />} />
-          <Route path="/achievements" element={<Achievements />} />
-          <Route path="/mastery-course" element={<MasteryCourse />} />
-          <Route path="/mastery-course/:moduleId" element={<ModuleDetail />} />
-          <Route path="/mastery-course/:moduleId/lesson/:lessonId" element={<LessonPage />} />
-          <Route path="/mastery-course/:moduleId/tutor" element={<CourseTutor />} />
-          <Route path="/certificates" element={<Certificates />} />
-        </Route>
+          {/* Protected app */}
+          <Route element={<RequireAuth />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/vocabulary" element={<Vocabulary />} />
+            <Route path="/word-dossier" element={<WordDossier />} />
+            <Route path="/sentence-generator" element={<SentenceGenerator />} />
+            <Route path="/review" element={<Review />} />
+            <Route path="/writing" element={<WritingAssistant />} />
+            <Route path="/exercises" element={<Exercises />} />
+            <Route path="/memorizer" element={<Memorizer />} />
+            <Route path="/word-association" element={<WordAssociation />} />
+            <Route path="/conversation" element={<Conversation />} />
+            <Route path="/highlighter" element={<TextHighlighter />} />
+            <Route path="/diary" element={<MistakeDiary />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/telc-exam" element={<TelcExam />} />
+            <Route path="/telc-vorbereitung" element={<TelcVorbereitung />} />
+            <Route path="/ai-companion" element={<AICompanion />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/activity-log" element={<ActivityLog />} />
+            <Route path="/subscriptions" element={<Subscriptions />} />
+            <Route path="/learning-path" element={<LearningPath />} />
+            <Route path="/achievements" element={<Achievements />} />
+            <Route path="/mastery-course" element={<MasteryCourse />} />
+            <Route path="/mastery-course/:moduleId" element={<ModuleDetail />} />
+            <Route path="/mastery-course/:moduleId/lesson/:lessonId" element={<LessonPage />} />
+            <Route path="/mastery-course/:moduleId/tutor" element={<CourseTutor />} />
+            <Route path="/certificates" element={<Certificates />} />
+          </Route>
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </PageTransition>
   );
 };
@@ -108,4 +126,3 @@ const App = () => (
 );
 
 export default App;
-
