@@ -315,7 +315,7 @@ export const cacheContent = async <T>(
       console.log('IndexedDB store failed:', e);
     }
 
-    // 3. Supabase (background)
+    // 3. Supabase (background with proper error handling)
     supabase.from('content_cache').upsert({
       user_id: user.id,
       cache_key: cacheKey,
@@ -324,7 +324,11 @@ export const cacheContent = async <T>(
       difficulty: options.difficulty,
       topic: options.topic,
       accessed_at: new Date().toISOString()
-    } as any, { onConflict: 'cache_key,user_id' }).then(() => {});
+    } as any, { onConflict: 'cache_key,user_id' }).then(({ error }) => {
+      if (error) {
+        console.warn('Background cache sync failed:', error.message);
+      }
+    });
 
     return true;
   } catch (error) {

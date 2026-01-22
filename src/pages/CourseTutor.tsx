@@ -111,7 +111,10 @@ const CourseTutor = () => {
                   return updated;
                 });
               }
-            } catch {}
+            } catch (parseError) {
+              // SSE parsing can fail for incomplete chunks, continue processing
+              console.debug('SSE chunk parse skipped');
+            }
           }
         }
       }

@@ -227,7 +227,7 @@ const Exercises = () => {
               <div className="space-y-6">
                 <h3 className="text-xl font-semibold mb-4">Fill in the Gaps</h3>
                 <div className="space-y-4">
-                  {exercise.sentences?.map((item: any, index: number) => (
+                  {exercise?.sentences && Array.isArray(exercise.sentences) && exercise.sentences.map((item: any, index: number) => (
                     <div key={index} className="p-4 glass rounded-lg border-2 border-border">
                       <p className="text-lg mb-3">{item.sentence}</p>
                       <div className="flex gap-2">
