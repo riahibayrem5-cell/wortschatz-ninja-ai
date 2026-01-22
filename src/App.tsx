@@ -36,6 +36,8 @@ import LessonPage from "./pages/LessonPage";
 import CourseTutor from "./pages/CourseTutor";
 import Certificates from "./pages/Certificates";
 import AuthPage from "./components/AuthPage";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +50,8 @@ const AnimatedRoutes = () => {
       <Routes location={location}>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
 
         {/* Protected app */}
         <Route element={<RequireAuth />}>
