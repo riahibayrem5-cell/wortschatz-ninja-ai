@@ -2,26 +2,26 @@ import { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { LucideIcon } from "lucide-react";
 
-// Import all banners
-import dashboardBanner from "@/assets/banners/dashboard-banner.jpg";
-import telcBanner from "@/assets/banners/telc-banner.jpg";
-import telcExamBanner from "@/assets/banners/telc-exam-banner.jpg";
-import vocabularyBanner from "@/assets/banners/vocabulary-banner.jpg";
-import conversationBanner from "@/assets/banners/conversation-banner.jpg";
-import writingBanner from "@/assets/banners/writing-banner.jpg";
-import aiCompanionBanner from "@/assets/banners/ai-companion-banner.jpg";
-import exercisesBanner from "@/assets/banners/exercises-banner.jpg";
-import memorizerBanner from "@/assets/banners/memorizer-banner.jpg";
-import achievementsBanner from "@/assets/banners/achievements-banner.jpg";
-import certificatesBanner from "@/assets/banners/certificates-banner.jpg";
-import masteryCourserBanner from "@/assets/banners/mastery-course-banner.jpg";
-import reviewBanner from "@/assets/banners/review-banner.jpg";
-import learningPathBanner from "@/assets/banners/learning-path-banner.jpg";
-import textHighlighterBanner from "@/assets/banners/text-highlighter-banner.jpg";
-import mistakeDiaryBanner from "@/assets/banners/mistake-diary-banner.jpg";
-import wordAssociationBanner from "@/assets/banners/word-association-banner.jpg";
-import sentenceGeneratorBanner from "@/assets/banners/sentence-generator-banner.jpg";
-import wordDossierBanner from "@/assets/banners/word-dossier-banner.jpg";
+// Import all banners (WebP optimized)
+import dashboardBanner from "@/assets/banners/dashboard-banner.webp";
+import telcBanner from "@/assets/banners/telc-banner.webp";
+import telcExamBanner from "@/assets/banners/telc-exam-banner.webp";
+import vocabularyBanner from "@/assets/banners/vocabulary-banner.webp";
+import conversationBanner from "@/assets/banners/conversation-banner.webp";
+import writingBanner from "@/assets/banners/writing-banner.webp";
+import aiCompanionBanner from "@/assets/banners/ai-companion-banner.webp";
+import exercisesBanner from "@/assets/banners/exercises-banner.webp";
+import memorizerBanner from "@/assets/banners/memorizer-banner.webp";
+import achievementsBanner from "@/assets/banners/achievements-banner.webp";
+import certificatesBanner from "@/assets/banners/certificates-banner.webp";
+import masteryCourserBanner from "@/assets/banners/mastery-course-banner.webp";
+import reviewBanner from "@/assets/banners/review-banner.webp";
+import learningPathBanner from "@/assets/banners/learning-path-banner.webp";
+import textHighlighterBanner from "@/assets/banners/text-highlighter-banner.webp";
+import mistakeDiaryBanner from "@/assets/banners/mistake-diary-banner.webp";
+import wordAssociationBanner from "@/assets/banners/word-association-banner.webp";
+import sentenceGeneratorBanner from "@/assets/banners/sentence-generator-banner.webp";
+import wordDossierBanner from "@/assets/banners/word-dossier-banner.webp";
 
 export type BannerType = 
   | "dashboard"
