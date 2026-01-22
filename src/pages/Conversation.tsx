@@ -230,10 +230,16 @@ const Conversation = () => {
       const updatedMessages = [...newMessages, aiMessage];
       setMessages(updatedMessages);
 
-      // Auto-play in verbal mode
+      // Auto-play in verbal mode with error handling
       if (audioMode === 'verbal' && audioData) {
-        const audio = new Audio(audioData);
-        audio.play();
+        try {
+          const audio = new Audio(audioData);
+          await audio.play().catch((e) => {
+            console.warn('Audio autoplay blocked:', e.message);
+          });
+        } catch (audioErr) {
+          console.warn('Audio creation error:', audioErr);
+        }
       }
 
       if (conversationId) {

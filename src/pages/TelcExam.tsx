@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import PageBanner from "@/components/PageBanner";
 import SubsectionBanner from "@/components/SubsectionBanner";
+import TelcSectionBanner from "@/components/TelcSectionBanner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -627,27 +628,32 @@ const TelcExam = () => {
             </div>
           </div>
 
+          {/* Section-specific banner */}
+          {sectionInfo && (
+            <TelcSectionBanner
+              sectionId={currentSection}
+              title={content?.title || sectionInfo.title}
+              subtitle={content?.instructions}
+              icon={sectionInfo.icon}
+              color={sectionInfo.color}
+              maxPoints={sectionInfo.maxPoints}
+              duration={sectionInfo.duration}
+              currentTeil={currentTeil}
+              totalTeile={content?.teile.length}
+              timeRemaining={timeLeft[currentSection]}
+              isPaused={isPaused}
+            />
+          )}
+
           {isPaused && (
-            <Card className="glass-luxury border-yellow-500/30 mb-6 animate-fade-in">
+            <Card className="glass-luxury border-warning/30 mb-6 animate-fade-in">
               <CardContent className="p-4 text-center">
-                <Pause className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
+                <Pause className="w-8 h-8 mx-auto mb-2 text-warning" />
                 <p className="font-semibold">Exam Paused</p>
                 <p className="text-sm text-muted-foreground">Your progress is saved. Click Resume to continue.</p>
               </CardContent>
             </Card>
           )}
-
-          <Card className="glass mb-6">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                {sectionInfo && <sectionInfo.icon className={`w-6 h-6 ${sectionInfo.color}`} />}
-                <div>
-                  <CardTitle>{content?.title}</CardTitle>
-                  <CardDescription>{content?.instructions}</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
 
           {/* Teil Navigation */}
           {content && content.teile.length > 1 && (
@@ -931,15 +937,15 @@ const TelcExam = () => {
                       <div className="flex items-center justify-between flex-wrap gap-3">
                         <div className="flex items-center gap-3">
                           <div className={`p-2 rounded-lg ${
-                            attempt.status === 'completed' ? 'bg-green-500/20' : 
-                            attempt.status === 'in_progress' ? 'bg-yellow-500/20' : 'bg-red-500/20'
+                            attempt.status === 'completed' ? 'bg-emerald-500/20' : 
+                            attempt.status === 'in_progress' ? 'bg-amber-500/20' : 'bg-destructive/20'
                           }`}>
                             {attempt.status === 'completed' ? (
-                              <CheckCircle className="w-5 h-5 text-green-500" />
+                              <CheckCircle className="w-5 h-5 text-emerald-500" />
                             ) : attempt.status === 'in_progress' ? (
-                              <Clock className="w-5 h-5 text-yellow-500" />
+                              <Clock className="w-5 h-5 text-amber-500" />
                             ) : (
-                              <XCircle className="w-5 h-5 text-red-500" />
+                              <XCircle className="w-5 h-5 text-destructive" />
                             )}
                           </div>
                           <div>
