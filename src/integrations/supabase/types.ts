@@ -794,6 +794,39 @@ export type Database = {
         }
         Relationships: []
       }
+      telc_section_scores: {
+        Row: {
+          completed_at: string | null
+          id: string
+          max_score: number
+          score: number
+          section: string
+          teil: number
+          time_spent_seconds: number | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          max_score: number
+          score: number
+          section: string
+          teil?: number
+          time_spent_seconds?: number | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          max_score?: number
+          score?: number
+          section?: string
+          teil?: number
+          time_spent_seconds?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string | null
@@ -983,6 +1016,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_settings: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          daily_reminder_time: string | null
+          display_name: string | null
+          exam_target_date: string | null
+          id: string
+          native_language: string | null
+          onboarding_completed: boolean | null
+          theme: string | null
+          timezone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          daily_reminder_time?: string | null
+          display_name?: string | null
+          exam_target_date?: string | null
+          id?: string
+          native_language?: string | null
+          onboarding_completed?: boolean | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          daily_reminder_time?: string | null
+          display_name?: string | null
+          exam_target_date?: string | null
+          id?: string
+          native_language?: string | null
+          onboarding_completed?: boolean | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_subscriptions: {
         Row: {

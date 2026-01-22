@@ -147,14 +147,14 @@ const Settings = () => {
           <Card className="p-6 glass">
             <div className="flex items-center gap-3 mb-6">
               <User className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-semibold">Account Information</h2>
+              <h2 className="text-xl font-semibold">{t('settings.account') || 'Account Information'}</h2>
             </div>
             
             <div className="space-y-4">
               <div>
                 <Label htmlFor="email" className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
-                  Email
+                  {t('auth.email')}
                 </Label>
                 <Input
                   id="email"
@@ -164,12 +164,12 @@ const Settings = () => {
                   className="bg-background/50 mt-2"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Email cannot be changed. Contact support if needed.
+                  {t('settings.emailCantChange') || 'Email cannot be changed. Contact support if needed.'}
                 </p>
               </div>
 
               <div>
-                <Label>User ID</Label>
+                <Label>{t('settings.userId') || 'User ID'}</Label>
                 <Input
                   value={user?.id || ""}
                   disabled
