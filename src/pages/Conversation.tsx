@@ -97,7 +97,7 @@ const Conversation = () => {
     setAnalyzingMessage(text);
     try {
       const { data, error } = await supabase.functions.invoke("analyze-mistakes", {
-        body: { text, difficulty },
+        body: { text, difficulty, autoStore: true, source: 'conversation' },
       });
 
       if (error) throw error;

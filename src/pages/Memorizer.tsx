@@ -15,6 +15,7 @@ import { TELC_B2_TOPICS } from "@/utils/constants";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 import { trackActivity } from "@/utils/activityTracker";
 import { PageBanner } from "@/components/PageBanner";
+import { analyzeAndStoreMistakes } from "@/utils/mistakeLogger";
 const Memorizer = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -123,6 +124,20 @@ const Memorizer = () => {
     }
     
     return Math.round((matches / originalWords.length) * 100);
+  };
+
+  // Analyze user input when they finish typing with low accuracy
+  const handleInputBlur = async () => {
+    const accuracy = getAccuracy();
+    if (accuracy < 80 && userInput.length > 20) {
+      // Silently analyze and store mistakes
+      await analyzeAndStoreMistakes(
+        userInput,
+        'memorizer',
+        difficulty,
+        { theme, accuracy, originalText: paragraph?.germanText }
+      );
+    }
   };
 
   return (
@@ -353,6 +368,7 @@ const Memorizer = () => {
                 placeholder="Schreiben Sie den Absatz aus dem Gedächtnis..."
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
+                onBlur={handleInputBlur}
                 className="bg-background/50 min-h-[200px] mb-4"
               />
               {userInput && (

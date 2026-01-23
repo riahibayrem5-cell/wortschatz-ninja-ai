@@ -13,6 +13,7 @@ import { TELC_B2_TOPICS } from "@/utils/constants";
 import { trackActivity } from "@/utils/activityTracker";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 import { PageBanner } from "@/components/PageBanner";
+import { logExerciseMistake } from "@/utils/mistakeLogger";
 const Exercises = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -62,6 +63,18 @@ const Exercises = () => {
       setResult({ isCorrect, explanation: exercise.explanation });
       setShowResult(true);
 
+      // Log mistake if wrong
+      if (!isCorrect) {
+        await logExerciseMistake(
+          userAnswer,
+          exercise.correctAnswer,
+          exercise.explanation,
+          'exercises',
+          'quiz',
+          { topic, difficulty, question: exercise.question }
+        );
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         await supabase.from("exercises").insert({
@@ -105,6 +118,20 @@ const Exercises = () => {
         if (error) throw error;
         setResult(data);
         setShowResult(true);
+
+        // Log translation mistakes
+        if (!data.isCorrect && data.grammarNotes && data.grammarNotes.length > 0) {
+          for (const note of data.grammarNotes) {
+            await logExerciseMistake(
+              userAnswer,
+              exercise.expectedGerman,
+              note,
+              'exercises',
+              'translation',
+              { topic, difficulty, english: exercise.english }
+            );
+          }
+        }
 
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {

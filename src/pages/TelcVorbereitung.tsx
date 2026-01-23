@@ -50,6 +50,7 @@ import { PageBanner } from "@/components/PageBanner";
 import { TelcQuickStats } from "@/components/telc/TelcQuickStats";
 import { ExamTipsCarousel } from "@/components/telc/ExamTipsCarousel";
 import { StudyPlanWidget } from "@/components/telc/StudyPlanWidget";
+import { logMistakesFromAnalysis, logExerciseMistake } from "@/utils/mistakeLogger";
 // ─────────────────────────────────────────────────────────────
 // TELC B2 Section Configuration
 // ─────────────────────────────────────────────────────────────
@@ -549,6 +550,15 @@ const TelcVorbereitung = () => {
         });
         if (error) throw error;
         setResults(data);
+
+        // Log mistakes from detailed errors if available
+        if (data?.detailedErrors?.length > 0) {
+          await logMistakesFromAnalysis(
+            { detailedErrors: data.detailedErrors },
+            'telc-practice',
+            { section: activeSection, teil: activeTeil }
+          );
+        }
       } else {
         const teilData = content.teile?.[0];
         const questions = teilData?.questions || [];
@@ -563,6 +573,19 @@ const TelcVorbereitung = () => {
           const correctAns = getCorrectAnswerText(q);
           const isCorrect = userAns === correctAns;
           if (isCorrect) correct++;
+
+          // Log wrong answers
+          if (!isCorrect && userAns) {
+            logExerciseMistake(
+              userAns,
+              correctAns,
+              q.explanation || 'Review this question',
+              'telc-practice',
+              activeSection,
+              { section: activeSection, teil: activeTeil, question: q.question }
+            );
+          }
+
           return {
             question: q.question,
             userAnswer: userAns,

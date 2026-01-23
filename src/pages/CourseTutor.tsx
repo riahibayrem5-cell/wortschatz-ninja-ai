@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ArrowLeft, MessageCircle, Send, Trash2, Sparkles } from "lucide-react";
+import { analyzeAndStoreMistakes } from "@/utils/mistakeLogger";
 
 interface CourseModule {
   id: string;
@@ -63,8 +64,19 @@ const CourseTutor = () => {
 
     const userMessage = { role: "user", content: input };
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput("");
     setStreaming(true);
+
+    // Silently analyze user message for mistakes in the background
+    if (currentInput.length > 15) {
+      analyzeAndStoreMistakes(
+        currentInput,
+        'course-tutor',
+        'B2',
+        { moduleId, moduleTitle: module?.title }
+      ).catch(console.error);
+    }
 
     try {
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/course-ai-tutor`, {

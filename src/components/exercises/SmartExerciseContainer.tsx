@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import CachedAudioButton from "@/components/CachedAudioButton";
+import { logExerciseMistake } from "@/utils/mistakeLogger";
 
 interface Exercise {
   id: number;
@@ -90,7 +91,7 @@ const SmartExerciseContainer = ({
   const progress = exercises.length > 0 ? ((currentIndex + 1) / exercises.length) * 100 : 0;
   const correctCount = results.filter(r => r.correct).length;
 
-  const checkAnswer = () => {
+  const checkAnswer = async () => {
     if (!currentExercise || submitted) return;
 
     let correct = false;
@@ -106,6 +107,18 @@ const SmartExerciseContainer = ({
     setIsCorrect(correct);
     setSubmitted(true);
     setResults(prev => [...prev, { correct, exercise: currentExercise }]);
+
+    // Log mistake if wrong
+    if (!correct) {
+      await logExerciseMistake(
+        userAnswer,
+        String(currentExercise.correctAnswer),
+        currentExercise.explanation,
+        'smart-exercises',
+        currentExercise.type,
+        { lessonId, lessonType, difficulty: currentExercise.difficulty }
+      );
+    }
   };
 
   const nextExercise = () => {
