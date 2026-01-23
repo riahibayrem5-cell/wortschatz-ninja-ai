@@ -19,7 +19,7 @@ serve(async (req) => {
       return unauthorizedResponse(authError || "Authentication required", corsHeaders);
     }
 
-    const { text, difficulty = 'B2', autoStore = false } = await req.json();
+    const { text, difficulty = 'B2', autoStore = false, source = 'auto-detected' } = await req.json();
 
     if (!text) {
       throw new Error('Text is required');
@@ -103,7 +103,7 @@ Return JSON with this structure:
         correction: m.correction,
         explanation: m.explanation,
         category: m.category || 'grammar',
-        source: 'auto-detected',
+        source: source,
         resolved: false
       }));
 

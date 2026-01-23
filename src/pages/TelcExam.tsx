@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { logMistakesFromAnalysis, logExerciseMistake } from "@/utils/mistakeLogger";
 
 interface Question {
   id: number;
@@ -393,6 +394,15 @@ const TelcExam = () => {
 
         if (error) throw error;
         setResults(prev => ({ ...prev, [sectionId]: data }));
+
+        // Log mistakes from detailed errors if available
+        if (data?.detailedErrors?.length > 0) {
+          await logMistakesFromAnalysis(
+            { detailedErrors: data.detailedErrors },
+            'telc-exam',
+            { section: sectionId }
+          );
+        }
       } else {
         const allQuestions = content?.teile.flatMap(t => t.questions || []) || [];
         let correct = 0;
@@ -403,6 +413,19 @@ const TelcExam = () => {
             : String(q.correctAnswer);
           const isCorrect = userAnswer === correctAnswerText;
           if (isCorrect) correct++;
+
+          // Log wrong answers
+          if (!isCorrect && userAnswer) {
+            logExerciseMistake(
+              userAnswer,
+              correctAnswerText,
+              q.explanation || 'Review this question',
+              'telc-exam',
+              sectionId,
+              { section: sectionId, question: q.question }
+            );
+          }
+
           return { ...q, userAnswer, isCorrect, correctAnswer: correctAnswerText };
         });
 

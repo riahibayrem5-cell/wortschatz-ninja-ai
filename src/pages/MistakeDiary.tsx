@@ -39,10 +39,25 @@ interface Mistake {
   notes?: string | null;
 }
 
+const SOURCES = [
+  { id: 'all', label: 'All Sources' },
+  { id: 'writing', label: 'Writing' },
+  { id: 'conversation', label: 'Conversation' },
+  { id: 'ai-companion', label: 'AI Companion' },
+  { id: 'telc-practice', label: 'TELC Practice' },
+  { id: 'telc-exam', label: 'TELC Exam' },
+  { id: 'exercises', label: 'Exercises' },
+  { id: 'smart-exercises', label: 'Smart Exercises' },
+  { id: 'memorizer', label: 'Memorizer' },
+  { id: 'course-tutor', label: 'Course Tutor' },
+  { id: 'auto-detected', label: 'Auto-Detected' },
+];
+
 const MistakeDiary = () => {
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showResolved, setShowResolved] = useState(false);
   const [editingNote, setEditingNote] = useState<string | null>(null);
@@ -175,20 +190,23 @@ const MistakeDiary = () => {
         return;
       }
 
-      // Fetch recent exercises, writing submissions, and conversations
-      const [exercisesRes, writingRes, conversationsRes] = await Promise.all([
+      // Fetch recent exercises, writing submissions, conversations, TELC attempts, and tutor sessions
+      const [exercisesRes, writingRes, conversationsRes, telcRes, tutorRes, memorizerRes] = await Promise.all([
         supabase.from("exercises").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
         supabase.from("writing_submissions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
-        supabase.from("conversations").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(5)
+        supabase.from("conversations").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(5),
+        supabase.from("telc_exam_attempts").select("*").eq("user_id", user.id).eq("status", "completed").order("completed_at", { ascending: false }).limit(3),
+        supabase.from("ai_tutor_sessions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
+        supabase.from("memorizer_items").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5)
       ]);
 
-      const textsToAnalyze = [];
+      const textsToAnalyze: { text: string; source: string }[] = [];
 
       // Add incorrect exercise answers
       if (exercisesRes.data) {
         exercisesRes.data
           .filter(e => e.user_answer && !e.is_correct)
-          .forEach(e => textsToAnalyze.push({ text: e.user_answer, source: 'exercise' }));
+          .forEach(e => textsToAnalyze.push({ text: e.user_answer, source: 'exercises' }));
       }
 
       // Add writing submissions
@@ -207,6 +225,41 @@ const MistakeDiary = () => {
         });
       }
 
+      // Add TELC writing answers
+      if (telcRes.data) {
+        telcRes.data.forEach(attempt => {
+          const writingAnswers = attempt.writing_answers as Record<string, string> | null;
+          if (writingAnswers) {
+            Object.entries(writingAnswers).forEach(([section, answer]) => {
+              if (answer && answer.length > 20) {
+                textsToAnalyze.push({ text: answer, source: 'telc-exam' });
+              }
+            });
+          }
+        });
+      }
+
+      // Add AI tutor session messages
+      if (tutorRes.data) {
+        tutorRes.data.forEach((session: any) => {
+          if (session.messages && Array.isArray(session.messages)) {
+            session.messages
+              .filter((m: any) => m.role === 'user' && m.content)
+              .forEach((m: any) => textsToAnalyze.push({ text: m.content, source: 'course-tutor' }));
+          }
+        });
+      }
+
+      // Add memorizer user inputs (from german_text attempts if available)
+      if (memorizerRes.data) {
+        memorizerRes.data.forEach((item: any) => {
+          if (item.german_text && item.german_text.length > 20) {
+            // We analyze the original text since user attempts aren't stored
+            // This helps find patterns in the content they're practicing
+          }
+        });
+      }
+
       if (textsToAnalyze.length === 0) {
         toast({
           title: t('diary.noContentFound') || "No content to analyze",
@@ -215,12 +268,12 @@ const MistakeDiary = () => {
         return;
       }
 
-      // Analyze each text
+      // Analyze each text with proper source
       let totalDetected = 0;
-      for (const item of textsToAnalyze.slice(0, 5)) { // Limit to 5 to avoid rate limits
+      for (const item of textsToAnalyze.slice(0, 8)) { // Limit to 8 to avoid rate limits
         try {
           const { data: analysisData, error } = await supabase.functions.invoke('analyze-mistakes', {
-            body: { text: item.text, autoStore: true }
+            body: { text: item.text, autoStore: true, source: item.source }
           });
 
           if (!error && analysisData?.mistakes) {
@@ -257,16 +310,18 @@ const MistakeDiary = () => {
 
   const filteredMistakes = mistakes.filter((mistake) => {
     const matchesFilter = filter === "all" || mistake.category === filter;
+    const matchesSource = sourceFilter === "all" || mistake.source === sourceFilter;
     const matchesSearch = searchQuery === "" || 
       mistake.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
       mistake.correction?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       mistake.explanation?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesResolved = showResolved ? true : !mistake.resolved;
     
-    return matchesFilter && matchesSearch && matchesResolved;
+    return matchesFilter && matchesSource && matchesSearch && matchesResolved;
   });
 
   const categories = Array.from(new Set(mistakes.map((m) => m.category).filter(Boolean)));
+  const sources = Array.from(new Set(mistakes.map((m) => m.source).filter(Boolean)));
   
   const mistakeStats = {
     total: mistakes.length,
@@ -277,6 +332,10 @@ const MistakeDiary = () => {
     }, {} as Record<string, number>),
     byType: mistakes.reduce((acc, m) => {
       acc[m.type] = (acc[m.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>),
+    bySource: sources.reduce((acc, src) => {
+      acc[src!] = mistakes.filter(m => m.source === src).length;
       return acc;
     }, {} as Record<string, number>),
   };
@@ -422,6 +481,22 @@ const MistakeDiary = () => {
                 onClick={() => setFilter(category!)}
               >
                 {category} ({mistakeStats.byCategory[category!]})
+              </Button>
+            ))}
+          </div>
+
+          {/* Source Filter */}
+          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t">
+            <span className="text-xs text-muted-foreground self-center mr-2">Source:</span>
+            {SOURCES.filter(s => s.id === 'all' || sources.includes(s.id)).map((source) => (
+              <Button
+                key={source.id}
+                variant={sourceFilter === source.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSourceFilter(source.id)}
+                className="text-xs"
+              >
+                {source.label} {source.id !== 'all' && mistakeStats.bySource[source.id] ? `(${mistakeStats.bySource[source.id]})` : ''}
               </Button>
             ))}
           </div>

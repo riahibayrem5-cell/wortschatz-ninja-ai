@@ -232,7 +232,7 @@ const AICompanion = () => {
     setAnalyzingMessage(text);
     try {
       const { data, error } = await supabase.functions.invoke("analyze-mistakes", {
-        body: { text, difficulty: 'B2' },
+        body: { text, difficulty: 'B2', autoStore: true, source: 'ai-companion' },
       });
 
       if (error) throw error;
