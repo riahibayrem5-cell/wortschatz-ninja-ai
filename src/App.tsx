@@ -45,6 +45,14 @@ const CourseTutor = lazy(() => import("./pages/CourseTutor"));
 const Certificates = lazy(() => import("./pages/Certificates"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
+const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
+const AdminUsers = lazy(() => import("./pages/admin/Users"));
+const AdminContent = lazy(() => import("./pages/admin/Content"));
+const AdminSubscriptions = lazy(() => import("./pages/admin/Subscriptions"));
+const AdminAlerts = lazy(() => import("./pages/admin/Alerts"));
+const AdminAnalytics = lazy(() => import("./pages/admin/Analytics"));
+const AdminAIControls = lazy(() => import("./pages/admin/AIControls"));
+const AdminPlatformSettings = lazy(() => import("./pages/admin/PlatformSettings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -99,6 +107,15 @@ const AnimatedRoutes = () => {
             <Route path="/mastery-course/:moduleId/lesson/:lessonId" element={<LessonPage />} />
             <Route path="/mastery-course/:moduleId/tutor" element={<CourseTutor />} />
             <Route path="/certificates" element={<Certificates />} />
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/content" element={<AdminContent />} />
+            <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
+            <Route path="/admin/alerts" element={<AdminAlerts />} />
+            <Route path="/admin/analytics" element={<AdminAnalytics />} />
+            <Route path="/admin/ai" element={<AdminAIControls />} />
+            <Route path="/admin/settings" element={<AdminPlatformSettings />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
