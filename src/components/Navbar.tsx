@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import fluentpassLogo from "@/assets/fluentpass-logo.png";
+import fluentpassLogo from "@/assets/fluentpass-logo-simple.png";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -170,15 +170,14 @@ const Navbar = () => {
         {/* Logo */}
         <Link
           to="/dashboard"
-          className="flex items-center gap-1.5 sm:gap-2 font-bold text-base sm:text-xl hover:scale-105 transition-all group"
+          className="flex items-center gap-2 font-bold text-lg sm:text-xl hover:scale-105 transition-all group"
         >
           <img 
             src={fluentpassLogo} 
             alt="FluentPass" 
-            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-lg group-hover:rotate-6 transition-transform duration-300" 
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg shadow-lg group-hover:rotate-6 transition-transform duration-300" 
           />
-          <span className="text-gradient-luxury hidden xs:inline">FluentPass</span>
-          <span className="text-gradient-luxury xs:hidden">FP</span>
+          <span className="text-gradient-luxury whitespace-nowrap">FluentPass</span>
         </Link>
 
         {/* Desktop Navigation */}
