@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { 
   Sparkles, Menu, LogOut, Settings, Home, Sun, Moon, Languages, 
   CheckCircle2, AlertCircle, GraduationCap, BookOpen, Target, 
-  MessageSquare, TrendingUp, Award
+  MessageSquare, TrendingUp, Award, Shield
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -31,6 +31,7 @@ const Navbar = () => {
     return (saved as 'light' | 'dark') || 'dark';
   });
   const [serverHealth, setServerHealth] = useState<'healthy' | 'degraded' | 'down'>('healthy');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
@@ -39,9 +40,29 @@ const Navbar = () => {
 
   useEffect(() => {
     checkServerHealth();
+    checkAdminStatus();
     const interval = setInterval(checkServerHealth, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        setIsAdmin(false);
+        return;
+      }
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      setIsAdmin(!!data);
+    } catch {
+      setIsAdmin(false);
+    }
+  };
 
   const checkServerHealth = async () => {
     try {
@@ -319,6 +340,17 @@ const Navbar = () => {
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
 
+          {/* Admin Panel - Only visible to admins */}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="inline-flex items-center justify-center gap-1.5 rounded-md text-sm font-medium ring-offset-background transition-colors h-8 px-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:opacity-90"
+            >
+              <Shield className="w-4 h-4" />
+              <span className="hidden xl:inline">Admin</span>
+            </Link>
+          )}
+
           {/* Settings */}
           <Link
             to="/settings"
@@ -442,6 +474,18 @@ const Navbar = () => {
                   </DropdownMenu>
                 </div>
               </div>
+
+              {/* Admin Panel - Only visible to admins */}
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  onClick={() => setMobileOpen(false)}
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium"
+                >
+                  <Shield className="w-4 h-4" />
+                  Admin Panel
+                </Link>
+              )}
 
               {/* Settings */}
               <Link
