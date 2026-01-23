@@ -94,7 +94,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("No session");
 
-      // Update user_settings
+      // Update user_settings with proper conflict handling
       const { error } = await supabase
         .from("user_settings")
         .upsert({
@@ -102,11 +102,11 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
           native_language: data.nativeLanguage,
           exam_target_date: data.examDate,
           onboarding_completed: true,
-        });
+        }, { onConflict: 'user_id' });
 
       if (error) throw error;
 
-      // Update learning path
+      // Update learning path with proper conflict handling
       await supabase
         .from("user_learning_paths")
         .upsert({
@@ -114,7 +114,7 @@ export function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
           target_level: data.targetLevel,
           daily_goal_minutes: data.dailyGoal,
           target_date: data.examDate,
-        });
+        }, { onConflict: 'user_id' });
 
       toast({
         title: language === "de" ? "Willkommen!" : "Welcome!",
