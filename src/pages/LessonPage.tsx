@@ -15,6 +15,7 @@ import {
   Headphones, PenTool, Mic, FileText, Brain
 } from "lucide-react";
 import LessonContentRenderer from "@/components/lessons/LessonContentRenderer";
+import DetailedLessonContent from "@/components/lessons/DetailedLessonContent";
 import SmartExerciseContainer from "@/components/exercises/SmartExerciseContainer";
 
 interface CourseLesson {
@@ -383,12 +384,21 @@ const LessonPage = () => {
               <div className="lg:col-span-2">
                 <Card className="glass">
                   <CardContent className="pt-6">
-                    <LessonContentRenderer
-                      lessonType={lesson.lesson_type}
-                      lessonTitle={lesson.title}
-                      lessonTitleDe={lesson.title_de}
-                      content={lesson.content}
-                    />
+                    {lesson.content?.detailed_content ? (
+                      <DetailedLessonContent
+                        lessonType={lesson.lesson_type}
+                        lessonTitle={lesson.title}
+                        lessonTitleDe={lesson.title_de}
+                        content={lesson.content}
+                      />
+                    ) : (
+                      <LessonContentRenderer
+                        lessonType={lesson.lesson_type}
+                        lessonTitle={lesson.title}
+                        lessonTitleDe={lesson.title_de}
+                        content={lesson.content}
+                      />
+                    )}
                   </CardContent>
                 </Card>
               </div>
