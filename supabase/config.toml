@@ -95,3 +95,9 @@ verify_jwt = true
 
 [functions.generate-smart-exercises]
 verify_jwt = true
+
+[functions.ai-monitor-agent]
+verify_jwt = false
+
+[functions.send-alert-email]
+verify_jwt = false

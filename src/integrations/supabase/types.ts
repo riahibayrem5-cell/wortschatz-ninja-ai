@@ -606,6 +606,39 @@ export type Database = {
           },
         ]
       }
+      monitor_runs: {
+        Row: {
+          alerts_triggered: number | null
+          checks_performed: number | null
+          created_at: string | null
+          details: Json | null
+          execution_time_ms: number | null
+          id: string
+          run_type: string
+          status: string
+        }
+        Insert: {
+          alerts_triggered?: number | null
+          checks_performed?: number | null
+          created_at?: string | null
+          details?: Json | null
+          execution_time_ms?: number | null
+          id?: string
+          run_type: string
+          status: string
+        }
+        Update: {
+          alerts_triggered?: number | null
+          checks_performed?: number | null
+          created_at?: string | null
+          details?: Json | null
+          execution_time_ms?: number | null
+          id?: string
+          run_type?: string
+          status?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -731,6 +764,42 @@ export type Database = {
           max_exercises?: number | null
           name?: string
           price_tnd?: number
+        }
+        Relationships: []
+      }
+      system_alerts: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          severity: string
+          title: string
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          severity?: string
+          title: string
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          severity?: string
+          title?: string
         }
         Relationships: []
       }
