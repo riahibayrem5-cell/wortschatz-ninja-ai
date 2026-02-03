@@ -6,7 +6,27 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Voice mapping for German and English
+// Extended voice mapping for German dialects and styles
+// Gemini TTS voices: Aoede, Fenrir, Puck, Charon, Kore, Vale, Zephyr, Orbit, Enceladus
+const VOICE_OPTIONS = {
+  // Hochdeutsch (Standard German)
+  'daniel': { voiceName: 'Charon', dialect: 'Hochdeutsch', gender: 'male', description: 'Clear, professional' },
+  'lily': { voiceName: 'Kore', dialect: 'Hochdeutsch', gender: 'female', description: 'Warm, friendly' },
+  'matilda': { voiceName: 'Aoede', dialect: 'Hochdeutsch', gender: 'female', description: 'Educational tone' },
+  'callum': { voiceName: 'Fenrir', dialect: 'Hochdeutsch', gender: 'male', description: 'Deep, authoritative' },
+  // Regional variants (using different voice characteristics)
+  'liam': { voiceName: 'Puck', dialect: 'Bayerisch', gender: 'male', description: 'Southern German' },
+  'chris': { voiceName: 'Enceladus', dialect: 'Österreichisch', gender: 'male', description: 'Austrian German' },
+  'anna': { voiceName: 'Vale', dialect: 'Schweizerdeutsch', gender: 'female', description: 'Swiss German' },
+  // English voices
+  'sarah': { voiceName: 'Zephyr', dialect: 'English', gender: 'female', description: 'Natural American' },
+  'james': { voiceName: 'Orbit', dialect: 'English', gender: 'male', description: 'Clear British' },
+  // Default fallbacks
+  'default_de': { voiceName: 'Kore', dialect: 'Hochdeutsch', gender: 'female', description: 'Default German' },
+  'default_en': { voiceName: 'Zephyr', dialect: 'English', gender: 'female', description: 'Default English' },
+};
+
+// Legacy voice mapping for backward compatibility
 const VOICE_MAP: Record<string, Record<string, string>> = {
   de: {
     female: 'Kore',
@@ -64,7 +84,7 @@ serve(async (req) => {
       return unauthorizedResponse(authError || "Authentication required", corsHeaders);
     }
 
-    const { text, language = 'de', voice = 'default' } = await req.json();
+    const { text, language = 'de', voice = 'default', voiceId } = await req.json();
     
     if (!text) {
       throw new Error('Text is required');
@@ -75,11 +95,19 @@ serve(async (req) => {
       throw new Error('GOOGLE_GEMINI_API_KEY is not configured');
     }
 
-    const lang = language === 'de' || language === 'de-DE' ? 'de' : 'en';
-    const voiceCategory = VOICE_MAP[lang] || VOICE_MAP.de;
-    const voiceName = voiceCategory[voice] || voiceCategory.default;
+    let voiceName: string;
+    
+    // Check if a specific voiceId is provided (new extended system)
+    if (voiceId && VOICE_OPTIONS[voiceId as keyof typeof VOICE_OPTIONS]) {
+      voiceName = VOICE_OPTIONS[voiceId as keyof typeof VOICE_OPTIONS].voiceName;
+    } else {
+      // Fallback to legacy voice mapping
+      const lang = language === 'de' || language === 'de-DE' ? 'de' : 'en';
+      const voiceCategory = VOICE_MAP[lang] || VOICE_MAP.de;
+      voiceName = voiceCategory[voice] || voiceCategory.default;
+    }
 
-    console.log(`Generating speech with Gemini TTS: lang=${lang}, voice=${voiceName}, textLength=${text.length}`);
+    console.log(`Generating speech with Gemini TTS: voiceId=${voiceId}, voiceName=${voiceName}, textLength=${text.length}`);
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${GEMINI_API_KEY}`,
@@ -152,7 +180,8 @@ serve(async (req) => {
       audioContent: wavBase64,
       mimeType: 'audio/wav',
       voiceName,
-      language: lang
+      voiceId: voiceId || voice,
+      language: language
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
