@@ -32,6 +32,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useLanguage } from "@/contexts/LanguageContext";
 import AudioButton from "@/components/AudioButton";
 import { PageBanner } from "@/components/PageBanner";
+import { PremiumGate } from "@/components/PremiumGate";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -362,6 +363,7 @@ const AICompanion = () => {
   };
 
   return (
+    <PremiumGate feature="ai_companion">
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
@@ -724,6 +726,7 @@ const AICompanion = () => {
         </Dialog>
       </div>
     </div>
+    </PremiumGate>
   );
 };
 

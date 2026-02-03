@@ -11,6 +11,7 @@ import {
   GraduationCap, Star, Calendar, Shield
 } from "lucide-react";
 import { PageBanner } from "@/components/PageBanner";
+import { PremiumGate } from "@/components/PremiumGate";
 interface Certificate {
   id: string;
   certificate_type: string;
@@ -225,6 +226,7 @@ const Certificates = () => {
   }
 
   return (
+    <PremiumGate feature="certificates">
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8 space-y-6">
@@ -344,6 +346,7 @@ const Certificates = () => {
         </Card>
       </div>
     </div>
+    </PremiumGate>
   );
 };
 
