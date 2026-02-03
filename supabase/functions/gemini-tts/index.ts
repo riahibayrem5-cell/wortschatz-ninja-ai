@@ -7,7 +7,10 @@ const corsHeaders = {
 };
 
 // Extended voice mapping for German dialects and styles
-// Gemini TTS voices: Aoede, Fenrir, Puck, Charon, Kore, Vale, Zephyr, Orbit, Enceladus
+// Valid Gemini TTS voices: achernar, achird, algenib, algieba, alnilam, aoede, autonoe, 
+// callirrhoe, charon, despina, enceladus, erinome, fenrir, gacrux, iapetus, kore, 
+// laomedeia, leda, orus, puck, pulcherrima, rasalgethi, sadachbia, sadaltager, 
+// schedar, sulafat, umbriel, vindemiatrix, zephyr, zubenelgenubi
 const VOICE_OPTIONS = {
   // Hochdeutsch (Standard German)
   'daniel': { voiceName: 'Charon', dialect: 'Hochdeutsch', gender: 'male', description: 'Clear, professional' },
@@ -17,10 +20,10 @@ const VOICE_OPTIONS = {
   // Regional variants (using different voice characteristics)
   'liam': { voiceName: 'Puck', dialect: 'Bayerisch', gender: 'male', description: 'Southern German' },
   'chris': { voiceName: 'Enceladus', dialect: 'Österreichisch', gender: 'male', description: 'Austrian German' },
-  'anna': { voiceName: 'Vale', dialect: 'Schweizerdeutsch', gender: 'female', description: 'Swiss German' },
+  'anna': { voiceName: 'Laomedeia', dialect: 'Schweizerdeutsch', gender: 'female', description: 'Swiss German' },
   // English voices
   'sarah': { voiceName: 'Zephyr', dialect: 'English', gender: 'female', description: 'Natural American' },
-  'james': { voiceName: 'Orbit', dialect: 'English', gender: 'male', description: 'Clear British' },
+  'james': { voiceName: 'Gacrux', dialect: 'English', gender: 'male', description: 'Clear British' },
   // Default fallbacks
   'default_de': { voiceName: 'Kore', dialect: 'Hochdeutsch', gender: 'female', description: 'Default German' },
   'default_en': { voiceName: 'Zephyr', dialect: 'English', gender: 'female', description: 'Default English' },
