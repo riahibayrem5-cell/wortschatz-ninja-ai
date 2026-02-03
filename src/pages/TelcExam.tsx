@@ -14,7 +14,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import AudioButton from "@/components/AudioButton";
-import { 
+import { PremiumGate } from "@/components/PremiumGate";
+import { useSubscription } from "@/hooks/useSubscription";
+import {
   BookOpen, 
   Headphones, 
   PenTool, 
@@ -95,6 +97,7 @@ interface ExamAttempt {
 
 const TelcExam = () => {
   const { toast } = useToast();
+  const { checkFeatureAccess, isLoading: subLoading } = useSubscription();
   const [examMode, setExamMode] = useState<'practice' | 'mock' | null>(null);
   const [currentSection, setCurrentSection] = useState<string | null>(null);
   const [currentTeil, setCurrentTeil] = useState(0);
@@ -606,6 +609,11 @@ const TelcExam = () => {
       minute: '2-digit'
     });
   };
+
+  // Check subscription access
+  if (!subLoading && !checkFeatureAccess('telc_exam')) {
+    return <PremiumGate feature="telc_exam"><div /></PremiumGate>;
+  }
 
   // Active section view
   if (currentSection && examState[currentSection as keyof ExamState]) {

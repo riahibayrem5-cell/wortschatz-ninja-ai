@@ -12,6 +12,7 @@ import { TELC_B2_WRITING_PROMPTS } from "@/utils/constants";
 import { trackActivity } from "@/utils/activityTracker";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 import { PageBanner } from "@/components/PageBanner";
+import { PremiumGate } from "@/components/PremiumGate";
 const WritingAssistant = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -76,6 +77,7 @@ const WritingAssistant = () => {
   };
 
   return (
+    <PremiumGate feature="writing_assistant">
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
@@ -247,6 +249,7 @@ const WritingAssistant = () => {
         )}
       </div>
     </div>
+    </PremiumGate>
   );
 };
 

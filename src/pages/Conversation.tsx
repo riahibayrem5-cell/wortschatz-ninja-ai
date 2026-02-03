@@ -13,6 +13,7 @@ import { DifficultySelector, Difficulty } from "@/components/DifficultySelector"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AudioButton from "@/components/AudioButton";
 import PageBanner from "@/components/PageBanner";
+import { PremiumGate } from "@/components/PremiumGate";
 
 const SCENARIOS = [
   "Job Interview (Vorstellungsgespräch)",
@@ -270,6 +271,7 @@ const Conversation = () => {
   };
 
   return (
+    <PremiumGate feature="conversation_practice">
     <div className="min-h-screen gradient-hero">
       <Navbar />
       
@@ -518,6 +520,7 @@ const Conversation = () => {
         </Dialog>
       </div>
     </div>
+    </PremiumGate>
   );
 };
 

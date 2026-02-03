@@ -22,6 +22,7 @@ import {
   Bell,
   LogOut,
   Home,
+  Music,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -33,6 +34,7 @@ const menuItems = [
   { path: '/admin/users', label: 'Users', icon: Users },
   { path: '/admin/content', label: 'Content', icon: BookOpen },
   { path: '/admin/subscriptions', label: 'Subscriptions', icon: CreditCard },
+  { path: '/admin/audio', label: 'Audio Files', icon: Music },
   { path: '/admin/alerts', label: 'Alerts', icon: AlertTriangle, hasBadge: true },
   { path: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
   { path: '/admin/ai', label: 'AI Controls', icon: Bot },

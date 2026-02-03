@@ -36,6 +36,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -86,6 +88,7 @@ export default function AdminUsers() {
   const [showGrantDialog, setShowGrantDialog] = useState(false);
   const [grantTier, setGrantTier] = useState<string>('');
   const [grantDays, setGrantDays] = useState('30');
+  const [grantPermanent, setGrantPermanent] = useState(false);
   const [tiers, setTiers] = useState<{ id: string; name: string }[]>([]);
   const { toast } = useToast();
   const pageSize = 20;
@@ -190,8 +193,10 @@ export default function AdminUsers() {
     if (!selectedUser || !grantTier) return;
 
     try {
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + parseInt(grantDays));
+      const expiresAt = grantPermanent ? null : new Date();
+      if (!grantPermanent && expiresAt) {
+        expiresAt.setDate(expiresAt.getDate() + parseInt(grantDays));
+      }
 
       // Check if user already has subscription
       const { data: existing } = await supabase
@@ -206,7 +211,8 @@ export default function AdminUsers() {
           .update({
             tier_id: grantTier,
             status: 'active',
-            expires_at: expiresAt.toISOString(),
+            expires_at: expiresAt?.toISOString() || null,
+            is_permanent: grantPermanent,
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', selectedUser.id);
@@ -217,7 +223,8 @@ export default function AdminUsers() {
             user_id: selectedUser.id,
             tier_id: grantTier,
             status: 'active',
-            expires_at: expiresAt.toISOString(),
+            expires_at: expiresAt?.toISOString() || null,
+            is_permanent: grantPermanent,
           });
       }
 
@@ -227,16 +234,19 @@ export default function AdminUsers() {
         action: 'grant_premium',
         target_type: 'user',
         target_id: selectedUser.id,
-        details: { tier_id: grantTier, days: parseInt(grantDays) },
+        details: { tier_id: grantTier, days: grantPermanent ? 'permanent' : parseInt(grantDays), is_permanent: grantPermanent },
       });
 
       toast({
         title: 'Premium Granted',
-        description: `Premium access granted to ${selectedUser.email} for ${grantDays} days`,
+        description: grantPermanent 
+          ? `Permanent premium access granted to ${selectedUser.email}` 
+          : `Premium access granted to ${selectedUser.email} for ${grantDays} days`,
       });
 
       setShowGrantDialog(false);
       setSelectedUser(null);
+      setGrantPermanent(false);
       fetchUsers();
     } catch (error) {
       console.error('Error granting premium:', error);
@@ -537,15 +547,27 @@ export default function AdminUsers() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <label className="text-sm font-medium">Duration (days)</label>
-              <Input
-                type="number"
-                value={grantDays}
-                onChange={(e) => setGrantDays(e.target.value)}
-                min="1"
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="permanent" 
+                checked={grantPermanent}
+                onCheckedChange={(checked) => setGrantPermanent(!!checked)}
               />
+              <Label htmlFor="permanent" className="text-sm font-medium cursor-pointer">
+                Permanent / Lifetime Access
+              </Label>
             </div>
+            {!grantPermanent && (
+              <div>
+                <label className="text-sm font-medium">Duration (days)</label>
+                <Input
+                  type="number"
+                  value={grantDays}
+                  onChange={(e) => setGrantDays(e.target.value)}
+                  min="1"
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowGrantDialog(false)}>

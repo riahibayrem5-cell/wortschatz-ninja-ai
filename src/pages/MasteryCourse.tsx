@@ -16,6 +16,7 @@ import {
 import HeroBanner from "@/components/HeroBanner";
 import ModuleCard from "@/components/ModuleCard";
 import ConfettiCelebration from "@/components/ConfettiCelebration";
+import { PremiumGate } from "@/components/PremiumGate";
 
 import courseBanner from "@/assets/course-banner.jpg";
 
@@ -151,6 +152,7 @@ const MasteryCourse = () => {
   }
 
   return (
+    <PremiumGate feature="mastery_course">
     <div className="min-h-screen bg-background">
       <Navbar />
       <ConfettiCelebration trigger={showCelebration} />
@@ -342,6 +344,7 @@ const MasteryCourse = () => {
         </Tabs>
       </div>
     </div>
+    </PremiumGate>
   );
 };
 
