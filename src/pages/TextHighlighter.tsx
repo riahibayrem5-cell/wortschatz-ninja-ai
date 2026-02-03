@@ -9,6 +9,8 @@ import { Loader2, Plus, Highlighter } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { DifficultySelector, Difficulty } from "@/components/DifficultySelector";
 import { PageBanner } from "@/components/PageBanner";
+import TextReaderPanel from "@/components/TextReaderPanel";
+
 interface HighlightedWord {
   word: string;
   definition: string;
@@ -141,6 +143,11 @@ const TextHighlighter = () => {
             </Button>
           </div>
         </Card>
+
+        {/* Text Reader Panel - Always visible when there's text */}
+        {text.trim() && (
+          <TextReaderPanel text={text} className="w-full" />
+        )}
 
         {highlights.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
