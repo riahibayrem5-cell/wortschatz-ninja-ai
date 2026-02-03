@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
+import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -13,9 +13,12 @@ import {
   VolumeX,
   RotateCcw,
   Loader2,
-  User,
-  Mic
+  Mic,
+  SkipBack,
+  SkipForward,
+  Gauge
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface VoiceOption {
   id: string;
@@ -37,11 +40,12 @@ const VOICE_OPTIONS: VoiceOption[] = [
   { id: 'anna', name: 'Anna', dialect: 'Schweizerdeutsch', gender: 'female', description: 'Swiss German' },
 ];
 
-const DIALECT_GROUPS = [
-  { label: 'Hochdeutsch', dialects: ['Hochdeutsch'] },
-  { label: 'Bayerisch', dialects: ['Bayerisch'] },
-  { label: 'Österreichisch', dialects: ['Österreichisch'] },
-  { label: 'Schweizerdeutsch', dialects: ['Schweizerdeutsch'] },
+const SPEED_OPTIONS = [
+  { value: 0.5, label: '0.5×' },
+  { value: 0.75, label: '0.75×' },
+  { value: 1, label: '1×' },
+  { value: 1.25, label: '1.25×' },
+  { value: 1.5, label: '1.5×' },
 ];
 
 interface TextReaderPanelProps {
@@ -64,13 +68,14 @@ const TextReaderPanel = ({ text, className = "" }: TextReaderPanelProps) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+  const [isGenerated, setIsGenerated] = useState(false);
 
   const selectedVoiceData = VOICE_OPTIONS.find(v => v.id === selectedVoice);
 
   // Cleanup audio URL on unmount
   useEffect(() => {
     return () => {
-      if (audioUrl) {
+      if (audioUrl && !audioUrl.startsWith('data:')) {
         URL.revokeObjectURL(audioUrl);
       }
     };
@@ -89,6 +94,27 @@ const TextReaderPanel = ({ text, className = "" }: TextReaderPanelProps) => {
       audioRef.current.volume = isMuted ? 0 : volume;
     }
   }, [volume, isMuted]);
+
+  // Reset audio when voice changes
+  const handleVoiceChange = (newVoice: string) => {
+    // Stop and reset current audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    
+    // Clear all audio state
+    setIsPlaying(false);
+    setAudioUrl(null);
+    setAudioBase64(null);
+    setProgress(0);
+    setCurrentTime(0);
+    setDuration(0);
+    setIsGenerated(false);
+    
+    // Set new voice
+    setSelectedVoice(newVoice);
+  };
 
   const generateAudio = async () => {
     if (!text.trim()) {
@@ -128,6 +154,7 @@ const TextReaderPanel = ({ text, className = "" }: TextReaderPanelProps) => {
       }
 
       setAudioUrl(newAudioUrl);
+      setIsGenerated(true);
 
       // Create and play audio
       if (audioRef.current) {
@@ -138,7 +165,7 @@ const TextReaderPanel = ({ text, className = "" }: TextReaderPanelProps) => {
         setIsPlaying(true);
       }
 
-      toast({ title: "Audio generated!", description: `Voice: ${selectedVoiceData?.name}` });
+      toast({ title: "Audio generated!", description: `Voice: ${selectedVoiceData?.name} (${selectedVoiceData?.dialect})` });
     } catch (error: any) {
       console.error('TTS Error:', error);
       toast({ 
@@ -186,13 +213,17 @@ const TextReaderPanel = ({ text, className = "" }: TextReaderPanelProps) => {
     setCurrentTime(0);
   };
 
-  const handleSeek = (value: number[]) => {
-    if (audioRef.current && duration) {
-      const newTime = (value[0] / 100) * duration;
-      audioRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
-      setProgress(value[0]);
-    }
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!audioRef.current || !duration) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = clickX / rect.width;
+    const newTime = percentage * duration;
+    
+    audioRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
+    setProgress(percentage * 100);
   };
 
   const handleRestart = () => {
@@ -204,6 +235,18 @@ const TextReaderPanel = ({ text, className = "" }: TextReaderPanelProps) => {
         audioRef.current.play();
         setIsPlaying(true);
       }
+    }
+  };
+
+  const skipBackward = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 5);
+    }
+  };
+
+  const skipForward = () => {
+    if (audioRef.current && duration) {
+      audioRef.current.currentTime = Math.min(duration, audioRef.current.currentTime + 5);
     }
   };
 
@@ -251,191 +294,224 @@ const TextReaderPanel = ({ text, className = "" }: TextReaderPanelProps) => {
   };
 
   return (
-    <Card className={`p-6 glass ${className}`}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/20">
-            <Mic className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">Text Reader</h3>
-            <p className="text-sm text-muted-foreground">Listen with perfect German pronunciation</p>
-          </div>
+    <Card className={cn("overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm", className)}>
+      {/* Header */}
+      <div className="flex items-center gap-3 p-4 border-b border-border/50 bg-muted/30">
+        <div className="p-2.5 rounded-xl bg-primary/15">
+          <Mic className="w-5 h-5 text-primary" />
         </div>
+        <div className="flex-1">
+          <h3 className="text-base font-semibold">Text Reader</h3>
+          <p className="text-xs text-muted-foreground">Listen with authentic German pronunciation</p>
+        </div>
+        {isGenerated && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDownload}
+            className="gap-1.5 text-xs"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Download
+          </Button>
+        )}
+      </div>
 
-        {/* Voice Selector */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Voice & Dialect</label>
-          <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-            <SelectTrigger className="w-full bg-background/50">
-              <SelectValue>
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  <span>{selectedVoiceData?.name}</span>
-                  <span className="text-muted-foreground text-xs">({selectedVoiceData?.dialect})</span>
-                </div>
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="max-h-[300px]">
-              {DIALECT_GROUPS.map(group => {
-                const voices = VOICE_OPTIONS.filter(v => group.dialects.includes(v.dialect));
-                if (voices.length === 0) return null;
-                return (
-                  <SelectGroup key={group.label}>
-                    <SelectLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-                      {group.label}
-                    </SelectLabel>
-                    {voices.map(voice => (
-                      <SelectItem key={voice.id} value={voice.id}>
-                        <div className="flex items-center gap-3 py-1">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            voice.gender === 'female' ? 'bg-pink-500/20' : 'bg-blue-500/20'
-                          }`}>
-                            <User className={`w-4 h-4 ${
-                              voice.gender === 'female' ? 'text-pink-400' : 'text-blue-400'
-                            }`} />
-                          </div>
-                          <div>
-                            <div className="font-medium flex items-center gap-2">
-                              {voice.name}
-                              <span className="text-xs text-muted-foreground">
-                                ({voice.gender === 'male' ? 'Male' : 'Female'})
-                              </span>
-                            </div>
-                            <div className="text-xs text-muted-foreground">{voice.description}</div>
-                          </div>
+      <div className="p-4 space-y-5">
+        {/* Voice & Speed Controls */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Voice Selector */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Voice</label>
+            <Select value={selectedVoice} onValueChange={handleVoiceChange}>
+              <SelectTrigger className="h-10 bg-background/60">
+                <SelectValue>
+                  <div className="flex items-center gap-2">
+                    <div className={cn(
+                      "w-2 h-2 rounded-full",
+                      selectedVoiceData?.gender === 'female' ? 'bg-pink-400' : 'bg-blue-400'
+                    )} />
+                    <span className="font-medium">{selectedVoiceData?.name}</span>
+                    <span className="text-muted-foreground text-xs">· {selectedVoiceData?.dialect}</span>
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="max-h-[280px]">
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold">
+                    Hochdeutsch
+                  </SelectLabel>
+                  {VOICE_OPTIONS.filter(v => v.dialect === 'Hochdeutsch').map(voice => (
+                    <SelectItem key={voice.id} value={voice.id} className="py-2.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className={cn(
+                          "w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold",
+                          voice.gender === 'female' ? 'bg-pink-500/15 text-pink-400' : 'bg-blue-500/15 text-blue-400'
+                        )}>
+                          {voice.name[0]}
                         </div>
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Speed Control */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <label className="text-sm font-medium">Speed</label>
-            <span className="text-sm text-primary font-mono">{speed.toFixed(1)}x</span>
+                        <div>
+                          <div className="font-medium text-sm">{voice.name}</div>
+                          <div className="text-[10px] text-muted-foreground">{voice.description}</div>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-semibold mt-1">
+                    Regional Accents
+                  </SelectLabel>
+                  {VOICE_OPTIONS.filter(v => v.dialect !== 'Hochdeutsch').map(voice => (
+                    <SelectItem key={voice.id} value={voice.id} className="py-2.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className={cn(
+                          "w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold",
+                          voice.gender === 'female' ? 'bg-pink-500/15 text-pink-400' : 'bg-blue-500/15 text-blue-400'
+                        )}>
+                          {voice.name[0]}
+                        </div>
+                        <div>
+                          <div className="font-medium text-sm">{voice.name} <span className="text-muted-foreground font-normal">· {voice.dialect}</span></div>
+                          <div className="text-[10px] text-muted-foreground">{voice.description}</div>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
-          <Slider
-            value={[speed * 100]}
-            onValueChange={(v) => setSpeed(v[0] / 100)}
-            min={50}
-            max={150}
-            step={10}
-            className="w-full"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>0.5x</span>
-            <span>1.0x</span>
-            <span>1.5x</span>
+
+          {/* Speed Selector */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Speed</label>
+            <Select value={speed.toString()} onValueChange={(v) => setSpeed(parseFloat(v))}>
+              <SelectTrigger className="h-10 bg-background/60">
+                <SelectValue>
+                  <div className="flex items-center gap-2">
+                    <Gauge className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="font-medium">{speed}× Speed</span>
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {SPEED_OPTIONS.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value.toString()}>
+                    <span className={cn(opt.value === 1 && "font-medium")}>{opt.label}</span>
+                    {opt.value === 1 && <span className="text-muted-foreground ml-2">Normal</span>}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         {/* Audio Player */}
-        <div className="space-y-4 p-4 rounded-xl bg-background/30 border border-border/50">
+        <div className="rounded-xl bg-muted/40 border border-border/40 p-4 space-y-4">
           {/* Progress Bar */}
           <div className="space-y-2">
-            <Slider
-              value={[progress]}
-              onValueChange={handleSeek}
-              max={100}
-              step={0.1}
-              disabled={!audioUrl}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground">
+            <div 
+              className="relative h-2 bg-secondary rounded-full cursor-pointer overflow-hidden group"
+              onClick={handleSeek}
+            >
+              <Progress 
+                value={progress} 
+                className="h-full transition-none [&>div]:transition-none"
+              />
+              {/* Hover indicator */}
+              <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div className="flex justify-between text-[11px] text-muted-foreground font-mono">
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
           </div>
 
-          {/* Controls */}
-          <div className="flex items-center justify-between">
-            {/* Left: Volume */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleMute}
-                className="h-8 w-8"
-              >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </Button>
-              <Slider
-                value={[volume * 100]}
-                onValueChange={(v) => setVolume(v[0] / 100)}
-                max={100}
-                className="w-20"
-              />
-            </div>
+          {/* Main Controls */}
+          <div className="flex items-center justify-center gap-2">
+            {/* Skip Back */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={skipBackward}
+              disabled={!isGenerated}
+              className="h-9 w-9 rounded-full"
+            >
+              <SkipBack className="w-4 h-4" />
+            </Button>
 
-            {/* Center: Play Controls */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleRestart}
-                disabled={!audioUrl}
-                className="h-10 w-10"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </Button>
-              <Button
-                onClick={togglePlayPause}
-                disabled={isLoading || !text.trim()}
-                size="icon"
-                className="h-14 w-14 rounded-full gradient-primary hover:opacity-90"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                ) : isPlaying ? (
-                  <Pause className="w-6 h-6 fill-current" />
-                ) : (
-                  <Play className="w-6 h-6 fill-current ml-1" />
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleDownload}
-                disabled={!audioBase64}
-                className="h-10 w-10"
-              >
-                <Download className="w-4 h-4" />
-              </Button>
-            </div>
+            {/* Restart */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRestart}
+              disabled={!isGenerated}
+              className="h-9 w-9 rounded-full"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </Button>
 
-            {/* Right: Empty for balance */}
-            <div className="w-28" />
+            {/* Play/Pause - Main Button */}
+            <Button
+              onClick={togglePlayPause}
+              disabled={isLoading || !text.trim()}
+              size="icon"
+              className={cn(
+                "h-14 w-14 rounded-full shadow-lg transition-all",
+                "bg-primary hover:bg-primary/90 text-primary-foreground",
+                isLoading && "animate-pulse"
+              )}
+            >
+              {isLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : isPlaying ? (
+                <Pause className="w-6 h-6 fill-current" />
+              ) : (
+                <Play className="w-6 h-6 fill-current ml-0.5" />
+              )}
+            </Button>
+
+            {/* Skip Forward */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={skipForward}
+              disabled={!isGenerated}
+              className="h-9 w-9 rounded-full"
+            >
+              <SkipForward className="w-4 h-4" />
+            </Button>
+
+            {/* Volume */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleMute}
+              className="h-9 w-9 rounded-full"
+            >
+              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </Button>
           </div>
+
+          {/* Generate hint */}
+          {!isGenerated && !isLoading && (
+            <p className="text-center text-xs text-muted-foreground">
+              Press play to generate audio with <span className="font-medium text-foreground">{selectedVoiceData?.name}</span>
+            </p>
+          )}
         </div>
-
-        {/* Download Button */}
-        <Button
-          onClick={handleDownload}
-          disabled={!audioBase64}
-          variant="outline"
-          className="w-full glass gap-2"
-        >
-          <Download className="w-4 h-4" />
-          Download Audio (WAV)
-        </Button>
-
-        {/* Hidden Audio Element */}
-        <audio
-          ref={audioRef}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          onEnded={handleEnded}
-          onPause={() => setIsPlaying(false)}
-          onPlay={() => setIsPlaying(true)}
-        />
       </div>
+
+      {/* Hidden Audio Element */}
+      <audio
+        ref={audioRef}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={handleEnded}
+        onPause={() => setIsPlaying(false)}
+        onPlay={() => setIsPlaying(true)}
+      />
     </Card>
   );
 };
