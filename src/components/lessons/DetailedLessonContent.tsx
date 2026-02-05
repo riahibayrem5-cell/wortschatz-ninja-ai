@@ -613,11 +613,165 @@ const DetailedLessonContent = ({
       {/* TELC Format Info */}
       {renderTelcFormat()}
 
-      {/* Introduction */}
+      {/* Introduction - supports both string and object format */}
       {detailedContent?.introduction && (
-        <Card className="glass">
+        <Card className="glass bg-gradient-to-br from-primary/5 to-accent/5">
           <CardContent className="pt-6">
-            <p className="text-base leading-relaxed">{detailedContent.introduction}</p>
+            {typeof detailedContent.introduction === 'string' ? (
+              <p className="text-base leading-relaxed">{detailedContent.introduction}</p>
+            ) : (
+              <div className="space-y-4">
+                {detailedContent.introduction.title && (
+                  <h3 className="text-xl font-semibold text-primary">{detailedContent.introduction.title}</h3>
+                )}
+                {detailedContent.introduction.content && (
+                  <p className="text-base leading-relaxed">{detailedContent.introduction.content}</p>
+                )}
+                {detailedContent.introduction.motivation && (
+                  <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                    <div className="flex items-start gap-2">
+                      <Lightbulb className="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
+                      <p className="text-sm italic">{detailedContent.introduction.motivation}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Exam Structure (for mock exam lessons) */}
+      {detailedContent?.exam_structure && (
+        <Card className="glass border-primary/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              Exam Structure
+            </CardTitle>
+            {detailedContent.exam_structure.overview && (
+              <p className="text-sm text-muted-foreground">{detailedContent.exam_structure.overview}</p>
+            )}
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4 mb-6 p-4 rounded-lg bg-primary/10">
+              <div className="text-center">
+                <Clock className="h-6 w-6 mx-auto mb-1 text-primary" />
+                <p className="text-xs text-muted-foreground">Total Time</p>
+                <p className="font-bold text-primary">{detailedContent.exam_structure.total_time} min</p>
+              </div>
+              <div className="text-center">
+                <Award className="h-6 w-6 mx-auto mb-1 text-primary" />
+                <p className="text-xs text-muted-foreground">Total Points</p>
+                <p className="font-bold text-primary">{detailedContent.exam_structure.total_points} pts</p>
+              </div>
+            </div>
+            
+            {detailedContent.exam_structure.sections && (
+              <div className="space-y-3">
+                {detailedContent.exam_structure.sections.map((section: any, idx: number) => (
+                  <div key={idx} className="p-4 rounded-lg bg-secondary/50 border-l-4 border-l-primary">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{section.name}</h4>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{section.time_minutes} min</Badge>
+                        <Badge>{section.points} pts</Badge>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">{section.task}</p>
+                    {section.strategy && (
+                      <div className="flex items-start gap-2 text-sm mt-2 p-2 rounded bg-yellow-500/10">
+                        <Lightbulb className="h-4 w-4 text-yellow-600 shrink-0 mt-0.5" />
+                        <span className="text-yellow-700 dark:text-yellow-400">Tip: {section.strategy}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Scoring Guide (for mock exam lessons) */}
+      {detailedContent?.scoring_guide && (
+        <Card className="glass border-green-500/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-green-500" />
+              Scoring Guide
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4">
+              {['passing', 'good', 'excellent'].map((level) => {
+                const data = detailedContent.scoring_guide[level];
+                if (!data) return null;
+                const colors = {
+                  passing: 'border-yellow-500 bg-yellow-500/10',
+                  good: 'border-blue-500 bg-blue-500/10',
+                  excellent: 'border-green-500 bg-green-500/10'
+                };
+                return (
+                  <div key={level} className={cn("p-4 rounded-lg border-2 text-center", colors[level as keyof typeof colors])}>
+                    <Badge className="mb-2">{data.grade}</Badge>
+                    <p className="text-2xl font-bold">{data.threshold}</p>
+                    <p className="text-sm text-muted-foreground">{data.points}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Post Exam Analysis (for mock exam lessons) */}
+      {detailedContent?.post_exam_analysis && (
+        <Card className="glass border-purple-500/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-purple-500" />
+              After the Exam - Self Analysis
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {detailedContent.post_exam_analysis.immediate && (
+              <div>
+                <h4 className="font-semibold mb-2">Immediate Steps</h4>
+                <ul className="space-y-2">
+                  {detailedContent.post_exam_analysis.immediate.map((step: string, idx: number) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-purple-500 shrink-0 mt-0.5" />
+                      <span className="text-sm">{step}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
+            {detailedContent.post_exam_analysis.reflection_questions && (
+              <div className="p-4 rounded-lg bg-purple-500/10">
+                <h4 className="font-semibold mb-3">Reflection Questions</h4>
+                <ul className="space-y-2">
+                  {detailedContent.post_exam_analysis.reflection_questions.map((q: string, idx: number) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm">
+                      <span className="w-5 h-5 rounded-full bg-purple-500/30 flex items-center justify-center text-xs font-bold shrink-0">{idx + 1}</span>
+                      <span>{q}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {detailedContent.post_exam_analysis.action_plan && (
+              <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
+                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <Target className="h-4 w-4 text-primary" />
+                  Action Plan
+                </h4>
+                <p className="text-sm">{detailedContent.post_exam_analysis.action_plan}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
