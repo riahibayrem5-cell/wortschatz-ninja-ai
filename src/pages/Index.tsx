@@ -402,7 +402,7 @@ const Index = () => {
               </button>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2024 FluentPass. All rights reserved.
+              © {new Date().getFullYear()} FluentPass. All rights reserved.
             </p>
           </div>
         </div>
