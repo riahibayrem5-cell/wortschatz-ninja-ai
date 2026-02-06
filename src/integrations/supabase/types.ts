@@ -333,6 +333,7 @@ export type Database = {
       daily_activity: {
         Row: {
           activity_date: string
+          ai_requests_count: number | null
           conversations_count: number | null
           created_at: string | null
           exercises_completed: number | null
@@ -346,6 +347,7 @@ export type Database = {
         }
         Insert: {
           activity_date?: string
+          ai_requests_count?: number | null
           conversations_count?: number | null
           created_at?: string | null
           exercises_completed?: number | null
@@ -359,6 +361,7 @@ export type Database = {
         }
         Update: {
           activity_date?: string
+          ai_requests_count?: number | null
           conversations_count?: number | null
           created_at?: string | null
           exercises_completed?: number | null
@@ -1328,6 +1331,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_ai_usage_stats: { Args: { p_user_id: string }; Returns: Json }
       has_active_subscription: {
         Args: { user_id_param: string }
         Returns: boolean
@@ -1339,6 +1343,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      track_ai_usage: { Args: { p_user_id: string }; Returns: Json }
       track_daily_activity: {
         Args: { activity_type: string; increment_value?: number }
         Returns: undefined

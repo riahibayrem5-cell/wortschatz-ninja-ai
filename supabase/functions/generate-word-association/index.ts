@@ -92,7 +92,7 @@ SHUFFLE the options array randomly so the correct answer is not always first!`;
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
+          model: 'google/gemini-3-flash-preview',
           messages: [
             { role: 'system', content: 'You are a German language expert creating vocabulary exercises for language learners.' },
             { role: 'user', content: prompt }
