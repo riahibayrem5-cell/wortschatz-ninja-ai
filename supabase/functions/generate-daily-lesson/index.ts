@@ -116,7 +116,7 @@ Respond ONLY with valid JSON in this exact format:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Generate today's personalized German learning lesson for a student preparing for TELC B2 exam.` }

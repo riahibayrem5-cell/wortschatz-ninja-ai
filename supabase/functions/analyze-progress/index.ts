@@ -95,7 +95,7 @@ Return ONLY valid JSON, no markdown formatting.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: 'You are an expert German language tutor and TELC B2 exam specialist. Provide detailed, specific, and actionable learning insights.' },
           { role: 'user', content: prompt }
