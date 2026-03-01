@@ -23,6 +23,8 @@ import PageBanner from "@/components/PageBanner";
 import { ExamTipsCarousel } from "@/components/telc/ExamTipsCarousel";
 import { SectionProgressCards } from "@/components/telc/SectionProgressCards";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
+import DashboardSkeleton from "@/components/DashboardSkeleton";
+import WhatsNewModal from "@/components/WhatsNewModal";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -221,26 +223,14 @@ const Dashboard = () => {
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 
   if (loading) {
-    return (
-      <div className="min-h-screen gradient-hero">
-        <Navbar />
-        <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-              <Sparkles className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-            </div>
-            <p className="text-muted-foreground">Loading your dashboard...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
     <div className="min-h-screen gradient-hero">
       <Navbar />
       <ConfettiCelebration trigger={showCelebration} />
+      <WhatsNewModal />
       {showOnboarding && (
         <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
       )}

@@ -25,12 +25,16 @@
 ### 🔄 Skipped
 - [ ] Stripe webhook handler (user chose to continue without secret)
 
+### ✅ Completed (Phase 3)
+
+#### UX Enhancements
+- [x] Add skeleton loading state to Dashboard (replaces spinner)
+- [x] Add "What's New" changelog modal (shows once per version)
+
 ### 📋 Pending (Phase 3-4)
 
-#### Phase 3: UX Enhancements
-- [ ] Add skeleton loading states to all data components
+#### Phase 3: Remaining UX
 - [ ] Implement push notifications for review reminders
-- [ ] Add "What's New" changelog modal
 
 #### Phase 4: Growth Features
 - [ ] FSRS spaced repetition algorithm for vocabulary
