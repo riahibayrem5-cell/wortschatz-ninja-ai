@@ -25,6 +25,7 @@ import { SectionProgressCards } from "@/components/telc/SectionProgressCards";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
 import WhatsNewModal from "@/components/WhatsNewModal";
+import AIUsageWidget from "@/components/AIUsageWidget";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -566,6 +567,9 @@ const Dashboard = () => {
 
           {/* Right Column - Course Progress & Recommendations */}
           <div className="space-y-6">
+            {/* AI Usage Widget */}
+            <AIUsageWidget />
+
             {/* Course Progress Widget */}
             <CourseProgressWidget />
 
