@@ -30,14 +30,17 @@
 #### UX Enhancements
 - [x] Add skeleton loading state to Dashboard (replaces spinner)
 - [x] Add "What's New" changelog modal (shows once per version)
+- [x] Add AI usage indicator widget to Dashboard sidebar
 
-### 📋 Pending (Phase 3-4)
+### ✅ Completed (Phase 4 - Partial)
 
-#### Phase 3: Remaining UX
+#### Growth Features
+- [x] FSRS spaced repetition algorithm for vocabulary review (4-button rating with interval preview + keyboard shortcuts)
+
+### 📋 Pending
+
+#### Remaining
 - [ ] Implement push notifications for review reminders
-
-#### Phase 4: Growth Features
-- [ ] FSRS spaced repetition algorithm for vocabulary
 - [ ] PWA/Offline support with service worker
 - [ ] Community features (leaderboards, study groups)
 

@@ -3,14 +3,27 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X, Brain, Trophy, RotateCcw } from "lucide-react";
+import { Brain, Trophy, RotateCcw } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
 import Navbar from "@/components/Navbar";
 import { trackActivity } from "@/utils/activityTracker";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Progress } from "@/components/ui/progress";
 import { PageBanner } from "@/components/PageBanner";
+import { 
+  type Rating, type FSRSCard,
+  migrateFromSRS, scheduleFSRS, getIntervalLabels, getRetrievability 
+} from "@/utils/fsrs";
+
+const RATING_CONFIG: Array<{ rating: Rating; label: string; color: string; key: string }> = [
+  { rating: 1, label: "Again", color: "bg-destructive/10 hover:bg-destructive/20 border-destructive/30 text-destructive", key: "1" },
+  { rating: 2, label: "Hard", color: "bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/30 text-yellow-600", key: "2" },
+  { rating: 3, label: "Good", color: "bg-primary/10 hover:bg-primary/20 border-primary/30 text-primary", key: "3" },
+  { rating: 4, label: "Easy", color: "bg-accent/10 hover:bg-accent/20 border-accent/30 text-accent", key: "4" },
+];
+
 const Review = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -23,6 +36,26 @@ const Review = () => {
   useEffect(() => {
     fetchDueItems();
   }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!showAnswer) {
+        if (e.code === "Space" || e.key === "Enter") {
+          e.preventDefault();
+          setShowAnswer(true);
+        }
+      } else {
+        const num = parseInt(e.key);
+        if (num >= 1 && num <= 4) {
+          e.preventDefault();
+          handleReview(num as Rating);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showAnswer, currentIndex, dueItems]);
 
   const fetchDueItems = async () => {
     try {
@@ -48,29 +81,31 @@ const Review = () => {
     }
   };
 
-  const handleReview = async (knew: boolean) => {
+  const getFSRSCard = (item: any): FSRSCard => {
+    return migrateFromSRS(item.srs_level || 0, item.last_reviewed_at);
+  };
+
+  const handleReview = async (rating: Rating) => {
     const item = dueItems[currentIndex];
-    const newLevel = knew ? item.srs_level + 1 : Math.max(0, item.srs_level - 1);
-    
-    // Calculate next review date based on SRS level
-    const intervals = [1, 3, 7, 14, 30, 60, 120]; // days
-    const daysToAdd = intervals[Math.min(newLevel, intervals.length - 1)];
-    const nextReview = new Date();
-    nextReview.setDate(nextReview.getDate() + daysToAdd);
+    const fsrsCard = getFSRSCard(item);
+    const result = scheduleFSRS(fsrsCard, rating);
+
+    // Map back to srs_level for DB compatibility
+    const newSrsLevel = rating === 1 
+      ? Math.max(0, (item.srs_level || 0) - 1) 
+      : Math.min(6, (item.srs_level || 0) + (rating >= 3 ? 1 : 0));
 
     try {
       const { error } = await supabase
         .from("vocabulary_items")
         .update({
-          srs_level: newLevel,
-          next_review_date: nextReview.toISOString(),
+          srs_level: newSrsLevel,
+          next_review_date: result.next_review_date,
           last_reviewed_at: new Date().toISOString(),
         })
         .eq("id", item.id);
 
       if (error) throw error;
-
-      // Track review activity
       await trackActivity('review', 1);
 
       if (currentIndex < dueItems.length - 1) {
@@ -122,6 +157,9 @@ const Review = () => {
 
   const currentItem = dueItems[currentIndex];
   const progressPercent = ((currentIndex + 1) / dueItems.length) * 100;
+  const fsrsCard = getFSRSCard(currentItem);
+  const intervalLabels = getIntervalLabels(fsrsCard);
+  const retrievability = getRetrievability(fsrsCard);
 
   return (
     <div className="min-h-screen gradient-hero">
@@ -131,7 +169,7 @@ const Review = () => {
         <PageBanner
           type="review"
           title={t('reviewPage')}
-          subtitle="Review your vocabulary with spaced repetition"
+          subtitle="Review your vocabulary with FSRS spaced repetition"
           icon={RotateCcw}
           compact
         />
@@ -142,9 +180,16 @@ const Review = () => {
             <span className="text-sm font-medium">
               {t('reviewPage')}: {currentIndex + 1} / {dueItems.length}
             </span>
-            <span className="text-sm text-muted-foreground">
-              {Math.round(progressPercent)}%
-            </span>
+            <div className="flex items-center gap-2">
+              {retrievability > 0 && (
+                <Badge variant="outline" className="text-[10px]">
+                  Recall: {Math.round(retrievability * 100)}%
+                </Badge>
+              )}
+              <span className="text-sm text-muted-foreground">
+                {Math.round(progressPercent)}%
+              </span>
+            </div>
           </div>
           <Progress value={progressPercent} className="h-2" />
         </div>
@@ -175,10 +220,9 @@ const Review = () => {
                 {t('showAnswer')}
               </Button>
               
-              {/* Visual hint */}
               <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                 <Brain className="w-4 h-4" />
-                <span>Think about the meaning first</span>
+                <span>Think about the meaning first · Press <kbd className="px-1.5 py-0.5 rounded bg-muted text-xs font-mono">Space</kbd></span>
               </div>
             </div>
           ) : (
@@ -193,25 +237,23 @@ const Review = () => {
                 )}
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                <Button
-                  onClick={() => handleReview(false)}
-                  variant="outline"
-                  size="lg"
-                  className="glass hover:bg-destructive/20 hover:border-destructive transition-all hover-scale group"
-                >
-                  <X className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                  {t('needsPractice')}
-                </Button>
-                <Button
-                  onClick={() => handleReview(true)}
-                  size="lg"
-                  className="gradient-accent hover:opacity-90 hover-scale group"
-                >
-                  <Check className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                  {t('knewIt')}
-                </Button>
+              {/* FSRS Rating Buttons */}
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">How well did you know this?</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {RATING_CONFIG.map(({ rating, label, color, key }) => (
+                    <Button
+                      key={rating}
+                      onClick={() => handleReview(rating)}
+                      variant="outline"
+                      className={`flex flex-col h-auto py-3 transition-all hover:scale-105 ${color}`}
+                    >
+                      <span className="font-semibold text-sm">{label}</span>
+                      <span className="text-[10px] opacity-70 mt-0.5">{intervalLabels[rating]}</span>
+                      <kbd className="text-[9px] opacity-50 mt-1 font-mono">{key}</kbd>
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
