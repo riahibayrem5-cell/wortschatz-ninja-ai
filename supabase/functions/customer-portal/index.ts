@@ -7,9 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CUSTOMER-PORTAL] ${step}${detailsStr}`);
+// Only log step names — never user emails, IDs, or Stripe identifiers.
+const logStep = (step: string) => {
+  console.log(`[CUSTOMER-PORTAL] ${step}`);
 };
 
 serve(async (req) => {
