@@ -22,10 +22,7 @@ const Settings = () => {
   const [email, setEmail] = useState("");
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [elevenLabsKey, setElevenLabsKey] = useState("");
-  const [showElevenLabsKey, setShowElevenLabsKey] = useState(false);
-  const [geminiKey, setGeminiKey] = useState("");
-  const [showGeminiKey, setShowGeminiKey] = useState(false);
+  // API keys are managed server-side via Lovable Cloud secrets — never stored in the browser.
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [userSettings, setUserSettings] = useState<any>(null);
