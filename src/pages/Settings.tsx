@@ -85,25 +85,7 @@ const Settings = () => {
     toast({ title: "Settings saved!", description: "Your preferences have been updated" });
   };
 
-  const handleSaveApiKeys = () => {
-    let saved = false;
-    
-    if (elevenLabsKey.trim()) {
-      localStorage.setItem("elevenLabsApiKey", elevenLabsKey.trim());
-      saved = true;
-    }
-    
-    if (geminiKey.trim()) {
-      localStorage.setItem("geminiApiKey", geminiKey.trim());
-      saved = true;
-    }
-    
-    if (saved) {
-      toast({ title: "API Keys saved!", description: "Your API keys have been updated securely" });
-    } else {
-      toast({ title: "Error", description: "Please enter at least one valid API key", variant: "destructive" });
-    }
-  };
+  // API-key management removed — provider keys are stored server-side as Lovable Cloud secrets.
 
   const handleDeleteAccount = async () => {
     if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
