@@ -57,7 +57,7 @@ Provide at least 3-5 items for each array. Make the analysis comprehensive and e
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: 'You are a German language expert. Always respond with valid JSON only, no additional text.' },
           { role: 'user', content: prompt }

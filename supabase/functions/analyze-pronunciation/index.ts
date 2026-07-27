@@ -49,7 +49,7 @@ Provide a JSON response with:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: 'You are a pronunciation analysis expert. Always respond with valid JSON only, no markdown.' },
           { role: 'user', content: prompt }

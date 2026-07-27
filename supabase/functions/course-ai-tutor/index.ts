@@ -64,7 +64,7 @@ Remember: You're helping students pass their TELC B2 exam. Be thorough but keep 
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-3.6-flash",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
