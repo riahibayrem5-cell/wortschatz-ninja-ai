@@ -83,34 +83,33 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
-        
-        <div className="container mx-auto px-4 pt-8 pb-20 relative">
+      {/* Hero Section — editorial */}
+      <div className="relative overflow-hidden gradient-hero grain">
+        <div className="absolute top-24 -left-24 w-[28rem] h-[28rem] bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-10 -right-24 w-[32rem] h-[32rem] bg-accent/20 rounded-full blur-3xl" />
+
+        <div className="container mx-auto px-4 pt-8 pb-24 relative">
           {/* Header */}
-          <header className="flex items-center justify-between mb-16">
+          <header className="flex items-center justify-between mb-20">
             <div className="flex items-center gap-3">
-              <img 
-                src={fluentpassLogo} 
-                alt="FluentPass" 
-                className="w-10 h-10 rounded-lg shadow-lg" 
+              <img
+                src={fluentpassLogo}
+                alt="FluentPass"
+                className="w-10 h-10 rounded-lg shadow-md"
               />
-              <span className="text-2xl font-bold text-gradient-luxury">FluentPass</span>
+              <span className="text-2xl font-display font-semibold tracking-tight">FluentPass</span>
             </div>
-            <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
                 onClick={() => navigate("/auth")}
                 className="hidden sm:inline-flex"
               >
                 Sign In
               </Button>
-              <Button 
+              <Button
                 onClick={() => navigate("/auth")}
-                className="gradient-luxury hover:opacity-90"
+                className="gradient-luxury text-primary-foreground hover:opacity-95 btn-glow"
               >
                 Get Started
               </Button>
@@ -118,63 +117,63 @@ const Index = () => {
           </header>
 
           {/* Hero Content */}
-          <div className="text-center max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 glass-luxury px-4 py-2 rounded-full mb-8 animate-fade-in">
-              <GraduationCap className="w-5 h-5 text-primary" />
-              <span className="text-sm font-medium">Official TELC B2 Exam Preparation</span>
+          <div className="max-w-5xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 paper px-4 py-2 rounded-full mb-10 animate-fade-in">
+              <GraduationCap className="w-4 h-4 text-primary" />
+              <span className="text-xs uppercase tracking-[0.18em] font-medium text-muted-foreground">
+                Official TELC B2 Preparation
+              </span>
             </div>
-            
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 animate-fade-in">
-              <span className="text-foreground">Pass Your </span>
-              <span className="text-gradient-luxury">TELC B2</span>
-              <br />
-              <span className="text-foreground">Exam with </span>
-              <span className="text-gradient-luxury">Confidence</span>
+
+            <h1 className="font-display text-5xl md:text-7xl lg:text-[5.75rem] leading-[1.02] mb-8 animate-fade-in">
+              <span className="text-foreground">Read, write & speak </span>
+              <em className="text-gradient-luxury not-italic font-normal">German</em>
+              <span className="text-foreground"> like a scholar.</span>
             </h1>
-            
-            <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in">
-              AI-powered German exam preparation with full mock exams, 
-              adaptive exercises, and personalized feedback. Join thousands who've 
-              achieved their B2 certification.
+
+            <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed animate-fade-in">
+              A quiet, focused study companion for the TELC B2 exam — with adaptive lessons,
+              full mock exams, and thoughtful AI feedback in the margins of your notebook.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-fade-in">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14 animate-fade-in">
               <Button
                 onClick={() => navigate("/auth")}
                 size="lg"
-                className="gradient-luxury hover:scale-105 transition-all text-lg px-10 py-7 luxury-glow font-bold shadow-xl"
+                className="gradient-luxury text-primary-foreground text-base px-10 py-6 btn-glow luxury-glow font-medium"
               >
-                Start Free Trial
+                Begin your studies
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button
                 onClick={() => navigate("/auth")}
                 size="lg"
                 variant="outline"
-                className="glass-luxury text-lg px-10 py-7 hover:scale-105 transition-all font-semibold border-2"
+                className="glass-luxury text-base px-10 py-6 font-medium border-primary/25 hover:border-primary/50"
               >
-                <Sparkles className="mr-2 w-5 h-5" />
-                View Demo
+                <Sparkles className="mr-2 w-4 h-4" />
+                Tour the platform
               </Button>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground animate-fade-in">
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground animate-fade-in">
               <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
+                <CheckCircle2 className="w-4 h-4 text-primary" />
                 No credit card required
               </span>
               <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
+                <CheckCircle2 className="w-4 h-4 text-primary" />
                 Full exam access
               </span>
               <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
-                AI-powered feedback
+                <CheckCircle2 className="w-4 h-4 text-primary" />
+                AI feedback in seconds
               </span>
             </div>
           </div>
         </div>
       </div>
+
 
       {/* TELC Exam Sections - The Core Product */}
       <div className="py-24 bg-gradient-to-b from-background to-muted/30">
