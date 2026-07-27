@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ProfileSection } from "@/components/ProfileSection";
-import { Mail, Bell, Volume2, Key, Eye, EyeOff, Crown, ExternalLink, Loader2 } from "lucide-react";
+import { Mail, Bell, Volume2, Crown, ExternalLink, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Settings = () => {
