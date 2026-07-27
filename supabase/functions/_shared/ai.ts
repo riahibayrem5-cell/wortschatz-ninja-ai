@@ -4,7 +4,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 // Default model - upgraded to latest gemini-3-flash-preview
-export const DEFAULT_AI_MODEL = "google/gemini-3-flash-preview";
+export const DEFAULT_AI_MODEL = "google/gemini-3.6-flash";
 
 // AI Gateway URL
 export const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";

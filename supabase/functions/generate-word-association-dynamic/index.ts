@@ -74,7 +74,7 @@ Respond ONLY with valid JSON in this exact format:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Generate a new ${targetLevel} level German word for a word association game. Make it interesting and educational.` }

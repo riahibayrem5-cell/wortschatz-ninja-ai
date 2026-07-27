@@ -162,7 +162,7 @@ Requirements:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-3.6-flash",
         messages: [
           {
             role: "system",
@@ -252,7 +252,7 @@ Make sure sentences strictly match ${difficulty} level complexity.`;
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
+      model: "google/gemini-3.6-flash",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }

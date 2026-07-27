@@ -97,7 +97,7 @@ export default function AdminAudioManager() {
         name: file.name,
         created_at: file.created_at || new Date().toISOString(),
         updated_at: file.updated_at || new Date().toISOString(),
-        metadata: file.metadata || {},
+        metadata: (file.metadata as any) || {},
       }));
 
       setFiles(filesWithMetadata);

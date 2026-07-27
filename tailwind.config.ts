@@ -13,6 +13,11 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        display: ["Cormorant Garamond", "Iowan Old Style", "Georgia", "serif"],
+        sans: ["Work Sans", "ui-sans-serif", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        serif: ["Cormorant Garamond", "Iowan Old Style", "Georgia", "serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

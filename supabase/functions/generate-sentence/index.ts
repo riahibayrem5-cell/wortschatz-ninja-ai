@@ -57,7 +57,7 @@ Format as JSON with keys: german, english, analysis`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'google/gemini-3.6-flash',
         messages: [
           {
             role: 'system',

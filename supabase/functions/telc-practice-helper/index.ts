@@ -102,7 +102,7 @@ Return in JSON format:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: 'You are an expert TELC B2 German exam coach. Always provide helpful, accurate, and encouraging guidance in German.' },
           { role: 'user', content: prompt }

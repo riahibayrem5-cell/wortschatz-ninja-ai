@@ -45,7 +45,7 @@ const WordAssociation = () => {
   const [lastPointsEarned, setLastPointsEarned] = useState(0);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     if (gameActive && timeLeft > 0) {
       timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
     } else if (timeLeft === 0 && gameActive) {
