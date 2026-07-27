@@ -45,13 +45,13 @@ const Settings = () => {
     // Load preferences from localStorage
     const audioSetting = localStorage.getItem("audioEnabled");
     const notifSetting = localStorage.getItem("notificationsEnabled");
-    const savedElevenLabsKey = localStorage.getItem("elevenLabsApiKey");
-    const savedGeminiKey = localStorage.getItem("geminiApiKey");
-    
+
     if (audioSetting !== null) setAudioEnabled(audioSetting === "true");
     if (notifSetting !== null) setNotificationsEnabled(notifSetting === "true");
-    if (savedElevenLabsKey) setElevenLabsKey(savedElevenLabsKey);
-    if (savedGeminiKey) setGeminiKey(savedGeminiKey);
+
+    // Migration: purge any legacy client-side API keys that older builds may have stored.
+    localStorage.removeItem("elevenLabsApiKey");
+    localStorage.removeItem("geminiApiKey");
     
     // Load user settings from database
     try {
