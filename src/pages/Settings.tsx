@@ -193,78 +193,18 @@ const Settings = () => {
             </div>
           </Card>
 
-          {/* API Keys */}
+          {/* API Keys — managed securely on the server */}
           <Card className="p-6 glass">
-            <div className="flex items-center gap-3 mb-6">
-              <Key className="w-5 h-5 text-primary" />
+            <div className="flex items-center gap-3 mb-2">
               <h2 className="text-xl font-semibold">{isDE ? 'API-Schlüssel' : 'API Keys'}</h2>
             </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="elevenlabs-key">ElevenLabs API Key</Label>
-                <div className="flex gap-2 mt-2">
-                  <div className="relative flex-1">
-                    <Input
-                      id="elevenlabs-key"
-                      type={showElevenLabsKey ? "text" : "password"}
-                      value={elevenLabsKey}
-                      onChange={(e) => setElevenLabsKey(e.target.value)}
-                      placeholder="sk-..."
-                      className="bg-background/50 pr-10"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-full"
-                      onClick={() => setShowElevenLabsKey(!showElevenLabsKey)}
-                    >
-                      {showElevenLabsKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Used for high-quality text-to-speech. Get your key from elevenlabs.io
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="gemini-key">Google Gemini API Key</Label>
-                <div className="flex gap-2 mt-2">
-                  <div className="relative flex-1">
-                    <Input
-                      id="gemini-key"
-                      type={showGeminiKey ? "text" : "password"}
-                      value={geminiKey}
-                      onChange={(e) => setGeminiKey(e.target.value)}
-                      placeholder="AIza..."
-                      className="bg-background/50 pr-10"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-full"
-                      onClick={() => setShowGeminiKey(!showGeminiKey)}
-                    >
-                      {showGeminiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Used for AI-powered features. Get your key from ai.google.dev
-                </p>
-              </div>
-
-              <Button
-                onClick={handleSaveApiKeys}
-                className="w-full gradient-primary hover:opacity-90"
-              >
-                Save API Keys
-              </Button>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              {isDE
+                ? 'API-Schlüssel für Sprachausgabe und KI werden sicher auf dem Server verwaltet. Es ist keine Einrichtung im Browser erforderlich.'
+                : 'API keys for voice and AI features are managed securely on the server. No browser setup is required.'}
+            </p>
           </Card>
+
 
           {/* Subscription Management */}
           <Card className="p-6 glass">
