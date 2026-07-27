@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ProfileSection } from "@/components/ProfileSection";
-import { Mail, Bell, Volume2, Key, Eye, EyeOff, Crown, ExternalLink, Loader2 } from "lucide-react";
+import { Mail, Bell, Volume2, Crown, ExternalLink, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Settings = () => {
@@ -22,10 +22,7 @@ const Settings = () => {
   const [email, setEmail] = useState("");
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [elevenLabsKey, setElevenLabsKey] = useState("");
-  const [showElevenLabsKey, setShowElevenLabsKey] = useState(false);
-  const [geminiKey, setGeminiKey] = useState("");
-  const [showGeminiKey, setShowGeminiKey] = useState(false);
+  // API keys are managed server-side via Lovable Cloud secrets — never stored in the browser.
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [userSettings, setUserSettings] = useState<any>(null);
@@ -48,13 +45,13 @@ const Settings = () => {
     // Load preferences from localStorage
     const audioSetting = localStorage.getItem("audioEnabled");
     const notifSetting = localStorage.getItem("notificationsEnabled");
-    const savedElevenLabsKey = localStorage.getItem("elevenLabsApiKey");
-    const savedGeminiKey = localStorage.getItem("geminiApiKey");
-    
+
     if (audioSetting !== null) setAudioEnabled(audioSetting === "true");
     if (notifSetting !== null) setNotificationsEnabled(notifSetting === "true");
-    if (savedElevenLabsKey) setElevenLabsKey(savedElevenLabsKey);
-    if (savedGeminiKey) setGeminiKey(savedGeminiKey);
+
+    // Migration: purge any legacy client-side API keys that older builds may have stored.
+    localStorage.removeItem("elevenLabsApiKey");
+    localStorage.removeItem("geminiApiKey");
     
     // Load user settings from database
     try {
@@ -88,25 +85,7 @@ const Settings = () => {
     toast({ title: "Settings saved!", description: "Your preferences have been updated" });
   };
 
-  const handleSaveApiKeys = () => {
-    let saved = false;
-    
-    if (elevenLabsKey.trim()) {
-      localStorage.setItem("elevenLabsApiKey", elevenLabsKey.trim());
-      saved = true;
-    }
-    
-    if (geminiKey.trim()) {
-      localStorage.setItem("geminiApiKey", geminiKey.trim());
-      saved = true;
-    }
-    
-    if (saved) {
-      toast({ title: "API Keys saved!", description: "Your API keys have been updated securely" });
-    } else {
-      toast({ title: "Error", description: "Please enter at least one valid API key", variant: "destructive" });
-    }
-  };
+  // API-key management removed — provider keys are stored server-side as Lovable Cloud secrets.
 
   const handleDeleteAccount = async () => {
     if (!confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
@@ -214,78 +193,18 @@ const Settings = () => {
             </div>
           </Card>
 
-          {/* API Keys */}
+          {/* API Keys — managed securely on the server */}
           <Card className="p-6 glass">
-            <div className="flex items-center gap-3 mb-6">
-              <Key className="w-5 h-5 text-primary" />
+            <div className="flex items-center gap-3 mb-2">
               <h2 className="text-xl font-semibold">{isDE ? 'API-Schlüssel' : 'API Keys'}</h2>
             </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="elevenlabs-key">ElevenLabs API Key</Label>
-                <div className="flex gap-2 mt-2">
-                  <div className="relative flex-1">
-                    <Input
-                      id="elevenlabs-key"
-                      type={showElevenLabsKey ? "text" : "password"}
-                      value={elevenLabsKey}
-                      onChange={(e) => setElevenLabsKey(e.target.value)}
-                      placeholder="sk-..."
-                      className="bg-background/50 pr-10"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-full"
-                      onClick={() => setShowElevenLabsKey(!showElevenLabsKey)}
-                    >
-                      {showElevenLabsKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Used for high-quality text-to-speech. Get your key from elevenlabs.io
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="gemini-key">Google Gemini API Key</Label>
-                <div className="flex gap-2 mt-2">
-                  <div className="relative flex-1">
-                    <Input
-                      id="gemini-key"
-                      type={showGeminiKey ? "text" : "password"}
-                      value={geminiKey}
-                      onChange={(e) => setGeminiKey(e.target.value)}
-                      placeholder="AIza..."
-                      className="bg-background/50 pr-10"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-full"
-                      onClick={() => setShowGeminiKey(!showGeminiKey)}
-                    >
-                      {showGeminiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Used for AI-powered features. Get your key from ai.google.dev
-                </p>
-              </div>
-
-              <Button
-                onClick={handleSaveApiKeys}
-                className="w-full gradient-primary hover:opacity-90"
-              >
-                Save API Keys
-              </Button>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              {isDE
+                ? 'API-Schlüssel für Sprachausgabe und KI werden sicher auf dem Server verwaltet. Es ist keine Einrichtung im Browser erforderlich.'
+                : 'API keys for voice and AI features are managed securely on the server. No browser setup is required.'}
+            </p>
           </Card>
+
 
           {/* Subscription Management */}
           <Card className="p-6 glass">

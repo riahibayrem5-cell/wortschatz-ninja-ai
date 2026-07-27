@@ -85,7 +85,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.course-ai-tutor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-certificate]
 verify_jwt = true
