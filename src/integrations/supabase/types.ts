@@ -253,36 +253,51 @@ export type Database = {
       course_lessons: {
         Row: {
           content: Json
+          content_updated_at: string | null
+          content_version: number
           created_at: string | null
           estimated_minutes: number
+          focus_skill: string | null
+          generation_brief: string | null
           id: string
           lesson_number: number
           lesson_type: string
           module_id: string
           title: string
           title_de: string
+          xp_reward: number
         }
         Insert: {
           content?: Json
+          content_updated_at?: string | null
+          content_version?: number
           created_at?: string | null
           estimated_minutes?: number
+          focus_skill?: string | null
+          generation_brief?: string | null
           id?: string
           lesson_number: number
           lesson_type: string
           module_id: string
           title: string
           title_de: string
+          xp_reward?: number
         }
         Update: {
           content?: Json
+          content_updated_at?: string | null
+          content_version?: number
           created_at?: string | null
           estimated_minutes?: number
+          focus_skill?: string | null
+          generation_brief?: string | null
           id?: string
           lesson_number?: number
           lesson_type?: string
           module_id?: string
           title?: string
           title_de?: string
+          xp_reward?: number
         }
         Relationships: [
           {
