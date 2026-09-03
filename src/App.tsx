@@ -48,6 +48,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
 const AdminContent = lazy(() => import("./pages/admin/Content"));
+const AdminCourseStudio = lazy(() => import("./pages/admin/CourseStudio"));
 const AdminSubscriptions = lazy(() => import("./pages/admin/Subscriptions"));
 const AdminAudioManager = lazy(() => import("./pages/admin/AudioManager"));
 const AdminAlerts = lazy(() => import("./pages/admin/Alerts"));

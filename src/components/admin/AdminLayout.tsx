@@ -23,6 +23,7 @@ import {
   LogOut,
   Home,
   Music,
+  Sparkles,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
