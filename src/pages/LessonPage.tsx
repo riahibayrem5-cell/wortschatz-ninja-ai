@@ -16,7 +16,10 @@ import {
 } from "lucide-react";
 import LessonContentRenderer from "@/components/lessons/LessonContentRenderer";
 import DetailedLessonContent from "@/components/lessons/DetailedLessonContent";
+import LessonV2Content from "@/components/lessons/LessonV2Content";
+import LessonPractice from "@/components/lessons/LessonPractice";
 import SmartExerciseContainer from "@/components/exercises/SmartExerciseContainer";
+import { isLessonV2 } from "@/types/lesson";
 
 interface CourseLesson {
   id: string;
@@ -379,12 +382,14 @@ const LessonPage = () => {
           </TabsList>
 
           <TabsContent value="content">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_18rem] gap-6">
               {/* Main Lesson Content */}
-              <div className="lg:col-span-2">
+              <div className="min-w-0">
                 <Card className="glass">
-                  <CardContent className="pt-6">
-                    {lesson.content?.detailed_content ? (
+                  <CardContent className="pt-8 md:px-8">
+                    {isLessonV2(lesson.content) ? (
+                      <LessonV2Content content={lesson.content} />
+                    ) : lesson.content?.detailed_content ? (
                       <DetailedLessonContent
                         lessonType={lesson.lesson_type}
                         lessonTitle={lesson.title}
@@ -404,8 +409,8 @@ const LessonPage = () => {
               </div>
 
               {/* Notes Sidebar */}
-              <div className="lg:col-span-1">
-                <Card className="glass sticky top-4">
+              <div>
+                <Card className="glass lg:sticky lg:top-4">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg">Your Notes</CardTitle>
                   </CardHeader>
@@ -423,17 +428,24 @@ const LessonPage = () => {
           </TabsContent>
 
           <TabsContent value="practice">
-            <Card className="glass">
-              <CardContent className="pt-6">
-                <SmartExerciseContainer
-                  lessonId={lesson.id}
-                  lessonType={lesson.lesson_type}
-                  lessonTitle={lesson.title}
-                  lessonContent={lesson.content}
-                  onComplete={handlePracticeComplete}
-                />
-              </CardContent>
-            </Card>
+            {isLessonV2(lesson.content) && lesson.content.practice?.length > 0 ? (
+              <LessonPractice
+                items={lesson.content.practice}
+                onComplete={handlePracticeComplete}
+              />
+            ) : (
+              <Card className="glass">
+                <CardContent className="pt-6">
+                  <SmartExerciseContainer
+                    lessonId={lesson.id}
+                    lessonType={lesson.lesson_type}
+                    lessonTitle={lesson.title}
+                    lessonContent={lesson.content}
+                    onComplete={handlePracticeComplete}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="tutor">
