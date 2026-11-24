@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
@@ -20,11 +21,6 @@ serve(async (req) => {
     }
 
     const { mistakes, progress } = await req.json();
-    
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
 
     // Analyze mistake patterns
     const mistakesByType = mistakes.reduce((acc: any, m: any) => {
@@ -88,14 +84,12 @@ IMPORTANT GUIDELINES:
 
 Return ONLY valid JSON, no markdown formatting.`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await geminiFetch({
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: 'You are an expert German language tutor and TELC B2 exam specialist. Provide detailed, specific, and actionable learning insights.' },
           { role: 'user', content: prompt }
@@ -127,6 +121,8 @@ Return ONLY valid JSON, no markdown formatting.`;
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error('Error in analyze-progress:', error);
     return new Response(
       JSON.stringify({ 

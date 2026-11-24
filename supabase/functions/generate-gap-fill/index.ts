@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
 
@@ -33,15 +34,10 @@ serve(async (req) => {
       topic,
       count = 5
     } = body;
-    
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
-    }
 
     // If old format (topic only), use legacy behavior
     if (topic && !exerciseType) {
-      return await handleLegacyRequest(LOVABLE_API_KEY, topic, difficulty, count, corsHeaders);
+      return await handleLegacyRequest(topic, difficulty, count, corsHeaders);
     }
 
     console.log(`Generating ${exerciseType} exercises for ${lessonTitle}`);
@@ -155,14 +151,12 @@ Requirements:
         throw new Error(`Unknown exercise type: ${exerciseType}`);
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await geminiFetch({
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3.6-flash",
         messages: [
           {
             role: "system",
@@ -207,6 +201,8 @@ Requirements:
     });
 
   } catch (error: any) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error("Error in generate-gap-fill:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
@@ -216,7 +212,7 @@ Requirements:
 });
 
 // Legacy handler for old API format
-async function handleLegacyRequest(apiKey: string, topic: string, difficulty: string, count: number, corsHeaders: Record<string, string>) {
+async function handleLegacyRequest(topic: string, difficulty: string, count: number, corsHeaders: Record<string, string>) {
   const difficultyGuidelines: Record<string, string> = {
     "A2": "Use basic vocabulary and simple grammatical structures. Present tense and simple past only. Short, everyday sentences with common words.",
     "B1": "Use common vocabulary and standard grammatical structures. Include present, past, and future tenses. Moderately complex sentences.",
@@ -245,14 +241,12 @@ Format as JSON with:
 
 Make sure sentences strictly match ${difficulty} level complexity.`;
 
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const response = await geminiFetch({
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-3.6-flash",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }

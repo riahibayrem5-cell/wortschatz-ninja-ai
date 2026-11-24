@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
 
@@ -24,11 +25,6 @@ serve(async (req) => {
       throw new Error('German word and correct answer are required');
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
     const prompt = `Explain why "${correctAnswer}" is the correct English translation for the German word "${germanWord}".
 
 Provide:
@@ -40,14 +36,12 @@ ${userAnswer && userAnswer !== correctAnswer ? `5. Why "${userAnswer}" is not co
 
 Keep the explanation concise (3-4 sentences), friendly, and helpful for a B1-B2 German learner.`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await geminiFetch({
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.6-flash',
         messages: [
           { 
             role: 'system', 
@@ -90,6 +84,8 @@ Keep the explanation concise (3-4 sentences), friendly, and helpful for a B1-B2 
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error('Error in explain-word-association:', error);
     return new Response(
       JSON.stringify({ error: error.message }),

@@ -1,0 +1,2 @@
+# Architecture rules
+- Route text AI requests through the shared server-side Gemini transport; it reads the saved provider secret, preserves compatible JSON/streaming responses, and sanitizes provider errors without exposing credentials.

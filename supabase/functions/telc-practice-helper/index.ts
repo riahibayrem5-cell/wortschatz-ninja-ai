@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
@@ -27,11 +28,6 @@ serve(async (req) => {
       context,
       text 
     } = await req.json();
-    
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
 
     let prompt = '';
 
@@ -95,14 +91,12 @@ Return in JSON format:
 }`;
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await geminiFetch({
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: 'You are an expert TELC B2 German exam coach. Always provide helpful, accurate, and encouraging guidance in German.' },
           { role: 'user', content: prompt }
@@ -139,6 +133,8 @@ Return in JSON format:
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error('Error in telc-practice-helper:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),

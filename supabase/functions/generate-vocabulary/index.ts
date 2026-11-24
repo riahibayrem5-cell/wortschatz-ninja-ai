@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
 
@@ -24,11 +25,6 @@ serve(async (req) => {
       throw new Error('Topic is required');
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
-
     const difficultyGuidelines = {
       'A2': 'Use only basic, everyday vocabulary that elementary learners know (common nouns, simple verbs, basic adjectives). Avoid complex or specialized words.',
       'B1': 'Use common vocabulary that intermediate learners would encounter (standard workplace words, common idioms, familiar topics). Avoid highly specialized or literary terms.',
@@ -36,14 +32,12 @@ serve(async (req) => {
       'B2+': 'Use highly sophisticated vocabulary including academic terms, idiomatic expressions, literary language, and specialized professional vocabulary for advanced learners.'
     };
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await geminiFetch({
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.6-flash',
         messages: [
           {
             role: 'system',
@@ -89,6 +83,8 @@ Format your response as a JSON array of objects with these exact keys: word, def
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error('Error in generate-vocabulary:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(

@@ -1,12 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-const MODEL = "openai/gpt-5.6-sol";
 
 const strObj = (props: Record<string, unknown>) => ({
   type: "object",
@@ -114,24 +113,18 @@ QUALITY BAR — this must feel like a professionally published Lehrwerk chapter,
 Write everything now, fully, with no placeholders.`;
 }
 
-async function generateLesson(apiKey: string, lesson: any, module: any) {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
+async function generateLesson(lesson: any, module: any) {
+  const res = await geminiFetch({
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Lovable-API-Key": apiKey,
-      "X-Lovable-AIG-SDK": "fetch",
-    },
     body: JSON.stringify({
-      model: MODEL,
       stream: true,
-      instructions:
-        "You are a senior German-as-a-foreign-language author and official TELC B2 examiner. You write rigorous, accurate, exam-aligned course material.",
-      input: buildPrompt(lesson, module),
-      reasoning: { effort: "medium", summary: "auto" },
-      text: {
-        format: {
-          type: "json_schema",
+      messages: [
+        { role: "system", content: "You are a senior German-as-a-foreign-language author and TELC B2 exam specialist. You write rigorous, accurate, exam-aligned course material." },
+        { role: "user", content: buildPrompt(lesson, module) },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
           name: "telc_b2_lesson",
           strict: true,
           schema: LESSON_SCHEMA,
@@ -141,8 +134,7 @@ async function generateLesson(apiKey: string, lesson: any, module: any) {
   });
 
   if (!res.ok || !res.body) {
-    const detail = await res.text();
-    const err = new Error(detail.slice(0, 500));
+    const err = new Error("Gemini returned no lesson stream");
     (err as any).status = res.status;
     throw err;
   }
@@ -162,16 +154,11 @@ async function generateLesson(apiKey: string, lesson: any, module: any) {
       if (!line.startsWith("data: ")) continue;
       const payload = line.slice(6).trim();
       if (!payload || payload === "[DONE]") continue;
-      try {
-        const evt = JSON.parse(payload);
-        if (evt.type === "response.output_text.delta" && typeof evt.delta === "string") {
-          text += evt.delta;
-        } else if (evt.type === "response.completed" && !text) {
-          text = evt.response?.output_text ?? "";
-        }
-      } catch {
-        // ignore partial frames
-      }
+      const evt = JSON.parse(payload);
+      if (evt.error) throw new Error("Gemini interrupted lesson generation. Please retry.");
+      const choice = evt.choices?.[0];
+      if (choice?.finish_reason === "length") throw new Error("The lesson response was incomplete. Please retry.");
+      if (typeof choice?.delta?.content === "string") text += choice.delta.content;
     }
   }
 
@@ -192,17 +179,17 @@ Deno.serve(async (req) => {
     const { user, error: authError } = await validateAuth(req);
     if (authError || !user) return unauthorizedResponse(authError || "Authentication required", corsHeaders);
 
+    const url = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!url || !serviceKey) return json({ error: "Course service is not configured" }, 503);
     const admin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      url,
+      serviceKey,
       { auth: { persistSession: false } },
     );
 
     const { data: isAdmin } = await admin.rpc("has_role", { _user_id: user.id, _role: "admin" });
     if (!isAdmin) return json({ error: "Admin access required" }, 403);
-
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) return json({ error: "AI is not configured" }, 500);
 
     const { lessonId, force } = await req.json();
     if (!lessonId) return json({ error: "lessonId is required" }, 400);
@@ -224,7 +211,8 @@ Deno.serve(async (req) => {
       .eq("id", lesson.module_id)
       .single();
 
-    const generated = await generateLesson(apiKey, lesson, module);
+    if (!module) return json({ error: "Module not found" }, 404);
+    const generated = await generateLesson(lesson, module);
 
     const content = {
       version: 2,
@@ -257,6 +245,8 @@ Deno.serve(async (req) => {
       practice: generated.practice?.length ?? 0,
     });
   } catch (error: any) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     const status = error?.status && error.status >= 400 ? error.status : 500;
     console.error("generate-lesson-content failed", status);
     return json({ error: error?.message ?? "Generation failed" }, status);

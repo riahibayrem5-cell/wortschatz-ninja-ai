@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
 
@@ -24,11 +25,6 @@ serve(async (req) => {
       throw new Error('Text is required');
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
-
     const systemPrompt = `You are an expert German language teacher specializing in B2-C1 level writing. Analyze the user's German text and provide:
 1. A fully corrected version
 2. Overall feedback on style, structure, and B2-C1 appropriateness
@@ -36,14 +32,12 @@ serve(async (req) => {
 
 Format as JSON with keys: correctedText, overallFeedback, errors (array with: original, correction, explanation, type)`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await geminiFetch({
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Prompt: ${prompt}\n\nUser's text:\n${text}` }
@@ -70,6 +64,8 @@ Format as JSON with keys: correctedText, overallFeedback, errors (array with: or
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error('Error in writing-assistant:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(

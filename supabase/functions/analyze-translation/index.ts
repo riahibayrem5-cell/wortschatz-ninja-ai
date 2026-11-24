@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
 
@@ -24,11 +25,6 @@ serve(async (req) => {
       throw new Error('English and user German translation required');
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
-
     const systemPrompt = `You are a German language teacher analyzing B2-C1 level translations. Compare the user's translation to the expected one and provide detailed feedback.`;
 
     const userPrompt = `English: ${english}
@@ -37,14 +33,12 @@ User's German: ${userGerman}
 
 Analyze the translation. Format as JSON with: isCorrect (boolean), correctedVersion, score (0-100), feedback, grammarNotes (array of specific grammar points)`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await geminiFetch({
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -71,6 +65,8 @@ Analyze the translation. Format as JSON with: isCorrect (boolean), correctedVers
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error('Error in analyze-translation:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(

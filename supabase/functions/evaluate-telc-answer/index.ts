@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
@@ -20,11 +21,6 @@ serve(async (req) => {
     }
 
     const { section, task, userAnswer, teil, maxPoints } = await req.json();
-    
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
 
     let prompt = '';
 
@@ -37,14 +33,12 @@ serve(async (req) => {
       prompt = `You are a TELC Deutsch B2 examiner evaluating a German speaking performance.\n\nTeil: ${teil ?? 'full'}\nTask:\n${task}\n\nTranscript (or notes if transcript is not available):\n${userAnswer}\n\nEvaluate according to TELC B2 criteria. Provide VALID JSON only (no markdown).\n\nReturn JSON exactly in this schema:\n{\n  \"maxPoints\": ${mp},\n  \"score\": <0-${mp}>,\n  \"percentage\": <0-100>,\n  \"grade\": \"<Sehr gut|Gut|Befriedigend|Ausreichend|Mangelhaft>\",\n  \"fluency\": {\n    \"score\": <0-${perCat}>,\n    \"feedback\": \"<feedback on flow and hesitations>\"\n  },\n  \"vocabulary\": {\n    \"score\": <0-${perCat}>,\n    \"feedback\": \"<feedback on range and appropriacy>\"\n  },\n  \"grammar\": {\n    \"score\": <0-${perCat}>,\n    \"feedback\": \"<feedback on accuracy and variety>\"\n  },\n  \"pronunciation\": {\n    \"score\": <0-${perCat}>,\n    \"feedback\": \"<feedback on clarity and accent>\"\n  },\n  \"taskCompletion\": {\n    \"score\": <0-${perCat}>,\n    \"feedback\": \"<feedback on addressing the task>\"\n  },\n  \"strengths\": [\"<strength 1>\", \"<strength 2>\"],\n  \"improvements\": [\"<improvement 1>\", \"<improvement 2>\"],\n  \"keyErrorsAndCorrections\": [\n    {\"error\": \"<text>\", \"correction\": \"<fix>\", \"explanation\": \"<why>\"}\n  ]\n}`;
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await geminiFetch({
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: 'You are an expert TELC Deutsch B2 examiner. Always respond with valid JSON only, no markdown code fences or additional text.' },
           { role: 'user', content: prompt }
@@ -93,6 +87,8 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error('Error in evaluate-telc-answer:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),

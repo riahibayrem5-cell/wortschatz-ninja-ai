@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
 
@@ -24,11 +25,6 @@ serve(async (req) => {
       throw new Error('Text is required');
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
-
     const difficultyGuidelines = {
       'A2': 'Identify only basic elementary-level vocabulary (everyday objects, simple verbs, basic adjectives). These are foundational words for beginners.',
       'B1': 'Identify intermediate-level vocabulary (common workplace terms, standard expressions, familiar topics). Skip basic A1-A2 words.',
@@ -45,14 +41,12 @@ Analyze the text and identify vocabulary words that match ${difficulty} level sp
 
     const userPrompt = `Analyze this German text and identify ${difficulty} level vocabulary words:\n\n${text}\n\nFormat as JSON with: highlightedWords (array with: word, definition, level). Only include words appropriate for ${difficulty} level learners.`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await geminiFetch({
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -79,6 +73,8 @@ Analyze the text and identify vocabulary words that match ${difficulty} level sp
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error('Error in highlight-text:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(

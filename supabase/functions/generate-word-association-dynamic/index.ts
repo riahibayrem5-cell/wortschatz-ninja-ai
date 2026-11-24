@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
 
@@ -19,11 +20,6 @@ serve(async (req) => {
     }
 
     const { difficulty, previousWords, weakCategories, userLevel } = await req.json();
-    
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
 
     const levelMapping: Record<string, string> = {
       'easy': 'A2-B1',
@@ -67,14 +63,12 @@ Respond ONLY with valid JSON in this exact format:
 
     console.log('Generating word association for level:', targetLevel);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await geminiFetch({
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Generate a new ${targetLevel} level German word for a word association game. Make it interesting and educational.` }
@@ -133,6 +127,8 @@ Respond ONLY with valid JSON in this exact format:
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error('Error in generate-word-association-dynamic:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(

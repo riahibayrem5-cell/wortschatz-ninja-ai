@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
 
@@ -19,11 +20,6 @@ serve(async (req) => {
     }
 
     const { messages, lessonContext, moduleContext, userLevel } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
 
     const systemPrompt = `You are an expert German language tutor specializing in TELC B2 exam preparation. Your name is "FluentPass Tutor".
 
@@ -57,14 +53,12 @@ GUIDELINES:
 
 Remember: You're helping students pass their TELC B2 exam. Be thorough but keep explanations clear and practical.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await geminiFetch({
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3.6-flash",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
@@ -98,6 +92,8 @@ Remember: You're helping students pass their TELC B2 exam. Be thorough but keep 
     });
 
   } catch (error: unknown) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error("Course AI Tutor error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(JSON.stringify({ error: errorMessage }), {

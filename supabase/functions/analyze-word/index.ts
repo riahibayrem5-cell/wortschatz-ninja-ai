@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
 
@@ -24,11 +25,6 @@ serve(async (req) => {
       throw new Error('Word is required');
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
     const prompt = `Analyze the German word "${word}" and provide a comprehensive dossier in JSON format with the following structure:
 {
   "word": "${word}",
@@ -50,14 +46,12 @@ serve(async (req) => {
 
 Provide at least 3-5 items for each array. Make the analysis comprehensive and educational.`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await geminiFetch({
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: 'You are a German language expert. Always respond with valid JSON only, no additional text.' },
           { role: 'user', content: prompt }
@@ -86,6 +80,8 @@ Provide at least 3-5 items for each array. Make the analysis comprehensive and e
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error('Error in analyze-word:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

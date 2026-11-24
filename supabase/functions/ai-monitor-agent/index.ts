@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -33,7 +34,7 @@ serve(async (req) => {
   const startTime = Date.now();
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+  const geminiApiKey = Deno.env.get("GOOGLE_GEMINI_API_KEY");
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
@@ -208,7 +209,7 @@ serve(async (req) => {
     }
 
     // 4. AI-Powered Anomaly Detection (if we have enough data)
-    if (lovableApiKey && (checkType === "health" || checkType === "all")) {
+    if (geminiApiKey && (checkType === "health" || checkType === "all")) {
       logStep("Running AI anomaly detection");
       
       try {
@@ -235,14 +236,12 @@ Weekly activity summary: ${weeklyActivity?.length || 0} activity records
 
 Respond with JSON: { "status": "ok" | "concern", "summary": "brief summary", "recommendations": ["action1", "action2"] }`;
 
-        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        const aiResponse = await geminiFetch({
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${lovableApiKey}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-3.6-flash",
             messages: [
               { role: "system", content: "You are a platform health monitoring AI. Analyze data and provide concise insights." },
               { role: "user", content: analysisPrompt }
@@ -319,6 +318,8 @@ Respond with JSON: { "status": "ok" | "concern", "summary": "brief summary", "re
     });
 
   } catch (error) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     logStep("Monitor run failed", { error: String(error) });
 
     // Log failed run

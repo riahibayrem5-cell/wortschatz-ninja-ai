@@ -4,10 +4,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 // Default model - upgraded to latest gemini-3-flash-preview
-export const DEFAULT_AI_MODEL = "google/gemini-3.6-flash";
+export { DEFAULT_AI_MODEL } from "./gemini.ts";
+import { DEFAULT_AI_MODEL, geminiFetch, geminiErrorResponse } from "./gemini.ts";
+export { geminiFetch, geminiErrorResponse } from "./gemini.ts";
 
-// AI Gateway URL
-export const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 export interface AIRequestOptions {
   model?: string;
@@ -128,16 +128,16 @@ export async function getAIUsageStats(userId: string): Promise<UsageResult> {
 
 /**
  * Make an AI request with automatic usage tracking
- * Returns the Response object from the AI gateway
+ * Returns the Response object from Google Gemini
  */
 export async function makeAIRequest(
   userId: string,
   options: AIRequestOptions,
   corsHeaders: Record<string, string>
 ): Promise<Response> {
-  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  const GOOGLE_GEMINI_API_KEY = Deno.env.get("GOOGLE_GEMINI_API_KEY");
   
-  if (!LOVABLE_API_KEY) {
+  if (!GOOGLE_GEMINI_API_KEY) {
     return new Response(
       JSON.stringify({ error: "AI service not configured" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -163,42 +163,22 @@ export async function makeAIRequest(
   }
 
   // Make the AI request with upgraded model
-  const response = await fetch(AI_GATEWAY_URL, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: options.model || DEFAULT_AI_MODEL,
-      messages: options.messages,
-      stream: options.stream || false,
-      ...(options.temperature !== undefined && { temperature: options.temperature }),
-      ...(options.max_tokens !== undefined && { max_tokens: options.max_tokens }),
-    }),
-  });
-
-  // Handle gateway errors
-  if (!response.ok) {
-    if (response.status === 429) {
-      return new Response(
-        JSON.stringify({ error: "Rate limit exceeded. Please try again later.", code: "RATE_LIMITED" }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    if (response.status === 402) {
-      return new Response(
-        JSON.stringify({ error: "AI credits depleted. Please add credits to continue.", code: "PAYMENT_REQUIRED" }),
-        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
-    const errorText = await response.text();
-    console.error("AI gateway error:", response.status, errorText);
-    return new Response(
-      JSON.stringify({ error: `AI gateway error: ${response.status}` }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+  let response: Response;
+  try {
+    response = await geminiFetch({
+      method: "POST",
+      body: JSON.stringify({
+        model: options.model || DEFAULT_AI_MODEL,
+        messages: options.messages,
+        stream: options.stream || false,
+        ...(options.temperature !== undefined && { temperature: options.temperature }),
+        ...(options.max_tokens !== undefined && { max_tokens: options.max_tokens }),
+      }),
+    });
+  } catch (error) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
+    throw error;
   }
 
   // Return the response (could be streaming or not)

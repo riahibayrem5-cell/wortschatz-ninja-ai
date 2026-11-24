@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateAuth, unauthorizedResponse } from "../_shared/auth.ts";
 
@@ -24,11 +25,6 @@ serve(async (req) => {
       throw new Error('Theme is required');
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
-
     const difficultyGuidelines = {
       'A2': 'Use simple, everyday vocabulary and basic sentence structures. Present and simple past tenses only. Short sentences with clear, straightforward meaning.',
       'B1': 'Use common vocabulary and standard grammar. Mix of simple and compound sentences. Present, past, and future tenses with some subordinate clauses.',
@@ -45,14 +41,12 @@ Create information-dense paragraphs (4-6 sentences) that STRICTLY match ${diffic
 
     const userPrompt = `Create a German paragraph about: ${theme}. The paragraph MUST use ${difficulty}-appropriate vocabulary and grammar structures ONLY. Make it memorable and engaging for ${difficulty} level learners. Format as JSON with: germanText, englishTranslation, keyVocabulary (array of important words with definitions)`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await geminiFetch({
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -79,6 +73,8 @@ Create information-dense paragraphs (4-6 sentences) that STRICTLY match ${diffic
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error('Error in generate-memorizer:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(

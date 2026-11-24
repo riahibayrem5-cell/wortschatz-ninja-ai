@@ -1,3 +1,4 @@
+import { geminiFetch, geminiErrorResponse } from "../_shared/ai.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -59,11 +60,6 @@ serve(async (req) => {
       .sort((a, b) => b[1] - a[1])
       .map(([area]) => area);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
     const currentWeek = learningPath?.current_week || 1;
     const targetLevel = learningPath?.target_level || 'B2';
     const minutes = availableMinutes || learningPath?.daily_goal_minutes || 30;
@@ -109,14 +105,12 @@ Respond ONLY with valid JSON in this exact format:
 
     console.log('Generating daily lesson for user:', user.id);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await geminiFetch({
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.6-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Generate today's personalized German learning lesson for a student preparing for TELC B2 exam.` }
@@ -172,6 +166,8 @@ Respond ONLY with valid JSON in this exact format:
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
+    const providerResponse = geminiErrorResponse(error, corsHeaders);
+    if (providerResponse) return providerResponse;
     console.error('Error in generate-daily-lesson:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
